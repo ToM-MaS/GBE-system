@@ -26,21 +26,29 @@ case "${GSE_ENV}" in
 
 	# Lower debug levels for productive installations
 	production)
-		echo "** Updating FreeSwitch debugging to production level"
-		sed -i "s/<map name=\"all\" value=\"debug,info,notice,warning,err,crit,alert\"\/>/<map name=\"all\" value=\"info,notice,warning,err,crit,alert\"\/>/" "${GS_DIR_NORMALIZED_LOCAL}/freeswitch/conf/freeswitch.xml"
+		if [ -f "${GS_DIR_NORMALIZED_LOCAL}/freeswitch/conf/freeswitch.xml" ]; then
+			echo "** Updating FreeSwitch debugging to production level"
+			sed -i "s/<map name=\"all\" value=\"debug,info,notice,warning,err,crit,alert\"\/>/<map name=\"all\" value=\"info,notice,warning,err,crit,alert\"\/>/" "${GS_DIR_NORMALIZED_LOCAL}/freeswitch/conf/freeswitch.xml"
+		fi
 
-		echo "** Updating Apache Passenger environment to production level"
-		sed -i "s/RailsEnv development/RailsEnv production/" "/etc/apache2/sites-available/gemeinschaft"
+		if [ -f "/etc/apache2/sites-available/gemeinschaft" ]; then
+			echo "** Updating Apache Passenger environment to production level"
+			sed -i "s/RailsEnv development/RailsEnv production/" "/etc/apache2/sites-available/gemeinschaft"
+		fi
 
 		;;
 
 	# Higher debug levels for development installations
 	development)
-		echo "** Updating FreeSwitch debugging to development level"
-		sed -i "s/<map name=\"all\" value=\"info,notice,warning,err,crit,alert\"\/>/<map name=\"all\" value=\"debug,info,notice,warning,err,crit,alert\"\/>/" "${GS_DIR_NORMALIZED_LOCAL}/freeswitch/conf/freeswitch.xml"
+		if [ -f "${GS_DIR_NORMALIZED_LOCAL}/freeswitch/conf/freeswitch.xml" ]; then
+			echo "** Updating FreeSwitch debugging to development level"
+			sed -i "s/<map name=\"all\" value=\"info,notice,warning,err,crit,alert\"\/>/<map name=\"all\" value=\"debug,info,notice,warning,err,crit,alert\"\/>/" "${GS_DIR_NORMALIZED_LOCAL}/freeswitch/conf/freeswitch.xml"
+		fi
 
-		echo "** Updating Apache Passenger environment to development level"
-		sed -i "s/RailsEnv production/RailsEnv development/" "/etc/apache2/sites-available/gemeinschaft"
+		if [ -f "/etc/apache2/sites-available/gemeinschaft" ]; then
+			echo "** Updating Apache Passenger environment to development level"
+			sed -i "s/RailsEnv production/RailsEnv development/" "/etc/apache2/sites-available/gemeinschaft"
+		fi
 
 		;;
 	*)
