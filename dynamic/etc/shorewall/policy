@@ -1,0 +1,3 @@
+net all DROP
+fw all ACCEPT
+all all REJECT

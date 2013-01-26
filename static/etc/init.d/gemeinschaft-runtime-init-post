@@ -1,0 +1,82 @@
+#! /bin/bash
+### BEGIN INIT INFO
+# Provides:          gemeinschaft-runtime-init-post
+# Required-Start:    hostname $local_fs $all
+# Required-Stop:     
+# X-Start-Before:    
+# Default-Start:     2 3 4 5
+# Default-Stop:      0 1 6
+# Short-Description: Updates certain configurations after reboot
+# Description:       Updates certain configurations after reboot to comply with current network settings
+### END INIT INFO
+
+# General settings
+[ -f /etc/gemeinschaft/system.conf ] && source /etc/gemeinschaft/system.conf || echo "FATAL ERROR: Local configuration file in /etc/gemeinschaft/system.conf missing"
+
+# Enforce root rights
+#
+if [[ ${EUID} -ne 0 ]];
+	then
+	echo "ERROR: `basename $0` needs to be run as root. Aborting ..."
+	exit 1
+fi
+
+case "$1" in
+start)
+	IPS="`hostname -I`"
+
+	if [[ x`cat /proc/cmdline | grep boot=live` != x"" ]]
+		then
+		LIVE=true
+	else
+		LIVE=false
+	fi
+
+	# Update dnsmasq configuration with current IPv4 address for auto-provisioning
+	for ADDRESS in ${IPS}
+	do
+		[[ ${ADDRESS} =~ ":" ]] && continue
+		echo "Updating DNSmasq configurations ..."
+		if [[ -f /etc/dnsmasq.d/gs_phone_vendors.conf ]]; then
+			sed -i "s/^dhcp-option=SNOM,66.*\$/dhcp-option=SNOM,66,https:\/\/${ADDRESS}:443/" /etc/dnsmasq.d/gs_phone_vendors.conf
+			sed -i "s/^dhcp-option=net:OpenStage,vendor:OptiIpPhone,3.*\$/dhcp-option=net:OpenStage,vendor:OptiIpPhone,3,\"sdlp:\/\/${ADDRESS}:443\"/" /etc/dnsmasq.d/gs_phone_vendors.conf
+			sed -i "s/^dhcp-option=POLYCOM,66.*\$/dhcp-option=POLYCOM,66,https:\/\/${ADDRESS}:443/" /etc/dnsmasq.d/gs_phone_vendors.conf
+		fi
+		if [[ -f /etc/dnsmasq.d/gemeinschaft_simple.conf ]]; then
+			sed -i "s/^#dhcp-range=.*proxy.*\$/#dhcp-range=${ADDRESS},proxy/" /etc/dnsmasq.d/gemeinschaft_simple.conf
+		fi
+		/etc/init.d/dnsmasq restart
+	done
+
+	# Update Gemeinschaft config with current IPv4 address
+	for ADDRESS in ${IPS}
+	do
+		[[ ${ADDRESS} =~ ":" ]] && continue
+
+		echo "Updating Gemeinschaft configurations ..."
+
+		# Update database settings
+		if [ -f "${GS_MYSQL_PASSWORD_FILE}" ];
+			then
+				MYSQL_PASSWD="`cat "${GS_MYSQL_PASSWORD_FILE}"`"
+				mysql -e "UPDATE gs_parameters SET value = '${ADDRESS}' WHERE name = 'HOMEBASE_IP_ADDRESS';" --user=${GS_MYSQL_USER} --password="${MYSQL_PASSWD}" ${GS_MYSQL_DB}
+		else
+			echo "ERROR: GS database password file ${GS_MYSQL_PASSWORD_FILE} not found"
+		fi
+
+	done
+
+	if [[ ${LIVE} == false && ${GS_ENFORCE_SECURITY_ON_BOOTUP} == true ]]
+		then
+
+		# Enforce file permissions
+		echo -n "Enforcing file permissions and security settings ... "
+		/usr/local/bin/gs-enforce-security.sh | grep -Ev retained | grep -Ev "no changes" | grep -Ev "nor referent has been changed"
+		echo "done"
+	fi
+
+	;;
+*)
+	# nothing to do
+	;;
+esac

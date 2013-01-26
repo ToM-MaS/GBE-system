@@ -1,0 +1,35 @@
+#! /bin/bash
+### BEGIN INIT INFO
+# Provides:          gemeinschaft-runtime-helper
+# Required-Start:    mysql apache2 gemeinschaft-runtime-init
+# Required-Stop:     
+# X-Start-Before:    freeswitch gemeinschaft-runtime-init-post
+# Default-Start:     2 3 4 5
+# Default-Stop:      0 1 6
+# Short-Description: Do some preparations before FreeSwitch
+# Description:       Do some preparations before FreeSwitch
+### END INIT INFO
+
+# General settings
+[ -f /etc/gemeinschaft/system.conf ] && source /etc/gemeinschaft/system.conf || echo "FATAL ERROR: Local configuration file in /etc/gemeinschaft/system.conf missing"
+
+# Enforce root rights
+#
+if [[ ${EUID} -ne 0 ]];
+	then
+	echo "ERROR: `basename $0` needs to be run as root. Aborting ..."
+	exit 1
+fi
+
+case "$1" in
+start)
+
+	# Heat up the cache
+	echo "Preparing Gemeinschaft Caching ..."
+	su - ${GS_USER} -c "cd ${GS_DIR_NORMALIZED}; RAILS_ENV=$RAILS_ENV rake heater:preheat"
+
+	;;
+*)
+	# nothing to do
+	;;
+esac
