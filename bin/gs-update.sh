@@ -305,18 +305,18 @@ if [[ "${MODE}" == "init" || "${MODE}" == "update" ]]; then
 		"${GSE_DIR_NORMALIZED}/bin/gs-enforce-security.sh" | grep -Ev retained | grep -Ev "no changes" | grep -Ev "nor referent has been changed"
 
 		echo "** Install Gems"
-		su - ${GS_USER} -c "cd \"${GS_DIR_NORMALIZED}\"; RAILS_ENV=$RAILS_ENV bundle install"
+		su - ${GSE_USER} -c "cd \"${GS_DIR_NORMALIZED}\"; RAILS_ENV=$RAILS_ENV bundle install"
 	fi
 
 	# Load database structure into DB
 	#
 	echo "** Initializing database"
-	su - ${GS_USER} -c "cd \"${GS_DIR_NORMALIZED}\"; RAILS_ENV=$RAILS_ENV bundle exec rake db:migrate --trace"
+	su - ${GSE_USER} -c "cd \"${GS_DIR_NORMALIZED}\"; RAILS_ENV=$RAILS_ENV bundle exec rake db:migrate --trace"
 
 	# Generate assets (like CSS)
 	#
 	echo "** Precompile GS assets"
-	su - ${GS_USER} -c "cd \"${GS_DIR_NORMALIZED}\"; RAILS_ENV=$RAILS_ENV bundle exec rake assets:precompile --trace"
+	su - ${GSE_USER} -c "cd \"${GS_DIR_NORMALIZED}\"; RAILS_ENV=$RAILS_ENV bundle exec rake assets:precompile --trace"
 fi
 
 # Finalize update

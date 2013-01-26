@@ -44,7 +44,7 @@ case $action in
 start)
   echo -n "Starting Gemeinschaft Application Server ... "
   sig 0 && echo >&2 "Already running" && exit 0
-  su - ${GS_USER} -c "$CMD"
+  su - ${GSE_USER} -c "$CMD"
   echo "ok"
   ;;
 stop)
@@ -61,7 +61,7 @@ restart|reload)
   echo -n "Restarting Gemeinschaft Application Server ... "
   sig HUP && echo "ok" && exit 0
   echo >&2 "Couldn't reload, starting instead"
-  su - ${GS_USER} -c "$CMD"
+  su - ${GSE_USER} -c "$CMD"
   ;;
 upgrade)
   echo -n "Upgrading Gemeinschaft Application Server ... "
@@ -83,7 +83,7 @@ upgrade)
     exit 0
   fi
   echo >&2 "Couldn't upgrade, starting instead"
-  su - ${GS_USER} -c "$CMD"
+  su - ${GSE_USER} -c "$CMD"
   ;;
 kill_worker)
   workersig QUIT $2 && exit 0

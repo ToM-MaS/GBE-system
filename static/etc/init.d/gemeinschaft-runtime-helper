@@ -26,7 +26,7 @@ start)
 
 	# Heat up the cache
 	echo "Preparing Gemeinschaft Caching ..."
-	su - ${GS_USER} -c "cd ${GS_DIR_NORMALIZED}; RAILS_ENV=$RAILS_ENV rake heater:preheat"
+	su - ${GSE_USER} -c "cd ${GS_DIR_NORMALIZED}; RAILS_ENV=$RAILS_ENV rake heater:preheat"
 
 	;;
 *)

@@ -40,7 +40,11 @@ case "$1" in
 
     	case $yn in
         	Y|y )
-
+				cd "${GSE_DIR_NORMALIZED}"
+				git clean -fdx && git reset --hard HEAD
+				$0 --force-init
+				echo "** Enforcing file permissions and security settings ..."
+				"${GSE_DIR_NORMALIZED}/bin/gs-enforce-security.sh" | grep -Ev retained | grep -Ev "no changes" | grep -Ev "nor referent has been changed"
 				break
 			;;
 
@@ -265,7 +269,7 @@ if [[ "${MODE}" == "init" || "${MODE}" == "self-update" ]]; then
 
 	# Remove Git remote reference
 	echo "** Remove Git remote reference"
-	GS_GIT_REMOTE="`git --git-dir="${GSE_DIR_NORMALIZED}/.git" remote`"
+	GSE_GIT_REMOTE="`git --git-dir="${GSE_DIR_NORMALIZED}/.git" remote`"
 	for _REMOTE in ${GSE_GIT_REMOTE}; do
 		cd "${GSE_DIR_NORMALIZED}"; git remote rm ${_REMOTE}
 	done
