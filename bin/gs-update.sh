@@ -50,7 +50,7 @@ case "$1" in
 	MODE="factory-reset"
 	while true; do
     	echo "ATTENTION! This will do a factory reset, all your data will be LOST!"
-    	read -p "Continue? (y/n) : " yn
+    	read -p "Continue? (y/N) : " yn
 
     	case $yn in
         	Y|y )
@@ -296,13 +296,13 @@ if [[ "${MODE}" == "init" || "${MODE}" == "update" ]]; then
 
 	# Enforce debug level according to GS_ENV
 	#
-	/usr/local/bin/gs-change-state.sh
+	"${GSE_DIR_NORMALIZED}/bin/gs-change-state.sh"
 
 	# Special tasks for update only
 	#
 	if [[ "${MODE}" == "update" ]]; then
 		echo "** Enforcing file permissions and security settings ..."
-		/usr/local/bin/gs-enforce-security.sh | grep -Ev retained | grep -Ev "no changes" | grep -Ev "nor referent has been changed"
+		"${GSE_DIR_NORMALIZED}/bin/gs-enforce-security.sh" | grep -Ev retained | grep -Ev "no changes" | grep -Ev "nor referent has been changed"
 
 		echo "** Install Gems"
 		su - ${GS_USER} -c "cd \"${GS_DIR_NORMALIZED}\"; RAILS_ENV=$RAILS_ENV bundle install"

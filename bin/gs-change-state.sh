@@ -22,7 +22,7 @@ if [[ ${EUID} -ne 0 ]];
 	exit 1
 fi
 
-case "${GS_ENV}" in
+case "${GSE_ENV}" in
 
 	# Lower debug levels for productive installations
 	production)
@@ -44,7 +44,7 @@ case "${GS_ENV}" in
 
 		;;
 	*)
-		echo "Incorrect setting for GS_ENV in /etc/gemeinschaft/system.conf"
+		echo "Incorrect setting for GSE_ENV in /etc/gemeinschaft/system.conf"
 		exit 3
 		;;
 esac

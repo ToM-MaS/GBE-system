@@ -58,6 +58,10 @@ case "$1" in
 	MODE="update"
 	;;
 
+	--force-selfupdate)
+	MODE="self-update"
+	;;
+
 	--force-init)
 	MODE="init"
 	;;
@@ -95,7 +99,7 @@ case "$1" in
 "
 
 	while true; do
-	    read -p "Do you want to continue? (Y/n) : " yn
+	    read -p "Do you want to continue? (y/N) : " yn
 	    case $yn in
 	        y|Y ) break;;
 	        * ) echo "Aborting ..."; exit;;
@@ -201,14 +205,65 @@ password ${GSE_GIT_PASSWORD}
 	echo "** Rename and backup old files in \"${GSE_DIR}\""
 	[ ! -d "${GSE_DIR}.${GSE_VERSION}" ] && mv "${GSE_DIR}" "${GSE_DIR}.${GSE_VERSION} "|| rm -rf "${GSE_DIR}"
 	mv ${GSE_UPDATE_DIR} ${GSE_DIR}
+	
+	# Run self-update
+	#
+	"${GSE_DIR_NORMALIZED}/bin/gse-update.sh --force-selfupdate" &
+	exit 0
 fi
 
 
 # Run essential init and update commands
 #
-if [[ "${MODE}" == "init" || "${MODE}" == "update" ]]; then
-	# Remove Git remote reference
+if [[ "${MODE}" == "init" || "${MODE}" == "self-update" ]]; then
+	# Symlink public commands
+	ln -sf "${GSE_DIR_NORMALIZED}/bin/gs-update.sh" /usr/bin/gs-update
+	ln -sf "${GSE_DIR_NORMALIZED}/bin/gse-update.sh" /usr/bin/gse-update
+	ln -sf "${GSE_DIR_NORMALIZED}/bin/gs-addon.sh" /usr/bin/gs-addon
+
+	cd "${GSE_DIR}"
+
+	# Symlink static system files users should not need to change
 	#
+	GSE_FILES_STATIC="`find static/ -type f`"
+	for _FILE in ${GSE_FILES_STATIC}; do
+		# strip prefix "static/"
+		GSE_FILE_SYSTEMPATH="/${_FILE#*/}"
+
+		echo -e "** Symlinking file '${GSE_FILE_SYSTEMPATH}'"
+
+		# make sure destination path exists
+		mkdir -p "${GSE_FILE_SYSTEMPATH%/*}"
+
+		# Backup any existing file
+		[ -f "${GSE_FILE_SYSTEMPATH}" ] && mv -f "${GSE_FILE_SYSTEMPATH}" "${GSE_FILE_SYSTEMPATH}.default-gse"
+
+		# Symlink file
+		rm -f "${GSE_FILE_SYSTEMPATH}"
+		ln -s "${GSE_DIR_NORMALIZED}/${_FILE}" "${GSE_FILE_SYSTEMPATH}"
+	done
+
+	# Copy dynamic configuration files users may change
+	#
+	GSE_FILES_DYNAMIC="`find dynamic/ -type f`"
+	for _FILE in ${GSE_FILES_DYNAMIC}; do
+		# strip prefix "dynamic/"
+		GSE_FILE_SYSTEMPATH="/${_FILE#*/}"
+
+		# make sure destination path exists
+		mkdir -p "${GSE_FILE_SYSTEMPATH%/*}"
+
+		# Copy file
+		if [ "${MODE}" == "init" ]; then
+			echo -e "** Force installing file '${GSE_FILE_SYSTEMPATH}'"
+			cp -f "${GSE_DIR_NORMALIZED}/${_FILE}" "${GSE_FILE_SYSTEMPATH}"
+		elif [ ! -f "${GSE_FILE_SYSTEMPATH}" ]; then
+			echo -e "** Installing file '${GSE_FILE_SYSTEMPATH}'"
+			cp -n "${GSE_DIR_NORMALIZED}/${_FILE}" "${GSE_FILE_SYSTEMPATH}"
+		fi
+	done
+
+	# Remove Git remote reference
 	echo "** Remove Git remote reference"
 	GS_GIT_REMOTE="`git --git-dir="${GSE_DIR_NORMALIZED}/.git" remote`"
 	for _REMOTE in ${GSE_GIT_REMOTE}; do
@@ -216,14 +271,15 @@ if [[ "${MODE}" == "init" || "${MODE}" == "update" ]]; then
 	done
 
 	# Enforce debug level according to GSE_ENV
-	#
-	/usr/local/bin/gs-change-state.sh
+	"${GSE_DIR_NORMALIZED}/bin/gs-change-state.sh"
+
+	cd - 2>&1 >/dev/null
 fi
 
 
 # Finalize update
 #
-if [[ "${MODE}" == "update" ]]; then
+if [[ "${MODE}" == "self-update" ]]; then
 	echo "** Enforcing file permissions and security settings ..."
-	/usr/local/bin/gs-enforce-security.sh | grep -Ev retained | grep -Ev "no changes" | grep -Ev "nor referent has been changed"
+	"${GSE_DIR_NORMALIZED}/bin/gs-enforce-security.sh" | grep -Ev retained | grep -Ev "no changes" | grep -Ev "nor referent has been changed"
 fi

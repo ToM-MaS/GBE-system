@@ -80,8 +80,8 @@ chmod -v 0770 /var/log/mon_ami
 chown -vR freeswitch.root /var/spool/freeswitch
 
 # Allow GS service account some system commands via sudo
-echo "Cmnd_Alias UPDATE = /usr/local/bin/gs-update.sh --force-update-init" > /etc/sudoers.d/gemeinschaft
-echo "Cmnd_Alias UPDATE_CANCEL = /usr/local/bin/gs-update.sh --cancel" >> /etc/sudoers.d/gemeinschaft
+echo "Cmnd_Alias UPDATE = gs-update --force-update-init" > /etc/sudoers.d/gemeinschaft
+echo "Cmnd_Alias UPDATE_CANCEL = gs-update --cancel" >> /etc/sudoers.d/gemeinschaft
 echo "Cmnd_Alias SHUTDOWN = /sbin/shutdown -h now" >> /etc/sudoers.d/gemeinschaft
 echo "Cmnd_Alias REBOOT = /sbin/shutdown -r now" >> /etc/sudoers.d/gemeinschaft
 echo "Cmnd_Alias FW = /usr/sbin/service shorewall refresh" >> /etc/sudoers.d/gemeinschaft

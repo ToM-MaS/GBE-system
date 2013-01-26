@@ -47,7 +47,7 @@ start)
 	if [[ -d "${GS_DIR}.update" ]];
 		then
 		echo "*** Found update files, processing update tasks now ..."
-		/usr/local/bin/gs-update.sh --force-update
+		"${GSE_DIR_NORMALIZED}/bin/gs-update.sh" --force-update
 	fi
 
 	;;
