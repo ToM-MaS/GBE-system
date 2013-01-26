@@ -256,10 +256,10 @@ if [[ "${MODE}" == "init" || "${MODE}" == "self-update" ]]; then
 		# Copy file
 		if [ "${MODE}" == "init" ]; then
 			echo -e "** Force installing file '${GSE_FILE_SYSTEMPATH}'"
-			cp -f "${GSE_DIR_NORMALIZED}/${_FILE}" "${GSE_FILE_SYSTEMPATH}"
+			cp -df "${GSE_DIR_NORMALIZED}/${_FILE}" "${GSE_FILE_SYSTEMPATH}"
 		elif [ ! -f "${GSE_FILE_SYSTEMPATH}" ]; then
 			echo -e "** Installing file '${GSE_FILE_SYSTEMPATH}'"
-			cp -n "${GSE_DIR_NORMALIZED}/${_FILE}" "${GSE_FILE_SYSTEMPATH}"
+			cp -dn "${GSE_DIR_NORMALIZED}/${_FILE}" "${GSE_FILE_SYSTEMPATH}"
 		fi
 	done
 
