@@ -340,7 +340,7 @@ if [[ "${MODE}" == "self-update" || "${MODE}" == "factory-reset" ]]; then
 	# Re-generate prompt files and update version in /etc/gemeinschaft/system.conf
 	/etc/init.d/gemeinschaft-prompt start
 
-	echo -e "\n\n***    ------------------------------------------------------------------"
-	echo -e "***     Task completed SUCCESSFULLY!"
-	echo -e "***    ------------------------------------------------------------------\n\n"
+echo -e "\n\n***    ------------------------------------------------------------------"
+echo -e "***     Task completed SUCCESSFULLY! "
+echo -e "***    ------------------------------------------------------------------\n\n"
 fi
