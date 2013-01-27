@@ -151,7 +151,23 @@ case "$1" in
 	while true; do
 	    read -p "If you understand the risk, please confirm by entering \"OK\" : " yn
 	    case $yn in
-	        OK|ok ) echo -e "\nRisk accepted.\n\n"; break;;
+	        OK|ok )
+				echo -e "\nRisk accepted.\n\n"
+			
+				# Do self-update via GSE first
+				cd ~
+				"${GSE_DIR_NORMALIZED}/bin/gse-update.sh" --force-update
+				if [[ $? -ne 0 ]]; then
+					echo "In front update of System Environment FAILED! Aborting ..."
+					exit 1
+				else
+					"${GSE_DIR_NORMALIZED}/bin/gs-update.sh" --force-update-init
+					exit 0
+				fi
+
+				break
+				;;
+
 	        * ) echo "Aborting ..."; exit;;
 	    esac
 	done
@@ -159,16 +175,6 @@ case "$1" in
 	;;
 esac
 
-# Do self-update via GSE first
-cd ~
-"${GSE_DIR_NORMALIZED}/bin/gse-update.sh" --force-update
-if [[ $? -ne 0 ]]; then
-	echo "In front update of System Environment FAILED! Aborting ..."
-	exit 1
-else
-	"${GSE_DIR_NORMALIZED}/bin/gs-update.sh" --force-update-init
-	exit 0
-fi
 
 # Prepare for system update
 #
