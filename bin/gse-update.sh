@@ -229,9 +229,10 @@ password ${GSE_GIT_PASSWORD}
 	# Run self-update
 	#
 	echo "** Rename and backup old files in \"${GSE_DIR}\""
+	cd ~
 	[ ! -d "${GSE_DIR}.${GSE_VERSION}" ] && mv "${GSE_DIR}" "${GSE_DIR}.${GSE_VERSION}" || rm -rf "${GSE_DIR}"
 	mv "${GSE_UPDATE_DIR}" "${GSE_DIR}"
-	"${GSE_DIR_NORMALIZED}/bin/gse-update.sh" --force-selfupdate &
+	"${GSE_DIR_NORMALIZED}/bin/gse-update.sh" --force-selfupdate
 	exit 0
 fi
 
@@ -335,6 +336,9 @@ fi
 if [[ "${MODE}" == "self-update" || "${MODE}" == "factory-reset" ]]; then
 	echo "** Enforcing file permissions and security settings ..."
 	"${GSE_DIR_NORMALIZED}/bin/gs-enforce-security.sh" | grep -Ev retained | grep -Ev "no changes" | grep -Ev "nor referent has been changed"
+
+	# Re-generate prompt files and update version in /etc/gemeinschaft/system.conf
+	/etc/init.d/gemeinschaft-prompt start
 
 	echo -e "\n\n***    ------------------------------------------------------------------"
 	echo -e "***     Task completed SUCCESSFULLY!"
