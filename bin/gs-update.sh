@@ -126,9 +126,9 @@ case "$1" in
 	echo "
 ***    ------------------------------------------------------------------
 ***     GEMEINSCHAFT UPDATE
-***     Current version: ${GS_VERSION}
-***     Branch: ${GS_BRANCH}
-***     Base System Build: ${GS_BUILDNAME}
+***     Current GS version: ${GS_VERSION}
+***     GS Branch: ${GS_BRANCH}
+***     Base System Build: #${GS_BUILDNAME}
 ***    ------------------------------------------------------------------
 ***
 ***     ATTENTION! Please read the following information CAREFULLY!

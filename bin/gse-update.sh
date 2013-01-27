@@ -63,9 +63,9 @@ case "$1" in
 	echo "
 ***    ------------------------------------------------------------------
 ***     GEMEINSCHAFT SYSTEM ENVIRONMENT UPDATE
-***     Current version: ${GSE_VERSION}
-***     Branch: ${GSE_BRANCH}
-***     Base System Build: ${GS_BUILDNAME}
+***     Current GSE version: ${GSE_VERSION}
+***     GSE Branch: ${GSE_BRANCH}
+***     Base System Build: #${GS_BUILDNAME}
 ***    ------------------------------------------------------------------
 ***
 ***     ATTENTION! Please read the following information CAREFULLY!
@@ -340,7 +340,7 @@ if [[ "${MODE}" == "self-update" || "${MODE}" == "factory-reset" ]]; then
 	# Re-generate prompt files and update version in /etc/gemeinschaft/system.conf
 	/etc/init.d/gemeinschaft-prompt start
 
-echo -e "\n\n***    ------------------------------------------------------------------"
-echo -e "***     Task completed SUCCESSFULLY! "
-echo -e "***    ------------------------------------------------------------------\n\n"
+	echo -e "\n\n***    ------------------------------------------------------------------"
+	echo -e "***     Task completed SUCCESSFULLY! "
+	echo -e "***    ------------------------------------------------------------------\n\n"
 fi
