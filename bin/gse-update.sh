@@ -34,28 +34,6 @@ case "$1" in
 
 	--factory-reset)
 	MODE="factory-reset"
-	while true; do
-    	echo "ATTENTION! This will do a factory reset of the SYSTEM ENVIRONMENT, all customizations will be LOST!"
-    	read -p "Continue? (y/n) : " yn
-
-    	case $yn in
-        	Y|y )
-				cd "${GSE_DIR_NORMALIZED}"
-				git clean -fdx && git reset --hard HEAD
-				$0 --force-init
-				echo "** Enforcing file permissions and security settings ..."
-				"${GSE_DIR_NORMALIZED}/bin/gs-enforce-security.sh" | grep -Ev retained | grep -Ev "no changes" | grep -Ev "nor referent has been changed"
-				break
-			;;
-
-        	* )
-				echo "Aborting ...";
-				break
-			;;
-    	esac
-
-		exit
-	done
 	;;
 
 	--force-update)
@@ -326,9 +304,39 @@ if [[ "${MODE}" == "init" || "${MODE}" == "self-update" ]]; then
 fi
 
 
-# Finalize update
+# Factory reset
 #
-if [[ "${MODE}" == "self-update" ]]; then
+if [[ "${MODE}" == "factory-reset" ]]; then
+	while true; do
+		echo "ATTENTION! This will do a factory reset of the SYSTEM ENVIRONMENT, all customizations will be LOST!"
+		read -p "Continue? (y/n) : " yn
+
+		case $yn in
+	    	Y|y )
+				cd "${GSE_DIR_NORMALIZED}"
+				git clean -fdx && git reset --hard HEAD
+				$0 --force-init
+				break
+			;;
+
+	    	N|n )
+				echo "Aborting ...";
+				break
+			;;
+		esac
+
+		exit
+	done
+fi
+
+
+# Finalize update or factory reset
+#
+if [[ "${MODE}" == "self-update" || "${MODE}" == "factory-reset" ]]; then
 	echo "** Enforcing file permissions and security settings ..."
 	"${GSE_DIR_NORMALIZED}/bin/gs-enforce-security.sh" | grep -Ev retained | grep -Ev "no changes" | grep -Ev "nor referent has been changed"
+
+	echo -e "\n\n***    ------------------------------------------------------------------"
+	echo -e "***     Task completed SUCCESSFULLY!"
+	echo -e "***    ------------------------------------------------------------------\n\n"
 fi
