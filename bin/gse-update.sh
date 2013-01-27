@@ -299,7 +299,9 @@ if [[ "${MODE}" == "init" || "${MODE}" == "self-update" ]]; then
 	done
 
 	# Enforce debug level according to GSE_ENV
+	set +e
 	"${GSE_DIR_NORMALIZED}/bin/gs-change-state.sh"
+	set -e
 
 	cd - 2>&1 >/dev/null
 fi
@@ -335,7 +337,9 @@ fi
 #
 if [[ "${MODE}" == "self-update" || "${MODE}" == "factory-reset" ]]; then
 	echo "** Enforcing file permissions and security settings ..."
+	set +e
 	"${GSE_DIR_NORMALIZED}/bin/gs-enforce-security.sh" | grep -Ev retained | grep -Ev "no changes" | grep -Ev "nor referent has been changed"
+	set -e
 
 	# Re-generate prompt files and update version in /etc/gemeinschaft/system.conf
 	/etc/init.d/gemeinschaft-prompt start

@@ -313,13 +313,17 @@ if [[ "${MODE}" == "init" || "${MODE}" == "update" ]]; then
 
 	# Enforce debug level according to GS_ENV
 	#
+	set +e
 	"${GSE_DIR_NORMALIZED}/bin/gs-change-state.sh"
+	set -e
 
 	# Special tasks for update only
 	#
 	if [[ "${MODE}" == "update" ]]; then
 		echo "** Enforcing file permissions and security settings ..."
+		set +e
 		"${GSE_DIR_NORMALIZED}/bin/gs-enforce-security.sh" | grep -Ev retained | grep -Ev "no changes" | grep -Ev "nor referent has been changed"
+		set -e
 
 		echo "** Install Gems"
 		su - ${GSE_USER} -c "cd \"${GS_DIR_NORMALIZED}\"; RAILS_ENV=$RAILS_ENV bundle install"
