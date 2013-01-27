@@ -1,0 +1,148 @@
+#! /bin/bash
+### BEGIN INIT INFO
+# Provides:          gemeinschaft-prompt
+# Required-Start:    $local_fs $all
+# Required-Stop:     
+# Default-Start:     2 3 4 5
+# Default-Stop:      0 1 6
+# Short-Description: Gemeinschaft Login screen
+# Description:       
+### END INIT INFO
+#
+# Create customized login screen for Gemeinschaft 5
+#
+
+# General settings
+[ -f /etc/gemeinschaft/system.conf ] && source /etc/gemeinschaft/system.conf || echo "FATAL ERROR: Local configuration file in /etc/gemeinschaft/system.conf missing"
+
+# Enforce root rights
+#
+if [[ ${EUID} -ne 0 ]];
+	then
+	echo "ERROR: `basename $0` needs to be run as root. Aborting ..."
+	exit 1
+fi
+
+# Read GSE version from Git repo and update local config file
+#
+cd "${GSE_DIR_NORMALIZED}"
+GSE_LATEST_VERSION="`git tag -l | tail -n1`"
+GSE_CURRENT_REVISION="`git rev-parse --abbrev-ref HEAD`"
+cd - 2>&1>/dev/null
+
+if [[ "${GSE_CURRENT_REVISION}" == "master" || "${GSE_CURRENT_REVISION}" == "HEAD" ]]; then
+	GSE_VERSION_EXTRACTED="${GSE_LATEST_VERSION}"
+else
+	GSE_VERSION_MINOR="`echo ${GSE_LATEST_VERSION##*.} | sed -e 's/^.*\([0-9]\)$/\1/'`"
+	GSE_VERSION_NEXT="`expr ${GSE_VERSION_MINOR} + 1`"
+	GSE_VERSION_EXTRACTED="${GSE_LATEST_VERSION%${GSE_VERSION_MINOR}}${GSE_VERSION_NEXT}-${GSE_BRANCH}"
+fi
+
+if [ "${GSE_VERSION_EXTRACTED}" != "${GSE_VERSION}" ]; then
+	GSE_VERSION="${GSE_VERSION_EXTRACTED}"
+	mv -f /etc/gemeinschaft/system.conf /etc/gemeinschaft/system.conf.bak
+	grep -Ev ^GSE_VERSION= /etc/gemeinschaft/system.conf.bak > /etc/gemeinschaft/system.conf
+	echo "GSE_VERSION=\"${GSE_VERSION}\"" >> /etc/gemeinschaft/system.conf
+fi
+
+
+# Read GS version from Git repo and update local config file
+#
+cd "${GS_DIR_NORMALIZED}"
+GS_LATEST_VERSION="`git tag -l | tail -n1`"
+GS_CURRENT_REVISION="`git rev-parse --abbrev-ref HEAD`"
+cd - 2>&1>/dev/null
+
+if [[ "${GS_CURRENT_REVISION}" == "master" || "${GS_CURRENT_REVISION}" == "HEAD" ]]; then
+	GS_VERSION_EXTRACTED="${GS_LATEST_VERSION}"
+else
+	GS_VERSION_MINOR="`echo ${GS_LATEST_VERSION##*.} | sed -e 's/^.*\([0-9]\)$/\1/'`"
+	GS_VERSION_NEXT="`expr ${GS_VERSION_MINOR} + 1`"
+	GS_VERSION_EXTRACTED="${GS_LATEST_VERSION%${GS_VERSION_MINOR}}${GS_VERSION_NEXT}-${GS_BRANCH}"
+fi
+
+if [ "${GS_VERSION_EXTRACTED}" != "${GS_VERSION}" ]; then
+	GS_VERSION="${GS_VERSION_EXTRACTED}"
+	mv -f /etc/gemeinschaft/system.conf /etc/gemeinschaft/system.conf.bak
+	grep -Ev ^GS_VERSION= /etc/gemeinschaft/system.conf.bak > /etc/gemeinschaft/system.conf
+	echo "GS_VERSION=\"${GS_VERSION}\"" >> /etc/gemeinschaft/system.conf
+fi
+
+# Check for live status
+#
+if [[ x`cat /proc/cmdline | grep boot=live` != x"" ]]
+	then
+	LIVE=true
+else
+	LIVE=false
+fi
+
+# Get network configuration details
+#
+sleep 1
+IPS="`/bin/hostname -I`"
+FQDN="`/bin/hostname -f`"
+
+#
+# Write login screen to /etc/issue
+#
+
+echo "
+***      _____                                               _____
+***     (.---.)                 GEMEINSCHAFT 5              (.---.)
+***      /:::\\\ _.-----------------------------------------._ /:::\\\ 
+***      -----                                               -----
+***     Version: ${GS_VERSION} #${GS_BUILDNAME}
+***    -------------------------------------------------------------
+***
+***     You have to configure Gemeinschaft with a web browser:
+***" > /etc/issue
+
+if [[ -z "${IPS}" ]]; then
+	echo "***     - FAILED network configuration detection -" >> /etc/issue
+	echo "***" >> /etc/issue
+else
+	for ADDRESS in ${FQDN} ${IPS}
+	do
+		[[ ${ADDRESS} =~ "localhost" ]] && echo "***" >> /etc/issue && continue
+		[[ ${ADDRESS} =~ ":" ]] && ADDRESS="["${ADDRESS}"]" 
+		echo "***     http://${ADDRESS}" >> /etc/issue
+	done
+fi
+
+echo "***
+***
+***
+***" >> /etc/issue
+
+if [[ ${LIVE} == true ]]
+	then
+	echo "***     DEMO LIVE SYSTEM - ALL CHANGES WILL BE LOST AFTER A REBOOT!" >> /etc/issue
+	echo "***" >> /etc/issue
+	echo "***     LOGIN        : gsmaster" >> /etc/issue
+    echo "***     PASSWORD     : `cat /home/gsmaster/.password`" >> /etc/issue
+else
+	echo "***" >> /etc/issue
+	echo "***" >> /etc/issue
+	echo "***" >> /etc/issue
+	echo "***" >> /etc/issue
+fi
+
+echo "***     Documentation: Visit http://amooma.de/gemeinschaft/gs5
+***    _____________________________________________________________
+***          brought to you by AMOOMA GmbH  - http://amooma.de
+" >> /etc/issue
+
+
+#
+# Write motd and issue.net
+#
+echo "Welcome to GEMEINSCHAFT ${GS_VERSION} #${GS_BUILDNAME}" > /etc/issue.net
+echo "
+***   Welcome to GEMEINSCHAFT ${GS_VERSION} #${GS_BUILDNAME}
+***
+***   Need help with Gemeinschaft? We have an excellent free mailinglist
+***   and offer the best support and consulting money can buy. Have a
+***   look at http://amooma.de/gemeinschaft/gs5 for more information.
+***
+" > /etc/motd

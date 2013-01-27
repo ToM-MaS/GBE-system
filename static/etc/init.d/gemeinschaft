@@ -1,0 +1,100 @@
+#!/bin/bash
+
+### BEGIN INIT INFO
+# Provides:          gemeinschaft
+# Required-Start:    mysql gemeinschaft-runtime-init
+# Required-Stop:
+# X-Start-Before:    nginx
+# Default-Start:     2 3 4 5
+# Default-Stop:      0 1 6
+# Short-Description: Application server for Gemeinschaft
+# Description:       
+### END INIT INFO
+
+# General settings
+[ -f /etc/gemeinschaft/system.conf ] && source /etc/gemeinschaft/system.conf || echo "FATAL ERROR: Local configuration file in /etc/gemeinschaft/system.conf missing"
+set -e
+
+TIMEOUT=${TIMEOUT-60}
+APP_ROOT="${GS_DIR_NORMALIZED}"
+PID="${APP_ROOT}/tmp/pids/unicorn.pid"
+ENVIRONMENT="${GS_ENV}"
+CMD="cd \"${APP_ROOT}\"; bundle exec unicorn -E $ENVIRONMENT -D -c \"${APP_ROOT}/config/unicorn.rb\""
+action="$1"
+set -u
+
+old_pid="$PID.oldbin"
+ 
+cd "${APP_ROOT}" || exit 1
+
+sig () {
+  test -s "$PID" && kill -$1 `cat $PID`
+}
+
+oldsig () {
+  test -s $old_pid && kill -$1 `cat $old_pid`
+}
+
+workersig () {
+  workerpid="$APP_ROOT/tmp/pids/unicorn.$2.pid"
+  test -s "$workerpid" && kill -$1 `cat $workerpid`
+}
+
+case $action in
+start)
+  echo -n "Starting Gemeinschaft Application Server ... "
+  sig 0 && echo >&2 "Already running" && exit 0
+  su - ${GSE_USER} -c "$CMD"
+  echo "ok"
+  ;;
+stop)
+  echo -n "Stopping Gemeinschaft Application Server ... "
+  sig QUIT && echo "ok" && exit 0
+  echo >&2 "Not running"
+  ;;
+force-stop)
+  echo -n "Stopping Gemeinschaft Application Server ... "
+  sig TERM && echo "ok" && exit 0
+  echo >&2 "Not running"
+  ;;
+restart|reload)
+  echo -n "Restarting Gemeinschaft Application Server ... "
+  sig HUP && echo "ok" && exit 0
+  echo >&2 "Couldn't reload, starting instead"
+  su - ${GSE_USER} -c "$CMD"
+  ;;
+upgrade)
+  echo -n "Upgrading Gemeinschaft Application Server ... "
+  if sig USR2 && sleep 20 && sig 0 && oldsig QUIT
+  then
+    n="${TIMEOUT}"
+    while test -s $old_pid && test $n -ge 0
+    do
+      printf '.' && sleep 1 && n=$(( $n - 1 ))
+    done
+    echo
+ 
+    if test $n -lt 0 && test -s $old_pid
+    then
+      echo >&2 "$old_pid still exists after $TIMEOUT seconds"
+      exit 1
+    fi
+	echo "ok"
+    exit 0
+  fi
+  echo >&2 "Couldn't upgrade, starting instead"
+  su - ${GSE_USER} -c "$CMD"
+  ;;
+kill_worker)
+  workersig QUIT $2 && exit 0
+  echo >&2 "Worker not running"
+  ;;
+ 
+reopen-logs)
+  sig USR1
+  ;;
+*)
+  echo >&2 "Usage: $0 <start|stop|restart|upgrade|force-stop|reopen-logs>"
+  exit 1
+  ;;
+esac
