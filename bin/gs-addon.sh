@@ -11,7 +11,7 @@
 [ -f /etc/gemeinschaft/system.conf ] && source /etc/gemeinschaft/system.conf || echo "FATAL ERROR: Local configuration file in /etc/gemeinschaft/system.conf missing"
 
 GSE_ADDON_DIR="${GSE_DIR_NORMALIZED}/lib/addons"
-GSE_ADDON_STATUSFILE="${GSE_ADDON_STATUSFILE}"
+GSE_ADDON_STATUSFILE="/var/local/.gse_addon_status"
 
 # Enforce root rights
 #
