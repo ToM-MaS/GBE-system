@@ -90,12 +90,10 @@ case "$1" in
 			;;
 
         	* )
-				echo "Aborting ...";
-				break
+				echo "Aborting ..."
+				exit
 			;;
     	esac
-
-		exit
 	done
 	;;
 

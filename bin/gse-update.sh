@@ -312,7 +312,7 @@ fi
 if [[ "${MODE}" == "factory-reset" ]]; then
 	while true; do
 		echo "ATTENTION! This will do a factory reset of the SYSTEM ENVIRONMENT, all customizations will be LOST!"
-		read -p "Continue? (y/n) : " yn
+		read -p "Continue? (y/N) : " yn
 
 		case $yn in
 	    	Y|y )
@@ -322,13 +322,11 @@ if [[ "${MODE}" == "factory-reset" ]]; then
 				break
 			;;
 
-	    	N|n )
-				echo "Aborting ...";
-				break
+	    	* )
+				echo "Aborting ..."
+				exit
 			;;
 		esac
-
-		exit
 	done
 fi
 
