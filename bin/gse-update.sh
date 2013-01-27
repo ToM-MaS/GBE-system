@@ -233,7 +233,7 @@ password ${GSE_GIT_PASSWORD}
 	[ ! -d "${GSE_DIR}.${GSE_VERSION}" ] && mv "${GSE_DIR}" "${GSE_DIR}.${GSE_VERSION}" || rm -rf "${GSE_DIR}"
 	mv "${GSE_UPDATE_DIR}" "${GSE_DIR}"
 	"${GSE_DIR_NORMALIZED}/bin/gse-update.sh" --force-selfupdate
-	exit 0
+	exit $?
 fi
 
 

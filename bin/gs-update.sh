@@ -162,7 +162,7 @@ case "$1" in
 					exit 1
 				else
 					"${GSE_DIR_NORMALIZED}/bin/gs-update.sh" --force-update-init
-					exit 0
+					exit $?
 				fi
 
 				break
