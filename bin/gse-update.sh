@@ -164,19 +164,19 @@ password ${GSE_GIT_PASSWORD}
 	if [[ "${GSE_GIT_REVISION}" == "${GSE_REVISION}" ]]; then
 		rm -rf "${GSE_UPDATE_DIR}"*
 		echo -e "\n\n***    ------------------------------------------------------------------"
-		echo -e "***     You have already installed the latest version, no update needed."
+		echo -e "***     System Environment is already up-to-date, no update needed."
 		echo -e "***    ------------------------------------------------------------------\n\n"
 		exit 0
 	elif [[ "${GSE_GIT_VERSION:0:3}" == "${GSE_VERSION:0:3}" || x"${GSE_GIT_VERSION}" == x"" ]]; then
 		[ "${GSE_BRANCH}" != "master" ] && GSE_GIT_VERSION="from ${GSE_BRANCH} branch"
 		mv "${GSE_UPDATE_DIR}.tmp" "${GSE_UPDATE_DIR}"
 		echo -e "\n\n***    ------------------------------------------------------------------"
-		echo -e "***     Installing new version ${GSE_GIT_VERSION}"
+		echo -e "***     Updating System Environment to new version ${GSE_GIT_VERSION}"
 		echo -e "***    ------------------------------------------------------------------\n\n"
 	else
 		rm -rf "${GSE_UPDATE_DIR}"*
 		echo -e "\n\n***    ------------------------------------------------------------------"
-		echo -e "***     Update to the next major version ${GSE_GIT_VERSION} is not supported\n***     via this script.\n***     Please use backup & restore via web interface."
+		echo -e "***     Updating GSE to the next major version ${GSE_GIT_VERSION} is not supported\n***     via this script.\n***     Please use backup & restore via web interface."
 		echo -e "***    ------------------------------------------------------------------\n\n"
 		exit 1
 	fi

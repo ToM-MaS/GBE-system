@@ -159,6 +159,17 @@ case "$1" in
 	;;
 esac
 
+# Do self-update via GSE first
+cd ~
+"${GSE_DIR_NORMALIZED}/bin/gse-update.sh" --force-update
+if [[ $? -ne 0 ]]; then
+	echo "In front update of System Environment FAILED! Aborting ..."
+	exit 1
+else
+	"${GSE_DIR_NORMALIZED}/bin/gs-update.sh" --force-update-init
+	exit 0
+fi
+
 # Prepare for system update
 #
 if [[ "${MODE}" == "update-init" ]]; then
