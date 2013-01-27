@@ -23,6 +23,29 @@ if [[ ${EUID} -ne 0 ]];
 	exit 1
 fi
 
+# Read GSE version from Git repo and update local config file
+#
+cd "${GSE_DIR_NORMALIZED}"
+GSE_LATEST_VERSION="`git tag -l | tail -n1`"
+GSE_CURRENT_REVISION="`git rev-parse --abbrev-ref HEAD`"
+cd - 2>&1>/dev/null
+
+if [[ "${GSE_CURRENT_REVISION}" == "master" || "${GSE_CURRENT_REVISION}" == "HEAD" ]]; then
+	GSE_VERSION_EXTRACTED="${GS_LATEST_VERSION}"
+else
+	GSE_VERSION_MINOR="`echo ${GSE_LATEST_VERSION##*.} | sed -e 's/^.*\([0-9]\)$/\1/'`"
+	GSE_VERSION_NEXT="`expr ${GSE_VERSION_MINOR} + 1`"
+	GSE_VERSION_EXTRACTED="${GSE_LATEST_VERSION%${GSE_VERSION_MINOR}}${GSE_VERSION_NEXT}-${GSE_BRANCH}"
+fi
+
+if [ "${GSE_VERSION_EXTRACTED}" != "${GSE_VERSION}" ]; then
+	GS_VERSION="${GSE_VERSION_EXTRACTED}"
+	mv -f /etc/gemeinschaft/system.conf /etc/gemeinschaft/system.conf.bak
+	grep -Ev ^GSE_VERSION= /etc/gemeinschaft/system.conf.bak > /etc/gemeinschaft/system.conf
+	echo "GSE_VERSION=\"${GSE_VERSION}\"" >> /etc/gemeinschaft/system.conf
+fi
+
+
 # Read GS version from Git repo and update local config file
 #
 cd "${GS_DIR_NORMALIZED}"
