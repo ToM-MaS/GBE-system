@@ -193,7 +193,7 @@ password ${GSE_GIT_PASSWORD}
 		[ "${GSE_BRANCH}" != "master" ] && GSE_GIT_VERSION="from ${GSE_BRANCH} branch"
 		mv "${GSE_UPDATE_DIR}.tmp" "${GSE_UPDATE_DIR}"
 		echo -e "\n\n***    ------------------------------------------------------------------"
-		echo -e "***     Scheduled update to new version ${GSE_GIT_VERSION}.\n***     Please reboot the system to start the update process."
+		echo -e "***     Installing new version ${GSE_GIT_VERSION}"
 		echo -e "***    ------------------------------------------------------------------\n\n"
 	else
 		rm -rf "${GSE_UPDATE_DIR}"*
@@ -203,16 +203,57 @@ password ${GSE_GIT_PASSWORD}
 		exit 1
 	fi
 
-	#TODO uninstall old version first to make sure old system files can be removed permanently
+	# Uninstall
 	#
 
-	echo "** Rename and backup old files in \"${GSE_DIR}\""
-	[ ! -d "${GSE_DIR}.${GSE_VERSION}" ] && mv "${GSE_DIR}" "${GSE_DIR}.${GSE_VERSION} "|| rm -rf "${GSE_DIR}"
-	mv ${GSE_UPDATE_DIR} ${GSE_DIR}
+	cd "${GSE_DIR_NORMALIZED}"
+
+	# remove public commands
+	rm /usr/bin/gs-*
+	rm /usr/bin/gse-*
 	
+	# Revert symlinks for static system files
+	#
+	GSE_FILES_STATIC="`find static/ -type f`"
+	for _FILE in ${GSE_FILES_STATIC}; do
+		# strip prefix "static/"
+		GSE_FILE_SYSTEMPATH="/${_FILE#*/}"
+
+		# Delete file
+		echo -e "** Deleting file '${GSE_FILE_SYSTEMPATH}'"
+		rm -f "${GSE_FILE_SYSTEMPATH}"
+
+		# Restore original file if existing
+		if [ -e "${GSE_FILE_SYSTEMPATH}.default-gse" ]; then
+			echo -e "** Recovering original file '${GSE_FILE_SYSTEMPATH}' from backup"
+			mv -f "${GSE_FILE_SYSTEMPATH}.default-gse" "${GSE_FILE_SYSTEMPATH}"
+		fi
+	done
+
+	# Remove dynamic configuration files
+	#
+	GSE_FILES_DYNAMIC="`find dynamic/ -type f`"
+	for _FILE in ${GSE_FILES_DYNAMIC}; do
+		# strip prefix "dynamic/"
+		GSE_FILE_SYSTEMPATH="/${_FILE#*/}"
+
+		# Delete file
+		echo -e "** Deleting file '${GSE_FILE_SYSTEMPATH}'"
+		rm -f "${GSE_FILE_SYSTEMPATH}"
+
+		# Restore original file if existing
+		if [ -e "${GSE_FILE_SYSTEMPATH}.default-gse" ]; then
+			echo -e "** Recovering original file '${GSE_FILE_SYSTEMPATH}' from backup"
+			mv -f "${GSE_FILE_SYSTEMPATH}.default-gse" "${GSE_FILE_SYSTEMPATH}"
+		fi
+	done
+
 	# Run self-update
 	#
-	"${GSE_DIR_NORMALIZED}/bin/gse-update.sh --force-selfupdate" &
+	echo "** Rename and backup old files in \"${GSE_DIR}\""
+	[ ! -d "${GSE_DIR}.${GSE_VERSION}" ] && mv "${GSE_DIR}" "${GSE_DIR}.${GSE_VERSION}" || rm -rf "${GSE_DIR}"
+	mv "${GSE_UPDATE_DIR}" "${GSE_DIR}"
+	"${GSE_DIR_NORMALIZED}/bin/gse-update.sh" --force-selfupdate &
 	exit 0
 fi
 
@@ -225,7 +266,7 @@ if [[ "${MODE}" == "init" || "${MODE}" == "self-update" ]]; then
 	ln -sf "${GSE_DIR_NORMALIZED}/bin/gse-update.sh" /usr/bin/gse-update
 	ln -sf "${GSE_DIR_NORMALIZED}/bin/gs-addon.sh" /usr/bin/gs-addon
 
-	cd "${GSE_DIR}"
+	cd "${GSE_DIR_NORMALIZED}"
 
 	# Symlink static system files users should not need to change
 	#
@@ -240,7 +281,10 @@ if [[ "${MODE}" == "init" || "${MODE}" == "self-update" ]]; then
 		mkdir -p "${GSE_FILE_SYSTEMPATH%/*}"
 
 		# Backup any existing file
-		[ -f "${GSE_FILE_SYSTEMPATH}" ] && mv -f "${GSE_FILE_SYSTEMPATH}" "${GSE_FILE_SYSTEMPATH}.default-gse"
+		if [[ -e "${GSE_FILE_SYSTEMPATH}" && ! -L "${GSE_FILE_SYSTEMPATH}" ]]; then
+			echo -e "** Creating backup of original file '${GSE_FILE_SYSTEMPATH}'"
+			mv -f "${GSE_FILE_SYSTEMPATH}" "${GSE_FILE_SYSTEMPATH}.default-gse"
+		fi
 
 		# Symlink file
 		rm -f "${GSE_FILE_SYSTEMPATH}"
@@ -260,6 +304,7 @@ if [[ "${MODE}" == "init" || "${MODE}" == "self-update" ]]; then
 		# Copy file
 		if [ "${MODE}" == "init" ]; then
 			echo -e "** Force installing file '${GSE_FILE_SYSTEMPATH}'"
+			[[ -e "${GSE_FILE_SYSTEMPATH}" && ! -e "${GSE_FILE_SYSTEMPATH}.default-gse" ]] && mv -f "${GSE_FILE_SYSTEMPATH}" "${GSE_FILE_SYSTEMPATH}.default-gse"
 			cp -df "${GSE_DIR_NORMALIZED}/${_FILE}" "${GSE_FILE_SYSTEMPATH}"
 		elif [ ! -f "${GSE_FILE_SYSTEMPATH}" ]; then
 			echo -e "** Installing file '${GSE_FILE_SYSTEMPATH}'"
