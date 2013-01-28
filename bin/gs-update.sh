@@ -90,12 +90,10 @@ case "$1" in
 			;;
 
         	* )
-				echo "Aborting ...";
-				break
+				echo "Aborting ..."
+				exit
 			;;
     	esac
-
-		exit
 	done
 	;;
 
@@ -126,9 +124,9 @@ case "$1" in
 	echo "
 ***    ------------------------------------------------------------------
 ***     GEMEINSCHAFT UPDATE
-***     Current version: ${GS_VERSION}
-***     Branch: ${GS_BRANCH}
-***     Base System Build: ${GS_BUILDNAME}
+***     Current GS version: ${GS_VERSION}
+***     GS Branch: ${GS_BRANCH}
+***     Base System Build: #${GS_BUILDNAME}
 ***    ------------------------------------------------------------------
 ***
 ***     ATTENTION! Please read the following information CAREFULLY!
@@ -151,13 +149,30 @@ case "$1" in
 	while true; do
 	    read -p "If you understand the risk, please confirm by entering \"OK\" : " yn
 	    case $yn in
-	        OK|ok ) echo -e "\nRisk accepted.\n\n"; break;;
+	        OK|ok )
+				echo -e "\nRisk accepted.\n\n"
+			
+				# Do self-update via GSE first
+				cd ~
+				"${GSE_DIR_NORMALIZED}/bin/gse-update.sh" --force-update
+				if [[ $? -ne 0 ]]; then
+					echo "In front update of System Environment FAILED! Aborting ..."
+					exit 1
+				else
+					"${GSE_DIR_NORMALIZED}/bin/gs-update.sh" --force-update-init
+					exit $?
+				fi
+
+				break
+				;;
+
 	        * ) echo "Aborting ..."; exit;;
 	    esac
 	done
 
 	;;
 esac
+
 
 # Prepare for system update
 #
@@ -296,13 +311,17 @@ if [[ "${MODE}" == "init" || "${MODE}" == "update" ]]; then
 
 	# Enforce debug level according to GS_ENV
 	#
+	set +e
 	"${GSE_DIR_NORMALIZED}/bin/gs-change-state.sh"
+	set -e
 
 	# Special tasks for update only
 	#
 	if [[ "${MODE}" == "update" ]]; then
 		echo "** Enforcing file permissions and security settings ..."
+		set +e
 		"${GSE_DIR_NORMALIZED}/bin/gs-enforce-security.sh" | grep -Ev retained | grep -Ev "no changes" | grep -Ev "nor referent has been changed"
+		set -e
 
 		echo "** Install Gems"
 		su - ${GSE_USER} -c "cd \"${GS_DIR_NORMALIZED}\"; RAILS_ENV=$RAILS_ENV bundle install"

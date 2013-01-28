@@ -63,9 +63,9 @@ case "$1" in
 	echo "
 ***    ------------------------------------------------------------------
 ***     GEMEINSCHAFT SYSTEM ENVIRONMENT UPDATE
-***     Current version: ${GSE_VERSION}
-***     Branch: ${GSE_BRANCH}
-***     Base System Build: ${GS_BUILDNAME}
+***     Current GSE version: ${GSE_VERSION}
+***     GSE Branch: ${GSE_BRANCH}
+***     Base System Build: #${GS_BUILDNAME}
 ***    ------------------------------------------------------------------
 ***
 ***     ATTENTION! Please read the following information CAREFULLY!
@@ -164,19 +164,19 @@ password ${GSE_GIT_PASSWORD}
 	if [[ "${GSE_GIT_REVISION}" == "${GSE_REVISION}" ]]; then
 		rm -rf "${GSE_UPDATE_DIR}"*
 		echo -e "\n\n***    ------------------------------------------------------------------"
-		echo -e "***     You have already installed the latest version, no update needed."
+		echo -e "***     System Environment is already up-to-date, no update needed."
 		echo -e "***    ------------------------------------------------------------------\n\n"
 		exit 0
 	elif [[ "${GSE_GIT_VERSION:0:3}" == "${GSE_VERSION:0:3}" || x"${GSE_GIT_VERSION}" == x"" ]]; then
 		[ "${GSE_BRANCH}" != "master" ] && GSE_GIT_VERSION="from ${GSE_BRANCH} branch"
 		mv "${GSE_UPDATE_DIR}.tmp" "${GSE_UPDATE_DIR}"
 		echo -e "\n\n***    ------------------------------------------------------------------"
-		echo -e "***     Installing new version ${GSE_GIT_VERSION}"
+		echo -e "***     Updating System Environment to new version ${GSE_GIT_VERSION}"
 		echo -e "***    ------------------------------------------------------------------\n\n"
 	else
 		rm -rf "${GSE_UPDATE_DIR}"*
 		echo -e "\n\n***    ------------------------------------------------------------------"
-		echo -e "***     Update to the next major version ${GSE_GIT_VERSION} is not supported\n***     via this script.\n***     Please use backup & restore via web interface."
+		echo -e "***     Updating GSE to the next major version ${GSE_GIT_VERSION} is not supported\n***     via this script.\n***     Please use backup & restore via web interface."
 		echo -e "***    ------------------------------------------------------------------\n\n"
 		exit 1
 	fi
@@ -229,10 +229,11 @@ password ${GSE_GIT_PASSWORD}
 	# Run self-update
 	#
 	echo "** Rename and backup old files in \"${GSE_DIR}\""
+	cd ~
 	[ ! -d "${GSE_DIR}.${GSE_VERSION}" ] && mv "${GSE_DIR}" "${GSE_DIR}.${GSE_VERSION}" || rm -rf "${GSE_DIR}"
 	mv "${GSE_UPDATE_DIR}" "${GSE_DIR}"
-	"${GSE_DIR_NORMALIZED}/bin/gse-update.sh" --force-selfupdate &
-	exit 0
+	"${GSE_DIR_NORMALIZED}/bin/gse-update.sh" --force-selfupdate
+	exit $?
 fi
 
 
@@ -298,7 +299,9 @@ if [[ "${MODE}" == "init" || "${MODE}" == "self-update" ]]; then
 	done
 
 	# Enforce debug level according to GSE_ENV
+	set +e
 	"${GSE_DIR_NORMALIZED}/bin/gs-change-state.sh"
+	set -e
 
 	cd - 2>&1 >/dev/null
 fi
@@ -309,7 +312,7 @@ fi
 if [[ "${MODE}" == "factory-reset" ]]; then
 	while true; do
 		echo "ATTENTION! This will do a factory reset of the SYSTEM ENVIRONMENT, all customizations will be LOST!"
-		read -p "Continue? (y/n) : " yn
+		read -p "Continue? (y/N) : " yn
 
 		case $yn in
 	    	Y|y )
@@ -319,13 +322,11 @@ if [[ "${MODE}" == "factory-reset" ]]; then
 				break
 			;;
 
-	    	N|n )
-				echo "Aborting ...";
-				break
+	    	* )
+				echo "Aborting ..."
+				exit
 			;;
 		esac
-
-		exit
 	done
 fi
 
@@ -334,9 +335,14 @@ fi
 #
 if [[ "${MODE}" == "self-update" || "${MODE}" == "factory-reset" ]]; then
 	echo "** Enforcing file permissions and security settings ..."
+	set +e
 	"${GSE_DIR_NORMALIZED}/bin/gs-enforce-security.sh" | grep -Ev retained | grep -Ev "no changes" | grep -Ev "nor referent has been changed"
+	set -e
+
+	# Re-generate prompt files and update version in /etc/gemeinschaft/system.conf
+	/etc/init.d/gemeinschaft-prompt start
 
 	echo -e "\n\n***    ------------------------------------------------------------------"
-	echo -e "***     Task completed SUCCESSFULLY!"
+	echo -e "***     Task completed SUCCESSFULLY! "
 	echo -e "***    ------------------------------------------------------------------\n\n"
 fi
