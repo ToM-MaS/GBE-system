@@ -32,72 +32,80 @@ else
 	LIVE=false
 fi
 
-# Get network configuration details
-#
-sleep 1
-IPS="`/bin/hostname -I`"
-FQDN="`/bin/hostname -f`"
+case "$1" in
+start)
+	# Get network configuration details
+	#
+	sleep 1
+	IPS="`/bin/hostname -I`"
+	FQDN="`/bin/hostname -f`"
 
-#
-# Write login screen to /etc/issue
-#
+	#
+	# Write login screen to /etc/issue
+	#
 
-echo "
-***      _____                                               _____
-***     (.---.)                 GEMEINSCHAFT 5              (.---.)
-***      /:::\\\ _.-----------------------------------------._ /:::\\\ 
-***      -----                                               -----
-***     Version: ${GS_VERSION} #${GS_BUILDNAME}
-***    -------------------------------------------------------------
-***
-***     You have to configure Gemeinschaft with a web browser:
-***" > /etc/issue
+	echo "
+	***      _____                                               _____
+	***     (.---.)                 GEMEINSCHAFT 5              (.---.)
+	***      /:::\\\ _.-----------------------------------------._ /:::\\\ 
+	***      -----                                               -----
+	***     Version: ${GS_VERSION} #${GS_BUILDNAME}
+	***    -------------------------------------------------------------
+	***
+	***     You have to configure Gemeinschaft with a web browser:
+	***" > /etc/issue
 
-if [[ -z "${IPS}" ]]; then
-	echo "***     - FAILED network configuration detection -" >> /etc/issue
-	echo "***" >> /etc/issue
-else
-	for ADDRESS in ${FQDN} ${IPS}
-	do
-		[[ ${ADDRESS} =~ "localhost" ]] && echo "***" >> /etc/issue && continue
-		[[ ${ADDRESS} =~ ":" ]] && ADDRESS="["${ADDRESS}"]" 
-		echo "***     http://${ADDRESS}" >> /etc/issue
-	done
-fi
+	if [[ -z "${IPS}" ]]; then
+		echo "***     - FAILED network configuration detection -" >> /etc/issue
+		echo "***" >> /etc/issue
+	else
+		for ADDRESS in ${FQDN} ${IPS}
+		do
+			[[ ${ADDRESS} =~ "localhost" ]] && echo "***" >> /etc/issue && continue
+			[[ ${ADDRESS} =~ ":" ]] && ADDRESS="["${ADDRESS}"]" 
+			echo "***     http://${ADDRESS}" >> /etc/issue
+		done
+	fi
 
-echo "***
-***
-***
-***" >> /etc/issue
+	echo "***
+	***
+	***
+	***" >> /etc/issue
 
-if [[ ${LIVE} == true ]]
-	then
-	echo "***     DEMO LIVE SYSTEM - ALL CHANGES WILL BE LOST AFTER A REBOOT!" >> /etc/issue
-	echo "***" >> /etc/issue
-	echo "***     LOGIN        : gsmaster" >> /etc/issue
-    echo "***     PASSWORD     : `cat /home/gsmaster/.password`" >> /etc/issue
-else
-	echo "***" >> /etc/issue
-	echo "***" >> /etc/issue
-	echo "***" >> /etc/issue
-	echo "***" >> /etc/issue
-fi
+	if [[ ${LIVE} == true ]]
+		then
+		echo "***     DEMO LIVE SYSTEM - ALL CHANGES WILL BE LOST AFTER A REBOOT!" >> /etc/issue
+		echo "***" >> /etc/issue
+		echo "***     LOGIN        : gsmaster" >> /etc/issue
+	    echo "***     PASSWORD     : `cat /home/gsmaster/.password`" >> /etc/issue
+	else
+		echo "***" >> /etc/issue
+		echo "***" >> /etc/issue
+		echo "***" >> /etc/issue
+		echo "***" >> /etc/issue
+	fi
 
-echo "***     Documentation: Visit http://amooma.de/gemeinschaft/gs5
-***    _____________________________________________________________
-***          brought to you by AMOOMA GmbH  - http://amooma.de
-" >> /etc/issue
+	echo "***     Documentation: Visit http://amooma.de/gemeinschaft/gs5
+	***    _____________________________________________________________
+	***          brought to you by AMOOMA GmbH  - http://amooma.de
+	" >> /etc/issue
 
 
-#
-# Write motd and issue.net
-#
-echo "Welcome to GEMEINSCHAFT ${GS_VERSION} #${GS_BUILDNAME}" > /etc/issue.net
-echo "
-***   Welcome to GEMEINSCHAFT ${GS_VERSION} #${GS_BUILDNAME}
-***
-***   Need help with Gemeinschaft? We have an excellent free mailinglist
-***   and offer the best support and consulting money can buy. Have a
-***   look at http://amooma.de/gemeinschaft/gs5 for more information.
-***
-" > /etc/motd
+	#
+	# Write motd and issue.net
+	#
+	echo "Welcome to GEMEINSCHAFT ${GS_VERSION} #${GS_BUILDNAME}" > /etc/issue.net
+	echo "
+	***   Welcome to GEMEINSCHAFT ${GS_VERSION} #${GS_BUILDNAME}
+	***
+	***   Need help with Gemeinschaft? We have an excellent free mailinglist
+	***   and offer the best support and consulting money can buy. Have a
+	***   look at http://amooma.de/gemeinschaft/gs5 for more information.
+	***
+	" > /etc/motd
+
+	;;
+*)
+	# nothing to do
+	;;
+esac
