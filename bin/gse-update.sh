@@ -228,9 +228,15 @@ password ${GSE_GIT_PASSWORD}
 
 	# Run self-update
 	#
-	echo "** Rename and backup old files in \"${GSE_DIR}\""
 	cd ~
-	[ ! -d "${GSE_DIR}.${GSE_VERSION}" ] && mv "${GSE_DIR}" "${GSE_DIR}.${GSE_VERSION}" || rm -rf "${GSE_DIR}"
+	echo "** Rename and backup old files in \"${GSE_DIR}\""
+	if [ ! -d "${GSE_DIR}.${GSE_VERSION}" ]; then
+		echo "** Rename and backup old files in \"${GSE_DIR}\""
+		mv "${GSE_DIR}" "${GSE_DIR}.${GSE_VERSION}"
+	else
+		echo "** Deleting old files in \"${GSE_DIR}\""
+		rm -rf "${GSE_DIR}"
+	fi
 	mv "${GSE_UPDATE_DIR}" "${GSE_DIR}"
 	"${GSE_DIR_NORMALIZED}/bin/gse-update.sh" --force-selfupdate
 	exit $?
