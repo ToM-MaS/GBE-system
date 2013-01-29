@@ -44,16 +44,16 @@ start)
 	# Write login screen to /etc/issue
 	#
 
-	echo "
-	***      _____                                               _____
-	***     (.---.)                 GEMEINSCHAFT 5              (.---.)
-	***      /:::\\\ _.-----------------------------------------._ /:::\\\ 
-	***      -----                                               -----
-	***     Version: ${GS_VERSION} #${GS_BUILDNAME}
-	***    -------------------------------------------------------------
-	***
-	***     You have to configure Gemeinschaft with a web browser:
-	***" > /etc/issue
+echo "
+***      _____                                               _____
+***     (.---.)                 GEMEINSCHAFT 5              (.---.)
+***      /:::\\\ _.-----------------------------------------._ /:::\\\ 
+***      -----                                               -----
+***     Version: ${GS_VERSION} #${GS_BUILDNAME}
+***    -------------------------------------------------------------
+***
+***     You have to configure Gemeinschaft with a web browser:
+***" > /etc/issue
 
 	if [[ -z "${IPS}" ]]; then
 		echo "***     - FAILED network configuration detection -" >> /etc/issue
@@ -67,10 +67,10 @@ start)
 		done
 	fi
 
-	echo "***
-	***
-	***
-	***" >> /etc/issue
+echo "***
+***
+***
+***" >> /etc/issue
 
 	if [[ ${LIVE} == true ]]
 		then
@@ -85,24 +85,24 @@ start)
 		echo "***" >> /etc/issue
 	fi
 
-	echo "***     Documentation: Visit http://amooma.de/gemeinschaft/gs5
-	***    _____________________________________________________________
-	***          brought to you by AMOOMA GmbH  - http://amooma.de
-	" >> /etc/issue
+echo "***     Documentation: Visit http://amooma.de/gemeinschaft/gs5
+***    _____________________________________________________________
+***          brought to you by AMOOMA GmbH  - http://amooma.de
+" >> /etc/issue
 
 
 	#
 	# Write motd and issue.net
 	#
 	echo "Welcome to GEMEINSCHAFT ${GS_VERSION} #${GS_BUILDNAME}" > /etc/issue.net
-	echo "
-	***   Welcome to GEMEINSCHAFT ${GS_VERSION} #${GS_BUILDNAME}
-	***
-	***   Need help with Gemeinschaft? We have an excellent free mailinglist
-	***   and offer the best support and consulting money can buy. Have a
-	***   look at http://amooma.de/gemeinschaft/gs5 for more information.
-	***
-	" > /etc/motd
+echo "
+***   Welcome to GEMEINSCHAFT ${GS_VERSION} #${GS_BUILDNAME}
+***
+***   Need help with Gemeinschaft? We have an excellent free mailinglist
+***   and offer the best support and consulting money can buy. Have a
+***   look at http://amooma.de/gemeinschaft/gs5 for more information.
+***
+" > /etc/motd
 
 	;;
 *)
