@@ -18,9 +18,12 @@ case "$1" in
 	install)
 		cd /usr/local/src
 		curl --retry 5 --retry-delay 3 -O "http://files.freeswitch.org/freeswitch-sounds-en-us-callie-16000-1.0.22.tar.gz" -O "http://files.freeswitch.org/freeswitch-sounds-music-16000-1.0.8.tar.gz"
+		[[ ! -f freeswitch-sounds-en-us-callie-16000-1.0.22.tar.gz || ! -f freeswitch-sounds-music-16000-1.0.8.tar.gz ]] && exit 1
 		find /usr/local/src -name 'freeswitch-*.tar.gz' -type f -exec tar xfz {} -C /usr/share/freeswitch/sounds \;
 		find /usr/local/src -name 'freeswitch-*.tar.gz' -type f -exec rm {} \;
 		cd - 2>&1>/dev/null
+		"${GSE_DIR_NORMALIZED}/bin/gs-enforce-security.sh" | grep -Ev retained | grep -Ev "no changes" | grep -Ev "nor referent has been changed"
+		exit 0
 		;;
 
 	remove)
