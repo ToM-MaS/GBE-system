@@ -279,8 +279,13 @@ if [[ "${MODE}" == "update" ]]; then
 		[[ `service apache2 status` ]] && service apache2 stop
 		[[ `service mysql status` != 0 ]] && service mysql start
 
-		echo "** Rename and backup old files in \"${GS_DIR}\""
-		[ ! -d "${GS_DIR} ${GS_DIR}.${GS_VERSION}" ] && mv "${GS_DIR}" "${GS_DIR}.${GS_VERSION}" || rm -rf "${GS_DIR}"
+		if [ ! -d "${GS_DIR}.${GS_VERSION}" ]; then
+			echo "** Rename and backup old files in \"${GS_DIR}\""
+			mv "${GS_DIR}" "${GS_DIR}.${GS_VERSION}"
+		else
+			echo "** Deleting old files in \"${GS_DIR}\""
+			rm -rf "${GS_DIR}"
+		fi
 		cp -r ${GS_UPDATE_DIR} ${GS_DIR}
 	else
 		echo "ERROR: No new version found in \"${GS_UPDATE_DIR}\" - aborting ..."
