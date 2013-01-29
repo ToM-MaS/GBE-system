@@ -4,7 +4,7 @@
 # Change between production and development state
 #
 # Copyright (c) 2012-2013, Julian Pawlowski <jp@jps-networks.eu>
-# See LICENSE.GBE file for details.
+# See LICENSE.GSE file for details.
 #
 
 # General settings

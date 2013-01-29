@@ -4,7 +4,7 @@
 # Update script
 #
 # Copyright (c) 2013, Julian Pawlowski <jp@jps-networks.eu>
-# See LICENSE.GBE file for details.
+# See LICENSE.GSE file for details.
 #
 
 # Enforce root rights

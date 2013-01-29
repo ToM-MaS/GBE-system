@@ -4,7 +4,7 @@
 # Enforce file permissions and security settings
 #
 # Copyright (c) 2013, Julian Pawlowski <jp@jps-networks.eu>
-# See LICENSE.GBE file for details.
+# See LICENSE.GSE file for details.
 #
 
 # General settings
