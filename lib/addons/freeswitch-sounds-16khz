@@ -9,10 +9,10 @@
 
 # General settings
 [ -f /etc/gemeinschaft/system.conf ] && source /etc/gemeinschaft/system.conf || echo "FATAL ERROR: Local configuration file in /etc/gemeinschaft/system.conf missing"
-[[ x"${GS_DIR}" == x"" ]] && exit 1
+[[ x"${GSE_DIR}" == x"" ]] && exit 1
 
-GS_SYSADDON_NAME="`basename $0`"
-GS_SYSADDON_DESCRIPTION="FreeSwitch high quality sound files (16 kHz)"
+GSE_ADDON_NAME="`basename $0`"
+GSE_ADDON_DESCRIPTION="FreeSwitch high quality sound files (16 kHz)"
 
 case "$1" in
 	install)
@@ -29,6 +29,6 @@ case "$1" in
 		;;
 	
 	*)
-		echo -e "${GS_SYSADDON_NAME}\n\t${GS_SYSADDON_DESCRIPTION}"
+		echo -e "${GSE_ADDON_NAME}\n\t${GSE_ADDON_DESCRIPTION}"
 		;;
 esac
