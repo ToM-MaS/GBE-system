@@ -334,7 +334,6 @@ if [[ "${MODE}" == "factory-reset" ]]; then
 	cd "${GSE_DIR_NORMALIZED}"
 	git clean -fdx && git reset --hard HEAD
 	$0 --force-init
-	break
 fi
 
 
