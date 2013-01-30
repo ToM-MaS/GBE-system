@@ -34,6 +34,21 @@ case "$1" in
 
 	--factory-reset)
 	MODE="factory-reset"
+	
+	while true; do
+		echo "ATTENTION! This will do a factory reset of the SYSTEM ENVIRONMENT, all customizations will be LOST!"
+		read -p "Continue? (y/N) : " yn
+
+		case $yn in
+	    	Y|y ) break;;
+	    	* )	echo "Aborting ..."; exit;;
+		esac
+	done
+	
+	;;
+
+	--force-factory-reset)
+	MODE="factory-reset"
 	;;
 
 	--force-update)
@@ -316,24 +331,10 @@ fi
 # Factory reset
 #
 if [[ "${MODE}" == "factory-reset" ]]; then
-	while true; do
-		echo "ATTENTION! This will do a factory reset of the SYSTEM ENVIRONMENT, all customizations will be LOST!"
-		read -p "Continue? (y/N) : " yn
-
-		case $yn in
-	    	Y|y )
-				cd "${GSE_DIR_NORMALIZED}"
-				git clean -fdx && git reset --hard HEAD
-				$0 --force-init
-				break
-			;;
-
-	    	* )
-				echo "Aborting ..."
-				exit
-			;;
-		esac
-	done
+	cd "${GSE_DIR_NORMALIZED}"
+	git clean -fdx && git reset --hard HEAD
+	$0 --force-init
+	break
 fi
 
 

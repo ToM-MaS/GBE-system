@@ -55,6 +55,9 @@ case "$1" in
     	case $yn in
         	Y|y )
 				[ -f /root/.mysql_root_password ] && MYSQL_PASSWD_ROOT="`cat /root/.mysql_root_password`" || exit 1
+				
+				# Do factory reset for Gemeinschaft Systen Environment
+				"${GSE_DIR_NORMALIZED}/bin/gse-update.sh" --force-factory-reset
 
 				# use local copy of GS5 for re-installation in case there is no update available
 				[ ! -d "${GS_UPDATE_DIR}" ] && cp -pr "${GS_DIR}" "${GS_UPDATE_DIR}"
