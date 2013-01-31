@@ -4,7 +4,7 @@
 # Update script
 #
 # Copyright (c) 2013, Julian Pawlowski <jp@jps-networks.eu>
-# See LICENSE.GBE file for details.
+# See LICENSE.GSE file for details.
 #
 
 # Enforce root rights
@@ -20,6 +20,10 @@ fi
 [ -f "${GS_MYSQL_PASSWORD_FILE}" ] && GS_MYSQL_PASSWD="`cat "${GS_MYSQL_PASSWORD_FILE}"`" || echo "FATAL ERROR: GS lost it's database password in ${GS_MYSQL_PASSWORD_FILE}"
 [[ x"${GS_DIR}" == x"" || x"${GS_MYSQL_PASSWD}" == x"" ]] && exit 1
 GS_UPDATE_DIR="${GS_DIR}.update"
+
+# General functions
+[ -f "${GSE_DIR_NORMALIZED}/lib/gse-functions.sh" ] && source "${GSE_DIR_NORMALIZED}/lib/gse-functions.sh" || exit 1
+
 
 # check each command return codes for errors
 #
@@ -55,23 +59,33 @@ case "$1" in
     	case $yn in
         	Y|y )
 				[ -f /root/.mysql_root_password ] && MYSQL_PASSWD_ROOT="`cat /root/.mysql_root_password`" || exit 1
+				
+				# Do factory reset for Gemeinschaft Systen Environment
+				"${GSE_DIR_NORMALIZED}/bin/gse-update.sh" --force-factory-reset
 
 				# use local copy of GS5 for re-installation in case there is no update available
 				[ ! -d "${GS_UPDATE_DIR}" ] && cp -pr "${GS_DIR}" "${GS_UPDATE_DIR}"
 
 				# Do hard reset of repo to ensure correct files
 				cd "${GS_UPDATE_DIR}"
-				git clean -fdx && git reset --hard HEAD
+				quiet_git clean -fdx && quiet_git reset --hard HEAD
 
-				# stop services
-				[[ `service mon_ami status` ]] && service mon_ami stop
-				[[ `service freeswitch status` ]] && service freeswitch stop
-				[[ `service apache2 status` ]] && service apache2 stop
+				# stop status
+				service mon_ami status 2>&1 >/dev/null
+				[ $? == 0 ] && service mon_ami stop
+				service freeswitch status 2>&1 >/dev/null
+				[ $? == 0 ] && service freeswitch stop
+				service apache2 status 2>&1 >/dev/null
+				[ $? == 0 ] && service apache2 stop
 
 				# Purging database
 				echo -e "\nPurging database '${GS_MYSQL_DB}' ...";
 				mysql -e "DROP DATABASE IF EXISTS ${GS_MYSQL_DB}; CREATE DATABASE ${GS_MYSQL_DB};" --user=root --password="${MYSQL_PASSWD_ROOT}"
-				[[ `service mysql status` ]] && service mysql stop
+				service mysql status 2>&1 >/dev/null
+				[ $? == 0 ] && service mysql stop
+
+				# Make sure InnoDB logfiles get re-created in case their size was changed in the configuration
+				rm -rf /var/lib/mysql/ib_logfile*
 
 				echo "Purging local FreeSwitch files ..."
 				rm -rfv "${GS_DIR_LOCAL_NORMALIZED}/freeswitch/conf/"* \
@@ -178,8 +192,6 @@ esac
 #
 if [[ "${MODE}" == "update-init" ]]; then
 
-	echo -e "Preparing update of Gemeinschaft ...\n"
-
 	# Remove any old update files
 	[[ -d "${GS_UPDATE_DIR}" ]] && rm -rf "${GS_UPDATE_DIR}"
 	[[ -d "${GS_UPDATE_DIR}.tmp" ]] && rm -rf "${GS_UPDATE_DIR}.tmp"
@@ -193,8 +205,8 @@ if [[ "${MODE}" == "update-init" ]]; then
 	[[ x"${GS_BRANCH}" == x"" && x"${GDFDL_BRANCH}" != x"develop" ]] && GS_BRANCH="master"
 
 	# Add Git remote data to pull from it
-	git clean -fdx && git reset --hard HEAD
-	git remote add -t "${GS_BRANCH}" origin "${GS_GIT_URL}"
+	quiet_git clean -fdx && quiet_git reset --hard HEAD
+	quiet_git remote add -t "${GS_BRANCH}" origin "${GS_GIT_URL}"
 
 	# Setup Github user credentials for login
 	#
@@ -211,7 +223,7 @@ password ${GS_GIT_PASSWORD}
 	c=1
 	while [[ $c -le 5 ]]
 	do
-		git remote update 2>&1
+		quiet_git remote update
 		if [ "$?" = "0" ]
 			then
 			break;
@@ -226,7 +238,7 @@ password ${GS_GIT_PASSWORD}
 	c=1
 	while [[ $c -le 5 ]]
 	do
-		git pull origin "${GS_BRANCH}" 2>&1
+		quiet_git pull origin "${GS_BRANCH}"
 		if [ "$?" -eq "0" ]
 			then
 			break;
@@ -242,7 +254,7 @@ password ${GS_GIT_PASSWORD}
 	rm -rf ~/.netrc
 
 	# Make sure we checkout the latest tagged version in case we are in the master branch, otherwise set HEAD to the latest revision of GS_BRANCH
-	[ "${GS_BRANCH}" == "master" ] && git checkout "`git tag -l | tail -n1`" || git checkout "${GS_BRANCH}"
+	[ "${GS_BRANCH}" == "master" ] && quiet_git checkout "`git tag -l | tail -n1`" || quiet_git checkout "${GS_BRANCH}"
 
 	# Check version compatibility, allow auto-update only for minor versions
 	GS_GIT_VERSION="`git tag --contains HEAD`"
@@ -251,7 +263,7 @@ password ${GS_GIT_PASSWORD}
 	if [[ "${GS_GIT_REVISION}" == "${GS_REVISION}" ]]; then
 		rm -rf "${GS_UPDATE_DIR}"*
 		echo -e "\n\n***    ------------------------------------------------------------------"
-		echo -e "***     You have already installed the latest version, no update needed."
+		echo -e "***     Gemeinschaft is already up-to-date, no update needed."
 		echo -e "***    ------------------------------------------------------------------\n\n"
 		exit 0
 	elif [[ "${GS_GIT_VERSION:0:3}" == "${GS_VERSION:0:3}" || x"${GS_GIT_VERSION}" == x"" ]]; then
@@ -263,7 +275,7 @@ password ${GS_GIT_PASSWORD}
 	else
 		rm -rf "${GS_UPDATE_DIR}"*
 		echo -e "\n\n***    ------------------------------------------------------------------"
-		echo -e "***     Update to the next major version ${GS_GIT_VERSION} is not supported\n***     via this script.\n***     Please use backup & restore via web interface."
+		echo -e "***     Update to the next major version ${GS_GIT_VERSION} of Gemeinschaft\n***     is not supported via this script.\n***     Please use backup & restore via web interface."
 		echo -e "***    ------------------------------------------------------------------\n\n"
 		exit 1
 	fi
@@ -274,13 +286,22 @@ fi
 if [[ "${MODE}" == "update" ]]; then
 	if [[ -d "${GS_UPDATE_DIR}" ]]; then
 		# make sure only mysql is running
-		[[ `service mon_ami status` ]] && service mon_ami stop
-		[[ `service freeswitch status` ]] && service freeswitch stop
-		[[ `service apache2 status` ]] && service apache2 stop
-		[[ `service mysql status` != 0 ]] && service mysql start
+		service mon_ami status 2>&1 >/dev/null
+		[ $? == 0 ] && service mon_ami stop
+		service freeswitch status 2>&1 >/dev/null
+		[ $? == 0 ] && service freeswitch stop
+		service apache2 status 2>&1 >/dev/null
+		[ $? == 0 ] && service apache2 stop
+		service mysql status 2>&1 >/dev/null
+		[ $? != 0 ] && service mysql start
 
-		echo "** Rename and backup old files in \"${GS_DIR}\""
-		[ ! -d "${GS_DIR} ${GS_DIR}.${GS_VERSION}" ] && mv "${GS_DIR}" "${GS_DIR}.${GS_VERSION}" || rm -rf "${GS_DIR}"
+		if [ ! -d "${GS_DIR}.${GS_VERSION}" ]; then
+			echo "** Rename and backup old files in \"${GS_DIR}\""
+			mv "${GS_DIR}" "${GS_DIR}.${GS_VERSION}"
+		else
+			echo "** Deleting old files in \"${GS_DIR}\""
+			rm -rf "${GS_DIR}"
+		fi
 		cp -r ${GS_UPDATE_DIR} ${GS_DIR}
 	else
 		echo "ERROR: No new version found in \"${GS_UPDATE_DIR}\" - aborting ..."
@@ -296,7 +317,7 @@ if [[ "${MODE}" == "init" || "${MODE}" == "update" ]]; then
 	echo "** Remove Git remote reference"
 	GS_GIT_REMOTE="`git --git-dir="${GS_DIR_NORMALIZED}/.git" remote`"
 	for _REMOTE in ${GS_GIT_REMOTE}; do
-		cd "${GS_DIR_NORMALIZED}"; git remote rm ${_REMOTE}
+		cd "${GS_DIR_NORMALIZED}"; quiet_git remote rm ${_REMOTE}
 	done
 
 	echo "** Setup logging directory"

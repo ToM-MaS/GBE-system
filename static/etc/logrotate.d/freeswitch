@@ -1,0 +1,11 @@
+/var/log/freeswitch/*.log {
+    daily
+    rotate 14
+    delaycompress
+    missingok
+    nocreate
+    su root gemeinschaft
+    postrotate
+	    /usr/bin/fs_cli -x "fsctl send_sighup" > /dev/null 2>&1
+    endscript
+}

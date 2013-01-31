@@ -4,11 +4,15 @@
 # System add-on installer
 #
 # Copyright (c) 2013, Julian Pawlowski <jp@jps-networks.eu>
-# See LICENSE.GBE file for details.
+# See LICENSE.GSE file for details.
 #
 
 # General settings
 [ -f /etc/gemeinschaft/system.conf ] && source /etc/gemeinschaft/system.conf || echo "FATAL ERROR: Local configuration file in /etc/gemeinschaft/system.conf missing"
+
+# General functions
+[ -f "${GSE_DIR_NORMALIZED}/lib/gse-functions.sh" ] && source "${GSE_DIR_NORMALIZED}/lib/gse-functions.sh" || exit 1
+
 
 GSE_ADDON_DIR="${GSE_DIR_NORMALIZED}/lib/addons"
 GSE_ADDON_STATUSFILE="/var/local/.gse_addon_status"

@@ -75,7 +75,18 @@ start)
 		echo "done"
 	fi
 
+	# Delayed Worker
+	echo "Starting Gemeinschaft daemon for delayed jobs ..."
+	su - ${GSE_USER} -c "cd ${GS_DIR_NORMALIZED}; RAILS_ENV=$RAILS_ENV script/delayed_job start"
 	;;
+	
+stop)
+
+	# Delayed Worker
+	echo "Stopping Gemeinschaft daemon for delayed jobs ..."
+	su - ${GSE_USER} -c "cd ${GS_DIR_NORMALIZED}; RAILS_ENV=$RAILS_ENV script/delayed_job stop"
+	;;
+
 *)
 	# nothing to do
 	;;

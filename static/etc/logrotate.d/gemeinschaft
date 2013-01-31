@@ -1,0 +1,8 @@
+/var/log/gemeinschaft/*.log {
+    daily
+    rotate 14
+    delaycompress
+    missingok
+	su root gemeinschaft
+    nocreate
+}

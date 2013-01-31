@@ -4,7 +4,7 @@
 # System Environment update script
 #
 # Copyright (c) 2013, Julian Pawlowski <jp@jps-networks.eu>
-# See LICENSE.GBE file for details.
+# See LICENSE.GSE file for details.
 #
 
 # Enforce root rights
@@ -20,6 +20,10 @@ fi
 [[ x"${GSE_DIR}" == x"" ]] && exit 1
 GSE_UPDATE_DIR="${GSE_DIR}.update"
 
+# General functions
+[ -f "${GSE_DIR_NORMALIZED}/lib/gse-functions.sh" ] && source "${GSE_DIR_NORMALIZED}/lib/gse-functions.sh" || exit 1
+
+
 # check each command return codes for errors
 #
 set -e
@@ -33,6 +37,21 @@ case "$1" in
 	;;
 
 	--factory-reset)
+	MODE="factory-reset"
+	
+	while true; do
+		echo "ATTENTION! This will do a factory reset of the SYSTEM ENVIRONMENT, all customizations will be LOST!"
+		read -p "Continue? (y/N) : " yn
+
+		case $yn in
+	    	Y|y ) break;;
+	    	* )	echo "Aborting ..."; exit;;
+		esac
+	done
+	
+	;;
+
+	--force-factory-reset)
 	MODE="factory-reset"
 	;;
 
@@ -95,8 +114,6 @@ esac
 #
 if [[ "${MODE}" == "update" ]]; then
 
-	echo -e "Preparing update of Gemeinschaft System Environment ...\n"
-
 	# Remove any old update files
 	[[ -d "${GSE_UPDATE_DIR}" ]] && rm -rf "${GSE_UPDATE_DIR}"
 	[[ -d "${GSE_UPDATE_DIR}.tmp" ]] && rm -rf "${GSE_UPDATE_DIR}.tmp"
@@ -106,8 +123,8 @@ if [[ "${MODE}" == "update" ]]; then
 	cd "${GSE_UPDATE_DIR}.tmp"
 
 	# Add Git remote data to pull from it
-	git clean -fdx && git reset --hard HEAD
-	git remote add -t "${GSE_BRANCH}" origin "${GSE_GIT_URL}"
+	quiet_git clean -fdx && quiet_git reset --hard HEAD
+	quiet_git remote add -t "${GSE_BRANCH}" origin "${GSE_GIT_URL}"
 
 	# Setup Github user credentials for login
 	#
@@ -124,7 +141,7 @@ password ${GSE_GIT_PASSWORD}
 	c=1
 	while [[ $c -le 5 ]]
 	do
-		git remote update 2>&1
+		quiet_git remote update
 		if [ "$?" = "0" ]
 			then
 			break;
@@ -139,7 +156,7 @@ password ${GSE_GIT_PASSWORD}
 	c=1
 	while [[ $c -le 5 ]]
 	do
-		git pull origin "${GSE_BRANCH}" 2>&1
+		quiet_git pull origin "${GSE_BRANCH}"
 		if [ "$?" -eq "0" ]
 			then
 			break;
@@ -155,7 +172,7 @@ password ${GSE_GIT_PASSWORD}
 	rm -rf ~/.netrc
 
 	# Make sure we checkout the latest tagged version in case we are in the master branch, otherwise set HEAD to the latest revision of GSE_BRANCH
-	[ "${GSE_BRANCH}" == "master" ] && git checkout "`git tag -l | tail -n1`" || git checkout "${GSE_BRANCH}"
+	[ "${GSE_BRANCH}" == "master" ] && quiet_git checkout "`git tag -l | tail -n1`" || quiet_git checkout "${GSE_BRANCH}"
 
 	# Check version compatibility, allow auto-update only for minor versions
 	GSE_GIT_VERSION="`git tag --contains HEAD`"
@@ -198,12 +215,10 @@ password ${GSE_GIT_PASSWORD}
 		GSE_FILE_SYSTEMPATH="/${_FILE#*/}"
 
 		# Delete file
-		echo -e "** Deleting file '${GSE_FILE_SYSTEMPATH}'"
 		rm -f "${GSE_FILE_SYSTEMPATH}"
 
 		# Restore original file if existing
 		if [ -e "${GSE_FILE_SYSTEMPATH}.default-gse" ]; then
-			echo -e "** Recovering original file '${GSE_FILE_SYSTEMPATH}' from backup"
 			mv -f "${GSE_FILE_SYSTEMPATH}.default-gse" "${GSE_FILE_SYSTEMPATH}"
 		fi
 	done
@@ -215,31 +230,47 @@ password ${GSE_GIT_PASSWORD}
 		# strip prefix "dynamic/"
 		GSE_FILE_SYSTEMPATH="/${_FILE#*/}"
 
-		# Delete file
-		echo -e "** Deleting file '${GSE_FILE_SYSTEMPATH}'"
-		rm -f "${GSE_FILE_SYSTEMPATH}"
+		comm -2 "${_FILE}" "${GSE_FILE_SYSTEMPATH}" >/dev/null
+		FILE_CHANGE_STATUS="$?"
 
-		# Restore original file if existing
-		if [ -e "${GSE_FILE_SYSTEMPATH}.default-gse" ]; then
-			echo -e "** Recovering original file '${GSE_FILE_SYSTEMPATH}' from backup"
-			mv -f "${GSE_FILE_SYSTEMPATH}.default-gse" "${GSE_FILE_SYSTEMPATH}"
+		# Delete file if it hasn't been changed by the user
+		if [ "${FILE_CHANGE_STATUS}" == "0" ]; then
+			rm -f "${GSE_FILE_SYSTEMPATH}"
+		else
+			echo -e "** Keeping user modified file '${GSE_FILE_SYSTEMPATH}' and leaving it untouched"
+		fi
+
+		# Restore original file if it was existing before and we didn't keep the users file
+		if [[ -e "${GSE_FILE_SYSTEMPATH}.default-gse" && ! -e "${GSE_FILE_SYSTEMPATH}" ]]; then
+			cp -df "${GSE_FILE_SYSTEMPATH}.default-gse" "${GSE_FILE_SYSTEMPATH}"
 		fi
 	done
 
 	# Run self-update
 	#
-	echo "** Rename and backup old files in \"${GSE_DIR}\""
 	cd ~
-	[ ! -d "${GSE_DIR}.${GSE_VERSION}" ] && mv "${GSE_DIR}" "${GSE_DIR}.${GSE_VERSION}" || rm -rf "${GSE_DIR}"
+	if [ ! -d "${GSE_DIR}.${GSE_VERSION}" ]; then
+		echo "** Rename and backup old files in \"${GSE_DIR}\""
+		mv "${GSE_DIR}" "${GSE_DIR}.${GSE_VERSION}"
+	else
+		echo "** Deleting old files in \"${GSE_DIR}\""
+		rm -rf "${GSE_DIR}"
+	fi
 	mv "${GSE_UPDATE_DIR}" "${GSE_DIR}"
 	"${GSE_DIR_NORMALIZED}/bin/gse-update.sh" --force-selfupdate
 	exit $?
 fi
 
+# Factory reset
+#
+if [[ "${MODE}" == "factory-reset" ]]; then
+	cd "${GSE_DIR_NORMALIZED}"
+	quiet_git clean -fdx && quiet_git reset --hard HEAD
+fi
 
 # Run essential init and update commands
 #
-if [[ "${MODE}" == "init" || "${MODE}" == "self-update" ]]; then
+if [[ "${MODE}" == "init" || "${MODE}" == "self-update" || "${MODE}" == "factory-reset" ]]; then
 	# Symlink public commands
 	ln -sf "${GSE_DIR_NORMALIZED}/bin/gs-update.sh" /usr/bin/gs-update
 	ln -sf "${GSE_DIR_NORMALIZED}/bin/gse-update.sh" /usr/bin/gse-update
@@ -260,7 +291,7 @@ if [[ "${MODE}" == "init" || "${MODE}" == "self-update" ]]; then
 		mkdir -p "${GSE_FILE_SYSTEMPATH%/*}"
 
 		# Backup any existing file
-		if [[ -e "${GSE_FILE_SYSTEMPATH}" && ! -L "${GSE_FILE_SYSTEMPATH}" ]]; then
+		if [[ "${MODE}" == "init" && -e "${GSE_FILE_SYSTEMPATH}" && ! -e "${GSE_FILE_SYSTEMPATH}.default-gse" ]]; then
 			echo -e "** Creating backup of original file '${GSE_FILE_SYSTEMPATH}'"
 			mv -f "${GSE_FILE_SYSTEMPATH}" "${GSE_FILE_SYSTEMPATH}.default-gse"
 		fi
@@ -280,10 +311,15 @@ if [[ "${MODE}" == "init" || "${MODE}" == "self-update" ]]; then
 		# make sure destination path exists
 		mkdir -p "${GSE_FILE_SYSTEMPATH%/*}"
 
+		# Backup any existing file
+		if [[ "${MODE}" == "init" && -e "${GSE_FILE_SYSTEMPATH}" && ! -e "${GSE_FILE_SYSTEMPATH}.default-gse" ]]; then
+			echo -e "** Creating backup of original file '${GSE_FILE_SYSTEMPATH}'"
+			mv -f "${GSE_FILE_SYSTEMPATH}" "${GSE_FILE_SYSTEMPATH}.default-gse"
+		fi
+
 		# Copy file
-		if [ "${MODE}" == "init" ]; then
+		if [[ "${MODE}" == "init" || "${MODE}" == "factory-reset" ]]; then
 			echo -e "** Force installing file '${GSE_FILE_SYSTEMPATH}'"
-			[[ -e "${GSE_FILE_SYSTEMPATH}" && ! -e "${GSE_FILE_SYSTEMPATH}.default-gse" ]] && mv -f "${GSE_FILE_SYSTEMPATH}" "${GSE_FILE_SYSTEMPATH}.default-gse"
 			cp -df "${GSE_DIR_NORMALIZED}/${_FILE}" "${GSE_FILE_SYSTEMPATH}"
 		elif [ ! -f "${GSE_FILE_SYSTEMPATH}" ]; then
 			echo -e "** Installing file '${GSE_FILE_SYSTEMPATH}'"
@@ -295,7 +331,7 @@ if [[ "${MODE}" == "init" || "${MODE}" == "self-update" ]]; then
 	echo "** Remove Git remote reference"
 	GSE_GIT_REMOTE="`git --git-dir="${GSE_DIR_NORMALIZED}/.git" remote`"
 	for _REMOTE in ${GSE_GIT_REMOTE}; do
-		cd "${GSE_DIR_NORMALIZED}"; git remote rm ${_REMOTE}
+		cd "${GSE_DIR_NORMALIZED}"; quiet_git remote rm ${_REMOTE}
 	done
 
 	# Enforce debug level according to GSE_ENV
@@ -307,30 +343,6 @@ if [[ "${MODE}" == "init" || "${MODE}" == "self-update" ]]; then
 fi
 
 
-# Factory reset
-#
-if [[ "${MODE}" == "factory-reset" ]]; then
-	while true; do
-		echo "ATTENTION! This will do a factory reset of the SYSTEM ENVIRONMENT, all customizations will be LOST!"
-		read -p "Continue? (y/N) : " yn
-
-		case $yn in
-	    	Y|y )
-				cd "${GSE_DIR_NORMALIZED}"
-				git clean -fdx && git reset --hard HEAD
-				$0 --force-init
-				break
-			;;
-
-	    	* )
-				echo "Aborting ..."
-				exit
-			;;
-		esac
-	done
-fi
-
-
 # Finalize update or factory reset
 #
 if [[ "${MODE}" == "self-update" || "${MODE}" == "factory-reset" ]]; then
@@ -339,10 +351,27 @@ if [[ "${MODE}" == "self-update" || "${MODE}" == "factory-reset" ]]; then
 	"${GSE_DIR_NORMALIZED}/bin/gs-enforce-security.sh" | grep -Ev retained | grep -Ev "no changes" | grep -Ev "nor referent has been changed"
 	set -e
 
-	# Re-generate prompt files and update version in /etc/gemeinschaft/system.conf
-	/etc/init.d/gemeinschaft-prompt start
+	# Read GSE version from Git repo
+	#
+	cd "${GSE_DIR_NORMALIZED}"
+	GSE_LATEST_VERSION="`git tag -l | tail -n1`"
+	GSE_CURRENT_REVISION="`git rev-parse --abbrev-ref HEAD`"
+	cd - 2>&1>/dev/null
 
-	echo -e "\n\n***    ------------------------------------------------------------------"
-	echo -e "***     Task completed SUCCESSFULLY! "
-	echo -e "***    ------------------------------------------------------------------\n\n"
+	if [[ "${GSE_CURRENT_REVISION}" == "master" || "${GSE_CURRENT_REVISION}" == "HEAD" ]]; then
+		GSE_VERSION_EXTRACTED="${GSE_LATEST_VERSION}"
+	else
+		GSE_VERSION_MINOR="`echo ${GSE_LATEST_VERSION##*.} | sed -e 's/^.*\([0-9]\)$/\1/'`"
+		GSE_VERSION_NEXT="`expr ${GSE_VERSION_MINOR} + 1`"
+		GSE_VERSION_EXTRACTED="${GSE_LATEST_VERSION%${GSE_VERSION_MINOR}}${GSE_VERSION_NEXT}-${GSE_BRANCH}"
+	fi
+
+	# Update local config file
+	#
+	if [[ "${GSE_VERSION_EXTRACTED}" != "${GSE_VERSION}" ]]; then
+		GSE_VERSION="${GSE_VERSION_EXTRACTED}"
+		mv -f /etc/gemeinschaft/system.conf /etc/gemeinschaft/system.conf.bak
+		egrep -Ev "^GSE_VERSION=" /etc/gemeinschaft/system.conf.bak > /etc/gemeinschaft/system.conf
+		echo "GSE_VERSION=\"${GSE_VERSION}\"" >> /etc/gemeinschaft/system.conf
+	fi
 fi
