@@ -21,6 +21,10 @@ fi
 [[ x"${GS_DIR}" == x"" || x"${GS_MYSQL_PASSWD}" == x"" ]] && exit 1
 GS_UPDATE_DIR="${GS_DIR}.update"
 
+# General functions
+[ -f "${GSE_DIR_NORMALIZED}/lib/gse-functions.sh" ] && source "${GSE_DIR_NORMALIZED}/lib/gse-functions.sh" || exit 1
+
+
 # check each command return codes for errors
 #
 set -e

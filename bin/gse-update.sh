@@ -20,6 +20,10 @@ fi
 [[ x"${GSE_DIR}" == x"" ]] && exit 1
 GSE_UPDATE_DIR="${GSE_DIR}.update"
 
+# General functions
+[ -f "${GSE_DIR_NORMALIZED}/lib/gse-functions.sh" ] && source "${GSE_DIR_NORMALIZED}/lib/gse-functions.sh" || exit 1
+
+
 # check each command return codes for errors
 #
 set -e
@@ -121,8 +125,8 @@ if [[ "${MODE}" == "update" ]]; then
 	cd "${GSE_UPDATE_DIR}.tmp"
 
 	# Add Git remote data to pull from it
-	git clean -fdx && git reset --hard HEAD
-	git remote add -t "${GSE_BRANCH}" origin "${GSE_GIT_URL}"
+	quiet_git clean -fdx && quiet_git reset --hard HEAD
+	quiet_git remote add -t "${GSE_BRANCH}" origin "${GSE_GIT_URL}"
 
 	# Setup Github user credentials for login
 	#
@@ -139,7 +143,7 @@ password ${GSE_GIT_PASSWORD}
 	c=1
 	while [[ $c -le 5 ]]
 	do
-		git remote update 2>&1
+		quiet_git remote update
 		if [ "$?" = "0" ]
 			then
 			break;
@@ -154,7 +158,7 @@ password ${GSE_GIT_PASSWORD}
 	c=1
 	while [[ $c -le 5 ]]
 	do
-		git pull origin "${GSE_BRANCH}" 2>&1
+		quiet_git pull origin "${GSE_BRANCH}"
 		if [ "$?" -eq "0" ]
 			then
 			break;
@@ -170,7 +174,7 @@ password ${GSE_GIT_PASSWORD}
 	rm -rf ~/.netrc
 
 	# Make sure we checkout the latest tagged version in case we are in the master branch, otherwise set HEAD to the latest revision of GSE_BRANCH
-	[ "${GSE_BRANCH}" == "master" ] && git checkout "`git tag -l | tail -n1`" || git checkout "${GSE_BRANCH}"
+	[ "${GSE_BRANCH}" == "master" ] && quiet_git checkout "`git tag -l | tail -n1`" || quiet_git checkout "${GSE_BRANCH}"
 
 	# Check version compatibility, allow auto-update only for minor versions
 	GSE_GIT_VERSION="`git tag --contains HEAD`"
@@ -263,7 +267,7 @@ fi
 #
 if [[ "${MODE}" == "factory-reset" ]]; then
 	cd "${GSE_DIR_NORMALIZED}"
-	git clean -fdx && git reset --hard HEAD
+	quiet_git clean -fdx && quiet_git reset --hard HEAD
 fi
 
 # Run essential init and update commands
@@ -329,7 +333,7 @@ if [[ "${MODE}" == "init" || "${MODE}" == "self-update" || "${MODE}" == "factory
 	echo "** Remove Git remote reference"
 	GSE_GIT_REMOTE="`git --git-dir="${GSE_DIR_NORMALIZED}/.git" remote`"
 	for _REMOTE in ${GSE_GIT_REMOTE}; do
-		cd "${GSE_DIR_NORMALIZED}"; git remote rm ${_REMOTE}
+		cd "${GSE_DIR_NORMALIZED}"; quiet_git remote rm ${_REMOTE}
 	done
 
 	# Enforce debug level according to GSE_ENV
