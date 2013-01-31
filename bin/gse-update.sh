@@ -257,10 +257,16 @@ password ${GSE_GIT_PASSWORD}
 	exit $?
 fi
 
+# Factory reset
+#
+if [[ "${MODE}" == "factory-reset" ]]; then
+	cd "${GSE_DIR_NORMALIZED}"
+	git clean -fdx && git reset --hard HEAD
+fi
 
 # Run essential init and update commands
 #
-if [[ "${MODE}" == "init" || "${MODE}" == "self-update" ]]; then
+if [[ "${MODE}" == "init" || "${MODE}" == "self-update" || "${MODE}" == "factory-reset" ]]; then
 	# Symlink public commands
 	ln -sf "${GSE_DIR_NORMALIZED}/bin/gs-update.sh" /usr/bin/gs-update
 	ln -sf "${GSE_DIR_NORMALIZED}/bin/gse-update.sh" /usr/bin/gse-update
@@ -281,7 +287,7 @@ if [[ "${MODE}" == "init" || "${MODE}" == "self-update" ]]; then
 		mkdir -p "${GSE_FILE_SYSTEMPATH%/*}"
 
 		# Backup any existing file
-		if [[ -e "${GSE_FILE_SYSTEMPATH}" && ! -L "${GSE_FILE_SYSTEMPATH}" ]]; then
+		if [[ "${MODE}" == "init" && -e "${GSE_FILE_SYSTEMPATH}" && ! -e "${GSE_FILE_SYSTEMPATH}.default-gse" ]]; then
 			echo -e "** Creating backup of original file '${GSE_FILE_SYSTEMPATH}'"
 			mv -f "${GSE_FILE_SYSTEMPATH}" "${GSE_FILE_SYSTEMPATH}.default-gse"
 		fi
@@ -301,10 +307,15 @@ if [[ "${MODE}" == "init" || "${MODE}" == "self-update" ]]; then
 		# make sure destination path exists
 		mkdir -p "${GSE_FILE_SYSTEMPATH%/*}"
 
+		# Backup any existing file
+		if [[ "${MODE}" == "init" && -e "${GSE_FILE_SYSTEMPATH}" && ! -e "${GSE_FILE_SYSTEMPATH}.default-gse" ]]; then
+			echo -e "** Creating backup of original file '${GSE_FILE_SYSTEMPATH}'"
+			mv -f "${GSE_FILE_SYSTEMPATH}" "${GSE_FILE_SYSTEMPATH}.default-gse"
+		fi
+
 		# Copy file
-		if [ "${MODE}" == "init" ]; then
+		if [[ "${MODE}" == "init" || "${MODE}" == "factory-reset" ]]; then
 			echo -e "** Force installing file '${GSE_FILE_SYSTEMPATH}'"
-			[[ -e "${GSE_FILE_SYSTEMPATH}" && ! -e "${GSE_FILE_SYSTEMPATH}.default-gse" ]] && mv -f "${GSE_FILE_SYSTEMPATH}" "${GSE_FILE_SYSTEMPATH}.default-gse"
 			cp -df "${GSE_DIR_NORMALIZED}/${_FILE}" "${GSE_FILE_SYSTEMPATH}"
 		elif [ ! -f "${GSE_FILE_SYSTEMPATH}" ]; then
 			echo -e "** Installing file '${GSE_FILE_SYSTEMPATH}'"
@@ -325,15 +336,6 @@ if [[ "${MODE}" == "init" || "${MODE}" == "self-update" ]]; then
 	set -e
 
 	cd - 2>&1 >/dev/null
-fi
-
-
-# Factory reset
-#
-if [[ "${MODE}" == "factory-reset" ]]; then
-	cd "${GSE_DIR_NORMALIZED}"
-	git clean -fdx && git reset --hard HEAD
-	$0 --force-init
 fi
 
 
