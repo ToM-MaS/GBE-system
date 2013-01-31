@@ -213,12 +213,10 @@ password ${GSE_GIT_PASSWORD}
 		GSE_FILE_SYSTEMPATH="/${_FILE#*/}"
 
 		# Delete file
-		echo -e "** Deleting file '${GSE_FILE_SYSTEMPATH}'"
 		rm -f "${GSE_FILE_SYSTEMPATH}"
 
 		# Restore original file if existing
 		if [ -e "${GSE_FILE_SYSTEMPATH}.default-gse" ]; then
-			echo -e "** Recovering original file '${GSE_FILE_SYSTEMPATH}' from backup"
 			mv -f "${GSE_FILE_SYSTEMPATH}.default-gse" "${GSE_FILE_SYSTEMPATH}"
 		fi
 	done
@@ -230,13 +228,18 @@ password ${GSE_GIT_PASSWORD}
 		# strip prefix "dynamic/"
 		GSE_FILE_SYSTEMPATH="/${_FILE#*/}"
 
-		# Delete file
-		echo -e "** Deleting file '${GSE_FILE_SYSTEMPATH}'"
-		rm -f "${GSE_FILE_SYSTEMPATH}"
+		comm -2 "${_FILE}" "${GSE_FILE_SYSTEMPATH}" >/dev/null
+		FILE_CHANGE_STATUS="$?"
 
-		# Restore original file if existing
-		if [ -e "${GSE_FILE_SYSTEMPATH}.default-gse" ]; then
-			echo -e "** Recovering original file '${GSE_FILE_SYSTEMPATH}' from backup"
+		# Delete file if it hasn't been changed by the user
+		if [ "${FILE_CHANGE_STATUS}" == "0" ]; then
+			rm -f "${GSE_FILE_SYSTEMPATH}"
+		else
+			echo -e "** Keeping user modified file '${GSE_FILE_SYSTEMPATH}' and leaving it untouched"
+		fi
+
+		# Restore original file if it was existing before and we didn't keep the users file
+		if [[ -e "${GSE_FILE_SYSTEMPATH}.default-gse" && ! -e "${GSE_FILE_SYSTEMPATH}" ]]; then
 			cp -df "${GSE_FILE_SYSTEMPATH}.default-gse" "${GSE_FILE_SYSTEMPATH}"
 		fi
 	done
@@ -346,8 +349,29 @@ if [[ "${MODE}" == "self-update" || "${MODE}" == "factory-reset" ]]; then
 	"${GSE_DIR_NORMALIZED}/bin/gs-enforce-security.sh" | grep -Ev retained | grep -Ev "no changes" | grep -Ev "nor referent has been changed"
 	set -e
 
-	# Re-generate prompt files and update version in /etc/gemeinschaft/system.conf
-	/etc/init.d/gemeinschaft-prompt start
+	# Read GSE version from Git repo
+	#
+	cd "${GSE_DIR_NORMALIZED}"
+	GSE_LATEST_VERSION="`git tag -l | tail -n1`"
+	GSE_CURRENT_REVISION="`git rev-parse --abbrev-ref HEAD`"
+	cd - 2>&1>/dev/null
+
+	if [[ "${GSE_CURRENT_REVISION}" == "master" || "${GSE_CURRENT_REVISION}" == "HEAD" ]]; then
+		GSE_VERSION_EXTRACTED="${GSE_LATEST_VERSION}"
+	else
+		GSE_VERSION_MINOR="`echo ${GSE_LATEST_VERSION##*.} | sed -e 's/^.*\([0-9]\)$/\1/'`"
+		GSE_VERSION_NEXT="`expr ${GSE_VERSION_MINOR} + 1`"
+		GSE_VERSION_EXTRACTED="${GSE_LATEST_VERSION%${GSE_VERSION_MINOR}}${GSE_VERSION_NEXT}-${GSE_BRANCH}"
+	fi
+
+	# Update local config file
+	#
+	if [[ "${GSE_VERSION_EXTRACTED}" != "${GSE_VERSION}" ]]; then
+		GSE_VERSION="${GSE_VERSION_EXTRACTED}"
+		mv -f /etc/gemeinschaft/system.conf /etc/gemeinschaft/system.conf.bak
+		egrep -Ev "^GSE_VERSION=" /etc/gemeinschaft/system.conf.bak > /etc/gemeinschaft/system.conf
+		echo "GSE_VERSION=\"${GSE_VERSION}\"" >> /etc/gemeinschaft/system.conf
+	fi
 
 	echo -e "\n\n***    ------------------------------------------------------------------"
 	echo -e "***     Task completed SUCCESSFULLY! "
