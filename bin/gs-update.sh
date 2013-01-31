@@ -369,4 +369,10 @@ if [[ "${MODE}" == "update" ]]; then
 	# Remove update files after successful update run
 	# otherwise keep them to be installed within next iteration of boot sequence
 	rm -rf "${GS_UPDATE_DIR}"
+	
+	# force MySQL to be stopped to avoid conflicts with normal system bootup
+	set +e
+	service mysql status 2>&1 >/dev/null
+	[ $? == 0 ] && service mysql stop
+	set -e
 fi
