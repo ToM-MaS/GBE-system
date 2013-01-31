@@ -71,18 +71,22 @@ case "$1" in
 				quiet_git clean -fdx && quiet_git reset --hard HEAD
 
 				# stop status
+				set +e
 				service mon_ami status 2>&1 >/dev/null
 				[ $? == 0 ] && service mon_ami stop
 				service freeswitch status 2>&1 >/dev/null
 				[ $? == 0 ] && service freeswitch stop
 				service apache2 status 2>&1 >/dev/null
 				[ $? == 0 ] && service apache2 stop
+				set -e
 
 				# Purging database
 				echo -e "\nPurging database '${GS_MYSQL_DB}' ...";
 				mysql -e "DROP DATABASE IF EXISTS ${GS_MYSQL_DB}; CREATE DATABASE ${GS_MYSQL_DB};" --user=root --password="${MYSQL_PASSWD_ROOT}"
+				set +e
 				service mysql status 2>&1 >/dev/null
 				[ $? == 0 ] && service mysql stop
+				set -e
 
 				# Make sure InnoDB logfiles get re-created in case their size was changed in the configuration
 				rm -rf /var/lib/mysql/ib_logfile*
@@ -285,6 +289,7 @@ fi
 #
 if [[ "${MODE}" == "update" ]]; then
 	if [[ -d "${GS_UPDATE_DIR}" ]]; then
+		set +e
 		# make sure only mysql is running
 		service mon_ami status 2>&1 >/dev/null
 		[ $? == 0 ] && service mon_ami stop
@@ -294,6 +299,7 @@ if [[ "${MODE}" == "update" ]]; then
 		[ $? == 0 ] && service apache2 stop
 		service mysql status 2>&1 >/dev/null
 		[ $? != 0 ] && service mysql start
+		set -e
 
 		if [ ! -d "${GS_DIR}-${GS_VERSION}" ]; then
 			mv "${GS_DIR}" "${GS_DIR}-${GS_VERSION}"
