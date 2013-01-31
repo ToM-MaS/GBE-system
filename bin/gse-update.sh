@@ -204,8 +204,8 @@ password ${GSE_GIT_PASSWORD}
 	cd "${GSE_DIR_NORMALIZED}"
 
 	# remove public commands
-	rm /usr/bin/gs-*
-	rm /usr/bin/gse-*
+	rm -rf /usr/bin/gs-*
+	rm -rf /usr/bin/gse-*
 	
 	# Revert symlinks for static system files
 	#
