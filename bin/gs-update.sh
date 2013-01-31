@@ -77,7 +77,7 @@ case "$1" in
 				[[ `service mysql status` ]] && service mysql stop
 
 				# Make sure InnoDB logfiles get re-created in case their size was changed in the configuration
-				rm -rf /var/log/ib_logfile*
+				rm -rf /var/lib/mysql/ib_logfile*
 
 				echo "Purging local FreeSwitch files ..."
 				rm -rfv "${GS_DIR_LOCAL_NORMALIZED}/freeswitch/conf/"* \
