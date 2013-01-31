@@ -68,7 +68,7 @@ case "$1" in
 
 				# Do hard reset of repo to ensure correct files
 				cd "${GS_UPDATE_DIR}"
-				git clean -fdx && git reset --hard HEAD
+				quiet_git clean -fdx && quiet_git reset --hard HEAD
 
 				# stop status
 				service mon_ami status 2>&1 >/dev/null
@@ -192,8 +192,6 @@ esac
 #
 if [[ "${MODE}" == "update-init" ]]; then
 
-	echo -e "Preparing update of Gemeinschaft ...\n"
-
 	# Remove any old update files
 	[[ -d "${GS_UPDATE_DIR}" ]] && rm -rf "${GS_UPDATE_DIR}"
 	[[ -d "${GS_UPDATE_DIR}.tmp" ]] && rm -rf "${GS_UPDATE_DIR}.tmp"
@@ -207,8 +205,8 @@ if [[ "${MODE}" == "update-init" ]]; then
 	[[ x"${GS_BRANCH}" == x"" && x"${GDFDL_BRANCH}" != x"develop" ]] && GS_BRANCH="master"
 
 	# Add Git remote data to pull from it
-	git clean -fdx && git reset --hard HEAD
-	git remote add -t "${GS_BRANCH}" origin "${GS_GIT_URL}"
+	quiet_git clean -fdx && quiet_git reset --hard HEAD
+	quiet_git remote add -t "${GS_BRANCH}" origin "${GS_GIT_URL}"
 
 	# Setup Github user credentials for login
 	#
@@ -225,7 +223,7 @@ password ${GS_GIT_PASSWORD}
 	c=1
 	while [[ $c -le 5 ]]
 	do
-		git remote update 2>&1
+		quiet_git remote update
 		if [ "$?" = "0" ]
 			then
 			break;
@@ -240,7 +238,7 @@ password ${GS_GIT_PASSWORD}
 	c=1
 	while [[ $c -le 5 ]]
 	do
-		git pull origin "${GS_BRANCH}" 2>&1
+		quiet_git pull origin "${GS_BRANCH}"
 		if [ "$?" -eq "0" ]
 			then
 			break;
@@ -256,7 +254,7 @@ password ${GS_GIT_PASSWORD}
 	rm -rf ~/.netrc
 
 	# Make sure we checkout the latest tagged version in case we are in the master branch, otherwise set HEAD to the latest revision of GS_BRANCH
-	[ "${GS_BRANCH}" == "master" ] && git checkout "`git tag -l | tail -n1`" || git checkout "${GS_BRANCH}"
+	[ "${GS_BRANCH}" == "master" ] && quiet_git checkout "`git tag -l | tail -n1`" || quiet_git checkout "${GS_BRANCH}"
 
 	# Check version compatibility, allow auto-update only for minor versions
 	GS_GIT_VERSION="`git tag --contains HEAD`"
@@ -319,7 +317,7 @@ if [[ "${MODE}" == "init" || "${MODE}" == "update" ]]; then
 	echo "** Remove Git remote reference"
 	GS_GIT_REMOTE="`git --git-dir="${GS_DIR_NORMALIZED}/.git" remote`"
 	for _REMOTE in ${GS_GIT_REMOTE}; do
-		cd "${GS_DIR_NORMALIZED}"; git remote rm ${_REMOTE}
+		cd "${GS_DIR_NORMALIZED}"; quiet_git remote rm ${_REMOTE}
 	done
 
 	echo "** Setup logging directory"

@@ -114,8 +114,6 @@ esac
 #
 if [[ "${MODE}" == "update" ]]; then
 
-	echo -e "Preparing update of Gemeinschaft System Environment ...\n"
-
 	# Remove any old update files
 	[[ -d "${GSE_UPDATE_DIR}" ]] && rm -rf "${GSE_UPDATE_DIR}"
 	[[ -d "${GSE_UPDATE_DIR}.tmp" ]] && rm -rf "${GSE_UPDATE_DIR}.tmp"
