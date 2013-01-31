@@ -60,9 +60,10 @@ chown -vR ${GSE_USER}.${GSE_GROUP} "${GS_DIR_LOCAL}/firewall"
 chmod -v 0770 "${GS_DIR_LOCAL}/firewall"
 
 # GS backup files
-[ ! -d  "/var/backups/${GS_DIR}" ] && mkdir -p "/var/backups/${GS_DIR}"
-chown -vR "${GSE_USER}"."${GSE_GROUP}" "/var/backups/${GS_DIR}"
-chmod -v 0770 "/var/backups/${GS_DIR}"
+GS_BACKUP_DIR="/var/backups/`basename ${GS_DIR}`"
+[ ! -d  "${GS_BACKUP_DIR}" ] && mkdir -p "/${GS_BACKUP_DIR}"
+chown -vR "${GSE_USER}"."${GSE_GROUP}" "${GS_BACKUP_DIR}"
+chmod -v 0770 "${GS_BACKUP_DIR}"
 
 # FreeSwitch variable files
 [ ! -d  "${GS_DIR_LOCAL}/freeswitch/db" ] && mkdir -p "${GS_DIR_LOCAL}/freeswitch/db"
