@@ -230,7 +230,7 @@ password ${GSE_GIT_PASSWORD}
 		# strip prefix "dynamic/"
 		GSE_FILE_SYSTEMPATH="/${_FILE#*/}"
 
-		comm -2 "${_FILE}" "${GSE_FILE_SYSTEMPATH}" >/dev/null
+		diff -q "${_FILE}" "${GSE_FILE_SYSTEMPATH}" >/dev/null
 		FILE_CHANGE_STATUS="$?"
 
 		# Delete file if it hasn't been changed by the user
