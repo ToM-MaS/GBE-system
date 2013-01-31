@@ -5,7 +5,6 @@
     missingok
     create 0660 root gemeinschaft
 	postrotate
-	    /bin/rm -f /var/log/freeswitch/*.log > /dev/null 2>&1
 	    /usr/bin/fs_cli -x "fsctl send_sighup" > /dev/null 2>&1
     endscript
 }
