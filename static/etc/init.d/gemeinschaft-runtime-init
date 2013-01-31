@@ -3,7 +3,7 @@
 # Provides:          gemeinschaft-runtime-init
 # Required-Start:    hostname haveged
 # Required-Stop:     
-# X-Start-Before:    apache2 freeswitch
+# X-Start-Before:    apache2 freeswitch mysql
 # Default-Start:     2 3 4 5
 # Default-Stop:      0 1 6
 # Short-Description: Updates certain configurations after reboot
