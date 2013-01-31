@@ -1,0 +1,7 @@
+/var/log/freeswitch/*.log {
+    daily
+    rotate 14
+    delaycompress
+    missingok
+    create 0660 root gemeinschaft
+}
