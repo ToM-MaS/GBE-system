@@ -295,11 +295,9 @@ if [[ "${MODE}" == "update" ]]; then
 		service mysql status 2>&1 >/dev/null
 		[ $? != 0 ] && service mysql start
 
-		if [ ! -d "${GS_DIR}.${GS_VERSION}" ]; then
-			echo "** Rename and backup old files in \"${GS_DIR}\""
-			mv "${GS_DIR}" "${GS_DIR}.${GS_VERSION}"
+		if [ ! -d "${GS_DIR}-${GS_VERSION}" ]; then
+			mv "${GS_DIR}" "${GS_DIR}-${GS_VERSION}"
 		else
-			echo "** Deleting old files in \"${GS_DIR}\""
 			rm -rf "${GS_DIR}"
 		fi
 		cp -r ${GS_UPDATE_DIR} ${GS_DIR}

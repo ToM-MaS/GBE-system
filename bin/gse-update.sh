@@ -249,11 +249,9 @@ password ${GSE_GIT_PASSWORD}
 	# Run self-update
 	#
 	cd ~
-	if [ ! -d "${GSE_DIR}.${GSE_VERSION}" ]; then
-		echo "** Rename and backup old files in \"${GSE_DIR}\""
-		mv "${GSE_DIR}" "${GSE_DIR}.${GSE_VERSION}"
+	if [ ! -d "${GSE_DIR}-${GSE_VERSION}" ]; then
+		mv "${GSE_DIR}" "${GSE_DIR}-${GSE_VERSION}"
 	else
-		echo "** Deleting old files in \"${GSE_DIR}\""
 		rm -rf "${GSE_DIR}"
 	fi
 	mv "${GSE_UPDATE_DIR}" "${GSE_DIR}"
@@ -284,8 +282,6 @@ if [[ "${MODE}" == "init" || "${MODE}" == "self-update" || "${MODE}" == "factory
 	for _FILE in ${GSE_FILES_STATIC}; do
 		# strip prefix "static/"
 		GSE_FILE_SYSTEMPATH="/${_FILE#*/}"
-
-		echo -e "** Symlinking file '${GSE_FILE_SYSTEMPATH}'"
 
 		# make sure destination path exists
 		mkdir -p "${GSE_FILE_SYSTEMPATH%/*}"
@@ -322,13 +318,11 @@ if [[ "${MODE}" == "init" || "${MODE}" == "self-update" || "${MODE}" == "factory
 			echo -e "** Force installing file '${GSE_FILE_SYSTEMPATH}'"
 			cp -df "${GSE_DIR_NORMALIZED}/${_FILE}" "${GSE_FILE_SYSTEMPATH}"
 		elif [ ! -f "${GSE_FILE_SYSTEMPATH}" ]; then
-			echo -e "** Installing file '${GSE_FILE_SYSTEMPATH}'"
 			cp -dn "${GSE_DIR_NORMALIZED}/${_FILE}" "${GSE_FILE_SYSTEMPATH}"
 		fi
 	done
 
 	# Remove Git remote reference
-	echo "** Remove Git remote reference"
 	GSE_GIT_REMOTE="`git --git-dir="${GSE_DIR_NORMALIZED}/.git" remote`"
 	for _REMOTE in ${GSE_GIT_REMOTE}; do
 		cd "${GSE_DIR_NORMALIZED}"; quiet_git remote rm ${_REMOTE}
