@@ -237,7 +237,7 @@ password ${GSE_GIT_PASSWORD}
 		# Restore original file if existing
 		if [ -e "${GSE_FILE_SYSTEMPATH}.default-gse" ]; then
 			echo -e "** Recovering original file '${GSE_FILE_SYSTEMPATH}' from backup"
-			mv -f "${GSE_FILE_SYSTEMPATH}.default-gse" "${GSE_FILE_SYSTEMPATH}"
+			cp -df "${GSE_FILE_SYSTEMPATH}.default-gse" "${GSE_FILE_SYSTEMPATH}"
 		fi
 	done
 
