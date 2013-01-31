@@ -374,8 +374,4 @@ if [[ "${MODE}" == "self-update" || "${MODE}" == "factory-reset" ]]; then
 		egrep -Ev "^GSE_VERSION=" /etc/gemeinschaft/system.conf.bak > /etc/gemeinschaft/system.conf
 		echo "GSE_VERSION=\"${GSE_VERSION}\"" >> /etc/gemeinschaft/system.conf
 	fi
-
-	echo -e "\n\n***    ------------------------------------------------------------------"
-	echo -e "***     Task completed SUCCESSFULLY! "
-	echo -e "***    ------------------------------------------------------------------\n\n"
 fi
