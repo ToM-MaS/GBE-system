@@ -244,7 +244,6 @@ password ${GSE_GIT_PASSWORD}
 	# Run self-update
 	#
 	cd ~
-	echo "** Rename and backup old files in \"${GSE_DIR}\""
 	if [ ! -d "${GSE_DIR}.${GSE_VERSION}" ]; then
 		echo "** Rename and backup old files in \"${GSE_DIR}\""
 		mv "${GSE_DIR}" "${GSE_DIR}.${GSE_VERSION}"
