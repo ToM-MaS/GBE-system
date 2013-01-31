@@ -15,9 +15,6 @@ sort_buffer_size = 8M
 [mysqld]
 skip-external-locking
 
-# do not init bdb as we don't use it
-skip-bdb
-
 # we don't use MyISAM so the default setting can be very low
 key_buffer_size = 16K
 
