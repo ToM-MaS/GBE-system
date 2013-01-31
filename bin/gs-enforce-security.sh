@@ -56,6 +56,10 @@ fi
 chown -vR ${GSE_USER}.${GSE_GROUP} "${GS_DIR_LOCAL}/firewall"
 chmod -v 0770 "${GS_DIR_LOCAL}/firewall"
 
+# GS backup files
+chown -vR "${GSE_USER}"."${GSE_GROUP}" /var/backup/gemeinschaft
+chmod -v 0770 /var/backup/gemeinschaft
+
 # FreeSwitch variable files
 chown -vR freeswitch.freeswitch "${GS_DIR_LOCAL}/freeswitch/db" "${GS_DIR_LOCAL}/freeswitch/recordings" "${GS_DIR_LOCAL}/freeswitch/voicemail" "${GS_DIR_LOCAL}/freeswitch/storage"
 chmod -v 0770 "${GS_DIR_LOCAL}/freeswitch/db" "${GS_DIR_LOCAL}/freeswitch/recordings" "${GS_DIR_LOCAL}/freeswitch/voicemail" "${GS_DIR_LOCAL}/freeswitch/storage"
