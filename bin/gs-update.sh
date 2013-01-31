@@ -263,7 +263,7 @@ password ${GS_GIT_PASSWORD}
 	if [[ "${GS_GIT_REVISION}" == "${GS_REVISION}" ]]; then
 		rm -rf "${GS_UPDATE_DIR}"*
 		echo -e "\n\n***    ------------------------------------------------------------------"
-		echo -e "***     You have already installed the latest version, no update needed."
+		echo -e "***     Gemeinschaft is already up-to-date, no update needed."
 		echo -e "***    ------------------------------------------------------------------\n\n"
 		exit 0
 	elif [[ "${GS_GIT_VERSION:0:3}" == "${GS_VERSION:0:3}" || x"${GS_GIT_VERSION}" == x"" ]]; then
@@ -275,7 +275,7 @@ password ${GS_GIT_PASSWORD}
 	else
 		rm -rf "${GS_UPDATE_DIR}"*
 		echo -e "\n\n***    ------------------------------------------------------------------"
-		echo -e "***     Update to the next major version ${GS_GIT_VERSION} is not supported\n***     via this script.\n***     Please use backup & restore via web interface."
+		echo -e "***     Update to the next major version ${GS_GIT_VERSION} of Gemeinschaft\n***     is not supported via this script.\n***     Please use backup & restore via web interface."
 		echo -e "***    ------------------------------------------------------------------\n\n"
 		exit 1
 	fi
