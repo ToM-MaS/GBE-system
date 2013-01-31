@@ -66,15 +66,19 @@ case "$1" in
 				cd "${GS_UPDATE_DIR}"
 				git clean -fdx && git reset --hard HEAD
 
-				# stop services
-				[[ `service mon_ami status` ]] && service mon_ami stop
-				[[ `service freeswitch status` ]] && service freeswitch stop
-				[[ `service apache2 status` ]] && service apache2 stop
+				# stop status
+				service mon_ami status 2>&1 >/dev/null
+				[ $? == 0 ] && service mon_ami stop
+				service freeswitch status 2>&1 >/dev/null
+				[ $? == 0 ] && service freeswitch stop
+				service apache2 status 2>&1 >/dev/null
+				[ $? == 0 ] && service apache2 stop
 
 				# Purging database
 				echo -e "\nPurging database '${GS_MYSQL_DB}' ...";
 				mysql -e "DROP DATABASE IF EXISTS ${GS_MYSQL_DB}; CREATE DATABASE ${GS_MYSQL_DB};" --user=root --password="${MYSQL_PASSWD_ROOT}"
-				[[ `service mysql status` ]] && service mysql stop
+				service mysql status 2>&1 >/dev/null
+				[ $? == 0 ] && service mysql stop
 
 				# Make sure InnoDB logfiles get re-created in case their size was changed in the configuration
 				rm -rf /var/lib/mysql/ib_logfile*
@@ -280,10 +284,14 @@ fi
 if [[ "${MODE}" == "update" ]]; then
 	if [[ -d "${GS_UPDATE_DIR}" ]]; then
 		# make sure only mysql is running
-		[[ `service mon_ami status` ]] && service mon_ami stop
-		[[ `service freeswitch status` ]] && service freeswitch stop
-		[[ `service apache2 status` ]] && service apache2 stop
-		[[ `service mysql status` != 0 ]] && service mysql start
+		service mon_ami status 2>&1 >/dev/null
+		[ $? == 0 ] && service mon_ami stop
+		service freeswitch status 2>&1 >/dev/null
+		[ $? == 0 ] && service freeswitch stop
+		service apache2 status 2>&1 >/dev/null
+		[ $? == 0 ] && service apache2 stop
+		service mysql status 2>&1 >/dev/null
+		[ $? != 0 ] && service mysql start
 
 		if [ ! -d "${GS_DIR}.${GS_VERSION}" ]; then
 			echo "** Rename and backup old files in \"${GS_DIR}\""
