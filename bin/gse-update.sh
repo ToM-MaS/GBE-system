@@ -356,6 +356,9 @@ if [ "${MODE}" == "recover" ]; then
 	fi
 	
 	FILE="$2"
+	CURRENT_PATH="`pwd`"
+
+	# find static file via full-qualified path
 	if [ -f "${GSE_DIR_NORMALIZED}/static/${FILE#/*}" ]; then
 		mkdir -p "${FILE%/*}"
 		rm -f "${FILE}"
@@ -364,13 +367,36 @@ if [ "${MODE}" == "recover" ]; then
 		echo -e "***     File '${FILE}'"
 		echo -e "***     has been recovered from static GSE data store."
 		echo -e "***    ------------------------------------------------------------------\n\n"
+
+	# find static file via current working directory
+	elif [ -f "${GSE_DIR_NORMALIZED}/static/${CURRENT_PATH#/*}/${FILE}" ]; then
+		mkdir -p "${CURRENT_PATH}/${FILE%/*}"
+		rm -f "${CURRENT_PATH}/${FILE}"
+		ln -s "${GSE_DIR_NORMALIZED}/static/${CURRENT_PATH#/*}/${FILE}" "${CURRENT_PATH}/${FILE}"
+		echo -e "\n\n***    ------------------------------------------------------------------"
+		echo -e "***     File '${CURRENT_PATH}/${FILE}'"
+		echo -e "***     has been recovered from static GSE data store."
+		echo -e "***    ------------------------------------------------------------------\n\n"
+
+	# find dynamic file via full-qualified path
 	elif [ -f "${GSE_DIR_NORMALIZED}/dynamic/${FILE#/*}" ]; then
-			mkdir -p "${FILE%/*}"
-			cp -df "${GSE_DIR_NORMALIZED}/dynamic/${FILE#/*}" "${FILE}"
-			echo -e "\n\n***    ------------------------------------------------------------------"
-			echo -e "***     File '${FILE}'"
-			echo -e "***     has been recovered from dynamic GSE data store."
-			echo -e "***    ------------------------------------------------------------------\n\n"
+		mkdir -p "${FILE%/*}"
+		cp -df "${GSE_DIR_NORMALIZED}/dynamic/${FILE#/*}" "${FILE}"
+		echo -e "\n\n***    ------------------------------------------------------------------"
+		echo -e "***     File '${FILE}'"
+		echo -e "***     has been recovered from dynamic GSE data store."
+		echo -e "***    ------------------------------------------------------------------\n\n"
+
+	# find dynamic file via current working directory
+	elif [ -f "${GSE_DIR_NORMALIZED}/dynamic/${CURRENT_PATH#/*}/${FILE}" ]; then
+		mkdir -p "${CURRENT_PATH}/${FILE%/*}"
+		cp -df "${GSE_DIR_NORMALIZED}/dynamic/${CURRENT_PATH#/*}/${FILE}" "${CURRENT_PATH}/${FILE}"
+		echo -e "\n\n***    ------------------------------------------------------------------"
+		echo -e "***     File '${CURRENT_PATH}/${FILE}'"
+		echo -e "***     has been recovered from dynamic GSE data store."
+		echo -e "***    ------------------------------------------------------------------\n\n"
+
+	# If we can't find the specified file in GSE lib
 	else
 		echo -e "\n\n***    ------------------------------------------------------------------"
 		echo -e "***     File '${FILE}'"
