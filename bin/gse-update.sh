@@ -366,7 +366,7 @@ if [ "${MODE}" == "recover" ]; then
 		echo -e "***    ------------------------------------------------------------------\n\n"
 	elif [ -f "${GSE_DIR_NORMALIZED}/dynamic/${FILE#/*}" ]; then
 			mkdir -p "${FILE%/*}"
-			cp -df "${GSE_DIR_NORMALIZED}/static/${FILE#/*}" "${FILE}"
+			cp -df "${GSE_DIR_NORMALIZED}/dynamic/${FILE#/*}" "${FILE}"
 			echo -e "\n\n***    ------------------------------------------------------------------"
 			echo -e "***     File '${FILE}'"
 			echo -e "***     has been recovered from dynamic GSE data store."
