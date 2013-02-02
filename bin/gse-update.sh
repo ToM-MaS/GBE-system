@@ -355,10 +355,8 @@ if [ "${MODE}" == "recover" ]; then
 		exit 1
 	fi
 	
-	cd "${GSE_DIR_NORMALIZED}"
-
 	FILE="$2"
-	if [ -f "static/${FILE#/*}" ]; then
+	if [ -f "${GSE_DIR_NORMALIZED}/static/${FILE#/*}" ]; then
 		mkdir -p "${FILE%/*}"
 		rm -f "${FILE}"
 		ln -s "${GSE_DIR_NORMALIZED}/static/${FILE#/*}" "${FILE}"
@@ -366,9 +364,9 @@ if [ "${MODE}" == "recover" ]; then
 		echo -e "***     File '${FILE}'"
 		echo -e "***     has been recovered from static GSE data store."
 		echo -e "***    ------------------------------------------------------------------\n\n"
-	elif [ -f "dynamic/${FILE#/*}" ]; then
+	elif [ -f "${GSE_DIR_NORMALIZED}/dynamic/${FILE#/*}" ]; then
 			mkdir -p "${FILE%/*}"
-			cp -df "static/${FILE#/*}" "${FILE}"
+			cp -df "${GSE_DIR_NORMALIZED}/static/${FILE#/*}" "${FILE}"
 			echo -e "\n\n***    ------------------------------------------------------------------"
 			echo -e "***     File '${FILE}'"
 			echo -e "***     has been recovered from dynamic GSE data store."
@@ -380,8 +378,6 @@ if [ "${MODE}" == "recover" ]; then
 		echo -e "***    ------------------------------------------------------------------\n\n"
 		exit 1
 	fi
-
-	cd - 2>&2 >/dev/null
 fi
 
 # Enforce correct file permissions
