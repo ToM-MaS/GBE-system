@@ -32,7 +32,7 @@ set -e
 #
 case "$1" in
 	--help|-h|help)
-	echo "Usage: $0 [ --factory-reset ]"
+	echo "Usage: $0 [ --factory-reset | --recover ]"
 	exit 0
 	;;
 
@@ -65,6 +65,10 @@ case "$1" in
 
 	--force-init)
 	MODE="init"
+	;;
+
+	--recover)
+	MODE="recover"
 	;;
 
 	*)
@@ -338,14 +342,53 @@ if [[ "${MODE}" == "init" || "${MODE}" == "self-update" || "${MODE}" == "factory
 	cd - 2>&1 >/dev/null
 fi
 
+# Explicit recover of a single file
+#
+if [ "${MODE}" == "recover" ]; then
+	if [ x"$2" == x"" ]; then
+		echo "Please enter the exact path of the file you would like to be recovered."
+		exit 1
+	fi
+	
+	cd "${GSE_DIR_NORMALIZED}"
+
+	FILE="$2"
+	if [ -f "static/${FILE#/*}" ]; then
+		mkdir -p "${FILE%/*}"
+		cp -df "static/${FILE#/*}" "${FILE}"
+		echo -e "\n\n***    ------------------------------------------------------------------"
+		echo -e "***     File '${FILE}'"
+		echo -e "***     has been recovered from static GSE data store."
+		echo -e "***    ------------------------------------------------------------------\n\n"
+	elif [ -f "dynamic/${FILE#/*}" ]; then
+			mkdir -p "${FILE%/*}"
+			cp -df "static/${FILE#/*}" "${FILE}"
+			echo -e "\n\n***    ------------------------------------------------------------------"
+			echo -e "***     File '${FILE}'"
+			echo -e "***     has been recovered from dynamic GSE data store."
+			echo -e "***    ------------------------------------------------------------------\n\n"
+	else
+		echo -e "\n\n***    ------------------------------------------------------------------"
+		echo -e "***     File '${FILE}'"
+		echo -e "***     is not present in the GSE data store and thus cannot be recovered."
+		echo -e "***    ------------------------------------------------------------------\n\n"
+		exit 1
+	fi
+
+	cd - 2>&2 >/dev/null
+fi
+
+# Enforce correct file permissions
+#
+if [[ "${MODE}" == "self-update" || "${MODE}" == "factory-reset" || "${MODE}" == "recover" ]]; then
+	set +e
+	"${GSE_DIR_NORMALIZED}/bin/gs-enforce-security.sh" | grep -Ev retained | grep -Ev "no changes" | grep -Ev "nor referent has been changed"
+	set -e
+fi
 
 # Finalize update or factory reset
 #
 if [[ "${MODE}" == "self-update" || "${MODE}" == "factory-reset" ]]; then
-	set +e
-	"${GSE_DIR_NORMALIZED}/bin/gs-enforce-security.sh" | grep -Ev retained | grep -Ev "no changes" | grep -Ev "nor referent has been changed"
-	set -e
-
 	# Read GSE version from Git repo
 	#
 	cd "${GSE_DIR_NORMALIZED}"
