@@ -301,6 +301,9 @@ if [[ "${MODE}" == "init" || "${MODE}" == "self-update" || "${MODE}" == "factory
 		fi
 
 		# Symlink file
+		if [[ "${MODE}" == "init" || "${MODE}" == "factory-reset" ]]; then
+			echo -e "** Force symlinking file '${GSE_FILE_SYSTEMPATH}'"
+		fi
 		rm -f "${GSE_FILE_SYSTEMPATH}"
 		ln -s "${GSE_DIR_NORMALIZED}/${_FILE}" "${GSE_FILE_SYSTEMPATH}"
 	done
