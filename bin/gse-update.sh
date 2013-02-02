@@ -234,16 +234,18 @@ password ${GSE_GIT_PASSWORD}
 		# strip prefix "dynamic/"
 		GSE_FILE_SYSTEMPATH="/${_FILE#*/}"
 
-		set +e
-		diff -q "${_FILE}" "${GSE_FILE_SYSTEMPATH}" >/dev/null
-		FILE_CHANGE_STATUS="$?"
-		set -e
+		if [ -f "${GSE_FILE_SYSTEMPATH}" ]; then
+			set +e
+			diff -q "${_FILE}" "${GSE_FILE_SYSTEMPATH}" >/dev/null
+			FILE_CHANGE_STATUS="$?"
+			set -e
 
-		# Delete file if it hasn't been changed by the user
-		if [ "${FILE_CHANGE_STATUS}" == "0" ]; then
-			rm -f "${GSE_FILE_SYSTEMPATH}"
-		else
-			echo -e "** Keeping user modified file '${GSE_FILE_SYSTEMPATH}' and leaving it untouched"
+			# Delete file if it hasn't been changed by the user
+			if [ "${FILE_CHANGE_STATUS}" == "0" ]; then
+				rm -f "${GSE_FILE_SYSTEMPATH}"
+			else
+				echo -e "** Keeping user modified file '${GSE_FILE_SYSTEMPATH}' and leaving it untouched"
+			fi
 		fi
 
 		# Restore original file if it was existing before and we didn't keep the users file
