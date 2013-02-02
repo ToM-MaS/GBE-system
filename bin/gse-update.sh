@@ -370,7 +370,7 @@ if [ "${MODE}" == "recover" ]; then
 
 	# find static file via current working directory
 	elif [ -f "${GSE_DIR_NORMALIZED}/static/${CURRENT_PATH#/*}/${FILE}" ]; then
-		mkdir -p "${CURRENT_PATH}/${FILE%/*}"
+		[[ ${FILE} =~ "/" ]] && mkdir -p "${CURRENT_PATH}/${FILE%/*}"
 		rm -f "${CURRENT_PATH}/${FILE}"
 		ln -s "${GSE_DIR_NORMALIZED}/static/${CURRENT_PATH#/*}/${FILE}" "${CURRENT_PATH}/${FILE}"
 		echo -e "\n\n***    ------------------------------------------------------------------"
@@ -389,7 +389,7 @@ if [ "${MODE}" == "recover" ]; then
 
 	# find dynamic file via current working directory
 	elif [ -f "${GSE_DIR_NORMALIZED}/dynamic/${CURRENT_PATH#/*}/${FILE}" ]; then
-		mkdir -p "${CURRENT_PATH}/${FILE%/*}"
+		[[ ${FILE} =~ "/" ]] && mkdir -p "${CURRENT_PATH}/${FILE%/*}"
 		cp -df "${GSE_DIR_NORMALIZED}/dynamic/${CURRENT_PATH#/*}/${FILE}" "${CURRENT_PATH}/${FILE}"
 		echo -e "\n\n***    ------------------------------------------------------------------"
 		echo -e "***     File '${CURRENT_PATH}/${FILE}'"
