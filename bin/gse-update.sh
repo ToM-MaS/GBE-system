@@ -408,7 +408,7 @@ fi
 
 # Enforce correct file permissions
 #
-if [[ "${MODE}" == "self-update" || "${MODE}" == "factory-reset" || "${MODE}" == "recover" ]]; then
+if [[ "${MODE}" == "self-update" || "${MODE}" == "factory-reset" ]]; then
 	set +e
 	"${GSE_DIR_NORMALIZED}/bin/gs-enforce-security.sh" | grep -Ev retained | grep -Ev "no changes" | grep -Ev "nor referent has been changed"
 	set -e
