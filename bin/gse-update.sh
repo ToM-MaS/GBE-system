@@ -360,7 +360,8 @@ if [ "${MODE}" == "recover" ]; then
 	FILE="$2"
 	if [ -f "static/${FILE#/*}" ]; then
 		mkdir -p "${FILE%/*}"
-		cp -df "static/${FILE#/*}" "${FILE}"
+		rm -f "${FILE}"
+		ln -s "${GSE_DIR_NORMALIZED}/static/${FILE#/*}" "${FILE}"
 		echo -e "\n\n***    ------------------------------------------------------------------"
 		echo -e "***     File '${FILE}'"
 		echo -e "***     has been recovered from static GSE data store."
