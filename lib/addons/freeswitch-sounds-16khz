@@ -8,7 +8,7 @@
 #
 
 # General settings
-[ -f /etc/gemeinschaft/system.conf ] && source /etc/gemeinschaft/system.conf || echo "FATAL ERROR: Local configuration file in /etc/gemeinschaft/system.conf missing"
+[ -e /etc/gemeinschaft/system.conf ] && source /etc/gemeinschaft/system.conf || echo "FATAL ERROR: Local configuration file in /etc/gemeinschaft/system.conf missing"
 [[ x"${GSE_DIR}" == x"" ]] && exit 1
 
 GSE_ADDON_NAME="`basename $0`"
@@ -18,7 +18,7 @@ case "$1" in
 	install)
 		cd /usr/local/src
 		curl --retry 5 --retry-delay 3 -O "http://files.freeswitch.org/freeswitch-sounds-en-us-callie-16000-1.0.22.tar.gz" -O "http://files.freeswitch.org/freeswitch-sounds-music-16000-1.0.8.tar.gz"
-		[[ ! -f freeswitch-sounds-en-us-callie-16000-1.0.22.tar.gz || ! -f freeswitch-sounds-music-16000-1.0.8.tar.gz ]] && exit 1
+		[[ ! -e freeswitch-sounds-en-us-callie-16000-1.0.22.tar.gz || ! -e freeswitch-sounds-music-16000-1.0.8.tar.gz ]] && exit 1
 		find /usr/local/src -name 'freeswitch-*.tar.gz' -type f -exec tar xfz {} -C /usr/share/freeswitch/sounds \;
 		find /usr/local/src -name 'freeswitch-*.tar.gz' -type f -exec rm {} \;
 		cd - 2>&1>/dev/null

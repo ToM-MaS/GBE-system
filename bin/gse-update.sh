@@ -16,12 +16,12 @@ if [[ ${EUID} -ne 0 ]];
 fi
 
 # General settings
-[ -f /etc/gemeinschaft/system.conf ] && source /etc/gemeinschaft/system.conf || echo "FATAL ERROR: Local configuration file in /etc/gemeinschaft/system.conf missing"
+[ -e /etc/gemeinschaft/system.conf ] && source /etc/gemeinschaft/system.conf || echo "FATAL ERROR: Local configuration file in /etc/gemeinschaft/system.conf missing"
 [[ x"${GSE_DIR}" == x"" ]] && exit 1
 GSE_UPDATE_DIR="${GSE_DIR}.update"
 
 # General functions
-[ -f "${GSE_DIR_NORMALIZED}/lib/gse-functions.sh" ] && source "${GSE_DIR_NORMALIZED}/lib/gse-functions.sh" || exit 1
+[ -e "${GSE_DIR_NORMALIZED}/lib/gse-functions.sh" ] && source "${GSE_DIR_NORMALIZED}/lib/gse-functions.sh" || exit 1
 
 
 # check each command return codes for errors
@@ -234,7 +234,7 @@ password ${GSE_GIT_PASSWORD}
 		# strip prefix "dynamic/"
 		GSE_FILE_SYSTEMPATH="/${_FILE#*/}"
 
-		if [ -f "${GSE_FILE_SYSTEMPATH}" ]; then
+		if [ -e "${GSE_FILE_SYSTEMPATH}" ]; then
 			set +e
 			diff -q "${_FILE}" "${GSE_FILE_SYSTEMPATH}" >/dev/null
 			FILE_CHANGE_STATUS="$?"
@@ -336,7 +336,7 @@ if [[ "${MODE}" == "init" || "${MODE}" == "self-update" || "${MODE}" == "factory
 			cp -df "${GSE_DIR_NORMALIZED}/${_FILE}" "${GSE_FILE_SYSTEMPATH}"
 		elif [[ -e "${GSE_FILE_SYSTEMPATH}" && -e "${GSE_FILE_SYSTEMPATH}.default-gse" && "${FILE_CHANGE_STATUS}" == "0" ]]; then
 			cp -df "${GSE_DIR_NORMALIZED}/${_FILE}" "${GSE_FILE_SYSTEMPATH}"			
-		elif [ ! -f "${GSE_FILE_SYSTEMPATH}" ]; then
+		elif [ ! -e "${GSE_FILE_SYSTEMPATH}" ]; then
 			cp -dn "${GSE_DIR_NORMALIZED}/${_FILE}" "${GSE_FILE_SYSTEMPATH}"
 		fi
 	done
@@ -367,7 +367,7 @@ if [ "${MODE}" == "recover" ]; then
 	CURRENT_PATH="`pwd`"
 
 	# find static file via full-qualified path
-	if [ -f "${GSE_DIR_NORMALIZED}/static/${FILE#/*}" ]; then
+	if [ -e "${GSE_DIR_NORMALIZED}/static/${FILE#/*}" ]; then
 		mkdir -p "${FILE%/*}"
 		rm -f "${FILE}"
 		ln -s "${GSE_DIR_NORMALIZED}/static/${FILE#/*}" "${FILE}"
@@ -377,7 +377,7 @@ if [ "${MODE}" == "recover" ]; then
 		echo -e "***    ------------------------------------------------------------------\n\n"
 
 	# find static file via current working directory
-	elif [ -f "${GSE_DIR_NORMALIZED}/static/${CURRENT_PATH#/*}/${FILE}" ]; then
+	elif [ -e "${GSE_DIR_NORMALIZED}/static/${CURRENT_PATH#/*}/${FILE}" ]; then
 		[[ ${FILE} =~ "/" ]] && mkdir -p "${CURRENT_PATH}/${FILE%/*}"
 		rm -f "${CURRENT_PATH}/${FILE}"
 		ln -s "${GSE_DIR_NORMALIZED}/static/${CURRENT_PATH#/*}/${FILE}" "${CURRENT_PATH}/${FILE}"
@@ -387,7 +387,7 @@ if [ "${MODE}" == "recover" ]; then
 		echo -e "***    ------------------------------------------------------------------\n\n"
 
 	# find dynamic file via full-qualified path
-	elif [ -f "${GSE_DIR_NORMALIZED}/dynamic/${FILE#/*}" ]; then
+	elif [ -e "${GSE_DIR_NORMALIZED}/dynamic/${FILE#/*}" ]; then
 		mkdir -p "${FILE%/*}"
 		cp -df "${GSE_DIR_NORMALIZED}/dynamic/${FILE#/*}" "${FILE}"
 		echo -e "\n\n***    ------------------------------------------------------------------"
@@ -396,7 +396,7 @@ if [ "${MODE}" == "recover" ]; then
 		echo -e "***    ------------------------------------------------------------------\n\n"
 
 	# find dynamic file via current working directory
-	elif [ -f "${GSE_DIR_NORMALIZED}/dynamic/${CURRENT_PATH#/*}/${FILE}" ]; then
+	elif [ -e "${GSE_DIR_NORMALIZED}/dynamic/${CURRENT_PATH#/*}/${FILE}" ]; then
 		[[ ${FILE} =~ "/" ]] && mkdir -p "${CURRENT_PATH}/${FILE%/*}"
 		cp -df "${GSE_DIR_NORMALIZED}/dynamic/${CURRENT_PATH#/*}/${FILE}" "${CURRENT_PATH}/${FILE}"
 		echo -e "\n\n***    ------------------------------------------------------------------"

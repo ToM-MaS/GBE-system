@@ -8,10 +8,10 @@
 #
 
 # General settings
-[ -f /etc/gemeinschaft/system.conf ] && source /etc/gemeinschaft/system.conf || echo "FATAL ERROR: Local configuration file in /etc/gemeinschaft/system.conf missing"
+[ -e /etc/gemeinschaft/system.conf ] && source /etc/gemeinschaft/system.conf || echo "FATAL ERROR: Local configuration file in /etc/gemeinschaft/system.conf missing"
 
 # General functions
-[ -f "${GSE_DIR_NORMALIZED}/lib/gse-functions.sh" ] && source "${GSE_DIR_NORMALIZED}/lib/gse-functions.sh" || exit 1
+[ -e "${GSE_DIR_NORMALIZED}/lib/gse-functions.sh" ] && source "${GSE_DIR_NORMALIZED}/lib/gse-functions.sh" || exit 1
 
 
 GSE_ADDON_DIR="${GSE_DIR_NORMALIZED}/lib/addons"
@@ -26,7 +26,7 @@ if [[ ${EUID} -ne 0 ]];
 fi
 
 # For Debian
-if [ -f /etc/debian_version ]; then
+if [ -e /etc/debian_version ]; then
 	OS_DISTRIBUTION="Debian"
 	OS_VERSION="`cat /etc/debian_version`"
 	OS_VERSION_MAJOR=${OS_VERSION%%.*}
@@ -68,9 +68,9 @@ case "${GSE_ADDON_ACTION}" in
 			[ -d "${GSE_ADDON_DIR}/${OS_CODENAME}" ] && GSE_ADDON_SCRIPT="`find "${GSE_ADDON_DIR}/${OS_CODENAME}" -maxdepth 1 -type f -name "${GSE_ADDON_NAME}" ! -iname ".*"`" || GSE_ADDON_SCRIPT=""
 			[ "${GSE_ADDON_SCRIPT}" == "" ] && GSE_ADDON_SCRIPT="`find "${GSE_ADDON_DIR}" -maxdepth 1 -type f -name "${GSE_ADDON_NAME}" ! -iname ".*"`"
 
-			if [ -f "${GSE_ADDON_SCRIPT}" ]; then
+			if [ -e "${GSE_ADDON_SCRIPT}" ]; then
 
-				[ -f "${GSE_ADDON_STATUSFILE}" ] && GSE_ADDON_STATUS="`sed -n "/^${GSE_ADDON_NAME} .*$/p" "${GSE_ADDON_STATUSFILE}"`" || GSE_ADDON_STATUS=""
+				[ -e "${GSE_ADDON_STATUSFILE}" ] && GSE_ADDON_STATUS="`sed -n "/^${GSE_ADDON_NAME} .*$/p" "${GSE_ADDON_STATUSFILE}"`" || GSE_ADDON_STATUS=""
 
 				# Process installation
 				if [ "${GSE_ADDON_ACTION}" == "install" ]; then
@@ -150,10 +150,10 @@ case "${GSE_ADDON_ACTION}" in
 
 	status)
 		if [ x"${GSE_ADDON_NAME}" == x"" ]; then
-			[ -f "${GSE_ADDON_STATUSFILE}" ] && LIST="`cat "${GSE_ADDON_STATUSFILE}"`" || LIST=""
+			[ -e "${GSE_ADDON_STATUSFILE}" ] && LIST="`cat "${GSE_ADDON_STATUSFILE}"`" || LIST=""
 			[ x"${LIST}" != x"" ] && echo -e "\nThe following add-ons are currently installed:\n${LIST}\n" || echo -e "\nCurrently there are no add-ons installed.\n"
 		else
-			[ -f "${GSE_ADDON_STATUSFILE}" ] && GSE_ADDON_STATUS="`sed -n "/^${GSE_ADDON_NAME} .*$/p" "${GSE_ADDON_STATUSFILE}"`" || GSE_ADDON_STATUS=""
+			[ -e "${GSE_ADDON_STATUSFILE}" ] && GSE_ADDON_STATUS="`sed -n "/^${GSE_ADDON_NAME} .*$/p" "${GSE_ADDON_STATUSFILE}"`" || GSE_ADDON_STATUS=""
 			[ x"${GSE_ADDON_STATUS}" != x"" ] && echo -e "\nThe system add-on '${GSE_ADDON_NAME}' was installed on ${GSE_ADDON_STATUS#* }.\n" || echo -e "\nThe system add-on '${GSE_ADDON_NAME}' is currently not installed.\n"
 		fi
 		;;
@@ -166,7 +166,7 @@ case "${GSE_ADDON_ACTION}" in
 			echo -e "\nADD-ONS FOR ${OS_DISTRIBUTION^^} ${OS_CODENAME^^}"
 			for GSE_ADDON_SCRIPT in ${LIST}; do
 				GSE_ADDON_SCRIPT_BASE="`basename "${GSE_ADDON_SCRIPT}"`"
-				[ -f "${GSE_ADDON_STATUSFILE}" ] && GSE_ADDON_STATUS="`sed -n "/^${GSE_ADDON_SCRIPT_BASE} .*$/p" "${GSE_ADDON_STATUSFILE}"`" || GSE_ADDON_STATUS=""
+				[ -e "${GSE_ADDON_STATUSFILE}" ] && GSE_ADDON_STATUS="`sed -n "/^${GSE_ADDON_SCRIPT_BASE} .*$/p" "${GSE_ADDON_STATUSFILE}"`" || GSE_ADDON_STATUS=""
 				[ x"${GSE_ADDON_STATUS}" == x"" ] && echo -n "  " || echo -n "* "
 				bash "${GSE_ADDON_SCRIPT}" info
 			done
@@ -180,7 +180,7 @@ case "${GSE_ADDON_ACTION}" in
 		if [ x"${LIST}" != x"" ]; then
 			for GSE_ADDON_SCRIPT in ${LIST}; do
 				GSE_ADDON_SCRIPT_BASE="`basename "${GSE_ADDON_SCRIPT}"`"
-				[ -f "${GSE_ADDON_STATUSFILE}" ] && GSE_ADDON_STATUS="`sed -n "/^${GSE_ADDON_SCRIPT_BASE} .*$/p" "${GSE_ADDON_STATUSFILE}"`" || GSE_ADDON_STATUS=""
+				[ -e "${GSE_ADDON_STATUSFILE}" ] && GSE_ADDON_STATUS="`sed -n "/^${GSE_ADDON_SCRIPT_BASE} .*$/p" "${GSE_ADDON_STATUSFILE}"`" || GSE_ADDON_STATUS=""
 				[ x"${GSE_ADDON_STATUS}" == x"" ] && echo -n "  " || echo -n "* "
 				bash "${GSE_ADDON_SCRIPT}" info
 			done

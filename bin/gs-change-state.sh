@@ -8,10 +8,10 @@
 #
 
 # General settings
-[ -f /etc/gemeinschaft/system.conf ] && source /etc/gemeinschaft/system.conf || echo "FATAL ERROR: Local configuration file in /etc/gemeinschaft/system.conf missing"
+[ -e /etc/gemeinschaft/system.conf ] && source /etc/gemeinschaft/system.conf || echo "FATAL ERROR: Local configuration file in /etc/gemeinschaft/system.conf missing"
 
 # General functions
-[ -f "${GSE_DIR_NORMALIZED}/lib/gse-functions.sh" ] && source "${GSE_DIR_NORMALIZED}/lib/gse-functions.sh" || exit 1
+[ -e "${GSE_DIR_NORMALIZED}/lib/gse-functions.sh" ] && source "${GSE_DIR_NORMALIZED}/lib/gse-functions.sh" || exit 1
 
 
 # check each command return codes for errors
@@ -30,12 +30,12 @@ case "${GSE_ENV}" in
 
 	# Lower debug levels for productive installations
 	production)
-		if [ -f "${GS_DIR_NORMALIZED_LOCAL}/freeswitch/conf/freeswitch.xml" ]; then
+		if [ -e "${GS_DIR_NORMALIZED_LOCAL}/freeswitch/conf/freeswitch.xml" ]; then
 			echo "** Updating FreeSwitch debugging to production level"
 			sed -i "s/<map name=\"all\" value=\"debug,info,notice,warning,err,crit,alert\"\/>/<map name=\"all\" value=\"info,notice,warning,err,crit,alert\"\/>/" "${GS_DIR_NORMALIZED_LOCAL}/freeswitch/conf/freeswitch.xml"
 		fi
 
-		if [ -f "/etc/apache2/sites-available/gemeinschaft" ]; then
+		if [ -e "/etc/apache2/sites-available/gemeinschaft" ]; then
 			echo "** Updating Apache Passenger environment to production level"
 			sed -i "s/RailsEnv development/RailsEnv production/" "/etc/apache2/sites-available/gemeinschaft"
 		fi
@@ -44,12 +44,12 @@ case "${GSE_ENV}" in
 
 	# Higher debug levels for development installations
 	development)
-		if [ -f "${GS_DIR_NORMALIZED_LOCAL}/freeswitch/conf/freeswitch.xml" ]; then
+		if [ -e "${GS_DIR_NORMALIZED_LOCAL}/freeswitch/conf/freeswitch.xml" ]; then
 			echo "** Updating FreeSwitch debugging to development level"
 			sed -i "s/<map name=\"all\" value=\"info,notice,warning,err,crit,alert\"\/>/<map name=\"all\" value=\"debug,info,notice,warning,err,crit,alert\"\/>/" "${GS_DIR_NORMALIZED_LOCAL}/freeswitch/conf/freeswitch.xml"
 		fi
 
-		if [ -f "/etc/apache2/sites-available/gemeinschaft" ]; then
+		if [ -e "/etc/apache2/sites-available/gemeinschaft" ]; then
 			echo "** Updating Apache Passenger environment to development level"
 			sed -i "s/RailsEnv production/RailsEnv development/" "/etc/apache2/sites-available/gemeinschaft"
 		fi
