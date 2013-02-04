@@ -325,10 +325,12 @@ if [[ "${MODE}" == "init" || "${MODE}" == "self-update" || "${MODE}" == "factory
 		fi
 
 		# Check for equality of backup and original file
-		set +e
-		diff -q "${_FILE}" "${GSE_FILE_SYSTEMPATH}" >/dev/null
-		FILE_CHANGE_STATUS="$?"
-		set -e
+		if [ -e "${GSE_FILE_SYSTEMPATH}" ]; then
+			set +e
+			diff -q "${_FILE}" "${GSE_FILE_SYSTEMPATH}" >/dev/null
+			FILE_CHANGE_STATUS="$?"
+			set -e
+		fi
 
 		# Copy file
 		if [[ "${MODE}" == "init" || "${MODE}" == "factory-reset" ]]; then
