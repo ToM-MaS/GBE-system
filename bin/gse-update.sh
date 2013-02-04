@@ -213,7 +213,7 @@ password ${GSE_GIT_PASSWORD}
 	
 	# Revert symlinks for static system files
 	#
-	GSE_FILES_STATIC="`find static/ -type f`"
+	GSE_FILES_STATIC="`find static/ -type f; find static/ -type l`"
 	for _FILE in ${GSE_FILES_STATIC}; do
 		# strip prefix "static/"
 		GSE_FILE_SYSTEMPATH="/${_FILE#*/}"
@@ -229,7 +229,7 @@ password ${GSE_GIT_PASSWORD}
 
 	# Remove dynamic configuration files
 	#
-	GSE_FILES_DYNAMIC="`find dynamic/ -type f`"
+	GSE_FILES_DYNAMIC="`find dynamic/ -type f; find dynamic/ -type l`"
 	for _FILE in ${GSE_FILES_DYNAMIC}; do
 		# strip prefix "dynamic/"
 		GSE_FILE_SYSTEMPATH="/${_FILE#*/}"
@@ -286,7 +286,7 @@ if [[ "${MODE}" == "init" || "${MODE}" == "self-update" || "${MODE}" == "factory
 
 	# Symlink static system files users should not need to change
 	#
-	GSE_FILES_STATIC="`find static/ -type f`"
+	GSE_FILES_STATIC="`find static/ -type f; find static/ -type l`"
 	for _FILE in ${GSE_FILES_STATIC}; do
 		# strip prefix "static/"
 		GSE_FILE_SYSTEMPATH="/${_FILE#*/}"
@@ -310,7 +310,7 @@ if [[ "${MODE}" == "init" || "${MODE}" == "self-update" || "${MODE}" == "factory
 
 	# Copy dynamic configuration files users may change
 	#
-	GSE_FILES_DYNAMIC="`find dynamic/ -type f`"
+	GSE_FILES_DYNAMIC="`find dynamic/ -type f; find dynamic/ -type l`"
 	for _FILE in ${GSE_FILES_DYNAMIC}; do
 		# strip prefix "dynamic/"
 		GSE_FILE_SYSTEMPATH="/${_FILE#*/}"
