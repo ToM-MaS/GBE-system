@@ -325,7 +325,7 @@ if [[ "${MODE}" == "init" || "${MODE}" == "self-update" || "${MODE}" == "factory
 		fi
 
 		# Check for equality of backup and original file
-		if [ -e "${GSE_FILE_SYSTEMPATH}" && -e "${GSE_FILE_SYSTEMPATH}.default-gse" ]; then
+		if [[ -e "${GSE_FILE_SYSTEMPATH}" && -e "${GSE_FILE_SYSTEMPATH}.default-gse" ]]; then
 			set +e
 			diff -q "${GSE_FILE_SYSTEMPATH}" "${GSE_FILE_SYSTEMPATH}.default-gse" >/dev/null
 			FILE_CHANGE_STATUS="$?"
