@@ -324,10 +324,18 @@ if [[ "${MODE}" == "init" || "${MODE}" == "self-update" || "${MODE}" == "factory
 			mv -f "${GSE_FILE_SYSTEMPATH}" "${GSE_FILE_SYSTEMPATH}.default-gse"
 		fi
 
+		# Check for equality of backup and original file
+		set +e
+		diff -q "${_FILE}" "${GSE_FILE_SYSTEMPATH}" >/dev/null
+		FILE_CHANGE_STATUS="$?"
+		set -e
+
 		# Copy file
 		if [[ "${MODE}" == "init" || "${MODE}" == "factory-reset" ]]; then
 			echo -e "** Force installing file '${GSE_FILE_SYSTEMPATH}'"
 			cp -df "${GSE_DIR_NORMALIZED}/${_FILE}" "${GSE_FILE_SYSTEMPATH}"
+		elif [[ -e "${GSE_FILE_SYSTEMPATH}" && -e "${GSE_FILE_SYSTEMPATH}.default-gse" && "${FILE_CHANGE_STATUS}" == "0" ]]; then
+			cp -df "${GSE_DIR_NORMALIZED}/${_FILE}" "${GSE_FILE_SYSTEMPATH}"			
 		elif [ ! -f "${GSE_FILE_SYSTEMPATH}" ]; then
 			cp -dn "${GSE_DIR_NORMALIZED}/${_FILE}" "${GSE_FILE_SYSTEMPATH}"
 		fi
