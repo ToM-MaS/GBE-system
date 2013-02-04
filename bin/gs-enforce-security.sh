@@ -61,7 +61,7 @@ fi
 
 # GS firewall settings
 [ ! -d  "${GS_DIR_LOCAL}/firewall" ] && mkdir -p "${GS_DIR_LOCAL}/firewall"
-chown -vR ${GSE_USER}.${GSE_GROUP} "${GS_DIR_LOCAL}/firewall"
+chown -vR ${GSE_USER}.freeswitch "${GS_DIR_LOCAL}/firewall"
 chmod -v 0770 "${GS_DIR_LOCAL}/firewall"
 
 # GS backup files
@@ -101,7 +101,7 @@ chmod -v 0770 /var/log/mon_ami
 [ ! -d  /var/spool/freeswitch ] && mkdir -p /var/spool/freeswitch
 chown -vR freeswitch.root /var/spool/freeswitch
 
-# Allow GS service account some system commands via sudo
+# Setup some system commands via sudo
 [ ! -d  /etc/sudoers.d ] && mkdir -p /etc/sudoers.d
 echo "Cmnd_Alias UPDATE = /usr/bin/gs-update --force-update-init" > /etc/sudoers.d/gemeinschaft
 echo "Cmnd_Alias UPDATE_CANCEL = /usr/bin/gs-update --cancel" >> /etc/sudoers.d/gemeinschaft
@@ -109,6 +109,12 @@ echo "Cmnd_Alias SHUTDOWN = /sbin/shutdown -h now" >> /etc/sudoers.d/gemeinschaf
 echo "Cmnd_Alias REBOOT = /sbin/shutdown -r now" >> /etc/sudoers.d/gemeinschaft
 echo "Cmnd_Alias FW = /usr/sbin/service shorewall refresh" >> /etc/sudoers.d/gemeinschaft
 echo "Cmnd_Alias FW6 = /usr/sbin/service shorewall6 refresh" >> /etc/sudoers.d/gemeinschaft
+
+# Allow GS service account some system commands via sudo
 echo "${GSE_USER} ALL = (ALL) NOPASSWD: UPDATE, UPDATE_CANCEL, SHUTDOWN, REBOOT, FW, FW6" >> /etc/sudoers.d/gemeinschaft
+
+# Allow FreeSwitch some system commands via sudo
+echo "freeswitch ALL = (ALL) NOPASSWD: FW, FW6" >> /etc/sudoers.d/gemeinschaft
+
 chown -v root.root /etc/sudoers.d/*
 chmod -v 0440 /etc/sudoers.d/*
