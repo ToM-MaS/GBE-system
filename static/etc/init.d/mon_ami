@@ -16,7 +16,7 @@
 # Do NOT "set -e"
 
 # General settings
-[ -f /etc/gemeinschaft/system.conf ] && . /etc/gemeinschaft/system.conf || echo "FATAL ERROR: Local configuration file in /etc/gemeinschaft/system.conf missing"
+[ -e /etc/gemeinschaft/system.conf ] && . /etc/gemeinschaft/system.conf || echo "FATAL ERROR: Local configuration file in /etc/gemeinschaft/system.conf missing"
 
 # PATH should only include /usr/* if it runs after the mountnfs.sh script
 PATH=/sbin:/usr/sbin:/bin:/usr/bin

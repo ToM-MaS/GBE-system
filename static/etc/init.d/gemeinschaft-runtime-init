@@ -3,7 +3,7 @@
 # Provides:          gemeinschaft-runtime-init
 # Required-Start:    hostname haveged
 # Required-Stop:     
-# X-Start-Before:    apache2 freeswitch
+# X-Start-Before:    apache2 freeswitch mysql
 # Default-Start:     2 3 4 5
 # Default-Stop:      0 1 6
 # Short-Description: Updates certain configurations after reboot
@@ -11,7 +11,7 @@
 ### END INIT INFO
 
 # General settings
-[ -f /etc/gemeinschaft/system.conf ] && source /etc/gemeinschaft/system.conf || echo "FATAL ERROR: Local configuration file in /etc/gemeinschaft/system.conf missing"
+[ -e /etc/gemeinschaft/system.conf ] && source /etc/gemeinschaft/system.conf || echo "FATAL ERROR: Local configuration file in /etc/gemeinschaft/system.conf missing"
 
 # Enforce root rights
 #
@@ -28,8 +28,8 @@ start)
 
 	# Create SSL certificate for current Full Qualified Domain Name
 	if [[
-		! -f /etc/ssl/private/${FQDN}.key ||
-		! -f /etc/ssl/certs/${FQDN}.crt
+		! -e /etc/ssl/private/${FQDN}.key ||
+		! -e /etc/ssl/certs/${FQDN}.crt
 		]]; then
 
 		# Make sure both files are not existing

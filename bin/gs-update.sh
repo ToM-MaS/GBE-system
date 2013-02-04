@@ -16,13 +16,13 @@ if [[ ${EUID} -ne 0 ]];
 fi
 
 # General settings
-[ -f /etc/gemeinschaft/system.conf ] && source /etc/gemeinschaft/system.conf || echo "FATAL ERROR: Local configuration file in /etc/gemeinschaft/system.conf missing"
-[ -f "${GS_MYSQL_PASSWORD_FILE}" ] && GS_MYSQL_PASSWD="`cat "${GS_MYSQL_PASSWORD_FILE}"`" || echo "FATAL ERROR: GS lost it's database password in ${GS_MYSQL_PASSWORD_FILE}"
+[ -e /etc/gemeinschaft/system.conf ] && source /etc/gemeinschaft/system.conf || echo "FATAL ERROR: Local configuration file in /etc/gemeinschaft/system.conf missing"
+[ -e "${GS_MYSQL_PASSWORD_FILE}" ] && GS_MYSQL_PASSWD="`cat "${GS_MYSQL_PASSWORD_FILE}"`" || echo "FATAL ERROR: GS lost it's database password in ${GS_MYSQL_PASSWORD_FILE}"
 [[ x"${GS_DIR}" == x"" || x"${GS_MYSQL_PASSWD}" == x"" ]] && exit 1
 GS_UPDATE_DIR="${GS_DIR}.update"
 
 # General functions
-[ -f "${GSE_DIR_NORMALIZED}/lib/gse-functions.sh" ] && source "${GSE_DIR_NORMALIZED}/lib/gse-functions.sh" || exit 1
+[ -e "${GSE_DIR_NORMALIZED}/lib/gse-functions.sh" ] && source "${GSE_DIR_NORMALIZED}/lib/gse-functions.sh" || exit 1
 
 
 # check each command return codes for errors
@@ -58,7 +58,7 @@ case "$1" in
 
     	case $yn in
         	Y|y )
-				[ -f /root/.mysql_root_password ] && MYSQL_PASSWD_ROOT="`cat /root/.mysql_root_password`" || exit 1
+				[ -e /root/.mysql_root_password ] && MYSQL_PASSWD_ROOT="`cat /root/.mysql_root_password`" || exit 1
 				
 				# Do factory reset for Gemeinschaft Systen Environment
 				"${GSE_DIR_NORMALIZED}/bin/gse-update.sh" --force-factory-reset
@@ -71,18 +71,22 @@ case "$1" in
 				quiet_git clean -fdx && quiet_git reset --hard HEAD
 
 				# stop status
+				set +e
 				service mon_ami status 2>&1 >/dev/null
 				[ $? == 0 ] && service mon_ami stop
 				service freeswitch status 2>&1 >/dev/null
 				[ $? == 0 ] && service freeswitch stop
 				service apache2 status 2>&1 >/dev/null
 				[ $? == 0 ] && service apache2 stop
+				set -e
 
 				# Purging database
 				echo -e "\nPurging database '${GS_MYSQL_DB}' ...";
 				mysql -e "DROP DATABASE IF EXISTS ${GS_MYSQL_DB}; CREATE DATABASE ${GS_MYSQL_DB};" --user=root --password="${MYSQL_PASSWD_ROOT}"
+				set +e
 				service mysql status 2>&1 >/dev/null
 				[ $? == 0 ] && service mysql stop
+				set -e
 
 				# Make sure InnoDB logfiles get re-created in case their size was changed in the configuration
 				rm -rf /var/lib/mysql/ib_logfile*
@@ -285,6 +289,7 @@ fi
 #
 if [[ "${MODE}" == "update" ]]; then
 	if [[ -d "${GS_UPDATE_DIR}" ]]; then
+		set +e
 		# make sure only mysql is running
 		service mon_ami status 2>&1 >/dev/null
 		[ $? == 0 ] && service mon_ami stop
@@ -294,12 +299,11 @@ if [[ "${MODE}" == "update" ]]; then
 		[ $? == 0 ] && service apache2 stop
 		service mysql status 2>&1 >/dev/null
 		[ $? != 0 ] && service mysql start
+		set -e
 
-		if [ ! -d "${GS_DIR}.${GS_VERSION}" ]; then
-			echo "** Rename and backup old files in \"${GS_DIR}\""
-			mv "${GS_DIR}" "${GS_DIR}.${GS_VERSION}"
+		if [ ! -d "${GS_DIR}-${GS_VERSION}" ]; then
+			mv "${GS_DIR}" "${GS_DIR}-${GS_VERSION}"
 		else
-			echo "** Deleting old files in \"${GS_DIR}\""
 			rm -rf "${GS_DIR}"
 		fi
 		cp -r ${GS_UPDATE_DIR} ${GS_DIR}
@@ -365,4 +369,10 @@ if [[ "${MODE}" == "update" ]]; then
 	# Remove update files after successful update run
 	# otherwise keep them to be installed within next iteration of boot sequence
 	rm -rf "${GS_UPDATE_DIR}"
+	
+	# force MySQL to be stopped to avoid conflicts with normal system bootup
+	set +e
+	service mysql status 2>&1 >/dev/null
+	[ $? == 0 ] && service mysql stop
+	set -e
 fi

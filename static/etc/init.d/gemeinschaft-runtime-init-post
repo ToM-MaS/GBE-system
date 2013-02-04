@@ -11,7 +11,7 @@
 ### END INIT INFO
 
 # General settings
-[ -f /etc/gemeinschaft/system.conf ] && source /etc/gemeinschaft/system.conf || echo "FATAL ERROR: Local configuration file in /etc/gemeinschaft/system.conf missing"
+[ -e /etc/gemeinschaft/system.conf ] && source /etc/gemeinschaft/system.conf || echo "FATAL ERROR: Local configuration file in /etc/gemeinschaft/system.conf missing"
 
 # Enforce root rights
 #
@@ -37,12 +37,12 @@ start)
 	do
 		[[ ${ADDRESS} =~ ":" ]] && continue
 		echo "Updating DNSmasq configurations ..."
-		if [[ -f /etc/dnsmasq.d/gs_phone_vendors.conf ]]; then
+		if [[ -e /etc/dnsmasq.d/gs_phone_vendors.conf ]]; then
 			sed -i "s/^dhcp-option=SNOM,66.*\$/dhcp-option=SNOM,66,https:\/\/${ADDRESS}:443/" /etc/dnsmasq.d/gs_phone_vendors.conf
 			sed -i "s/^dhcp-option=net:OpenStage,vendor:OptiIpPhone,3.*\$/dhcp-option=net:OpenStage,vendor:OptiIpPhone,3,\"sdlp:\/\/${ADDRESS}:443\"/" /etc/dnsmasq.d/gs_phone_vendors.conf
 			sed -i "s/^dhcp-option=POLYCOM,66.*\$/dhcp-option=POLYCOM,66,https:\/\/${ADDRESS}:443/" /etc/dnsmasq.d/gs_phone_vendors.conf
 		fi
-		if [[ -f /etc/dnsmasq.d/gemeinschaft_simple.conf ]]; then
+		if [[ -e /etc/dnsmasq.d/gemeinschaft_simple.conf ]]; then
 			sed -i "s/^#dhcp-range=.*proxy.*\$/#dhcp-range=${ADDRESS},proxy/" /etc/dnsmasq.d/gemeinschaft_simple.conf
 		fi
 		/etc/init.d/dnsmasq restart
@@ -56,7 +56,7 @@ start)
 		echo "Updating Gemeinschaft configurations ..."
 
 		# Update database settings
-		if [ -f "${GS_MYSQL_PASSWORD_FILE}" ];
+		if [ -e "${GS_MYSQL_PASSWORD_FILE}" ];
 			then
 				MYSQL_PASSWD="`cat "${GS_MYSQL_PASSWORD_FILE}"`"
 				mysql -e "UPDATE gs_parameters SET value = '${ADDRESS}' WHERE name = 'HOMEBASE_IP_ADDRESS';" --user=${GS_MYSQL_USER} --password="${MYSQL_PASSWD}" ${GS_MYSQL_DB}

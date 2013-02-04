@@ -16,12 +16,12 @@ if [[ ${EUID} -ne 0 ]];
 fi
 
 # General settings
-[ -f /etc/gemeinschaft/system.conf ] && source /etc/gemeinschaft/system.conf || echo "FATAL ERROR: Local configuration file in /etc/gemeinschaft/system.conf missing"
+[ -e /etc/gemeinschaft/system.conf ] && source /etc/gemeinschaft/system.conf || echo "FATAL ERROR: Local configuration file in /etc/gemeinschaft/system.conf missing"
 [[ x"${GSE_DIR}" == x"" ]] && exit 1
 GSE_UPDATE_DIR="${GSE_DIR}.update"
 
 # General functions
-[ -f "${GSE_DIR_NORMALIZED}/lib/gse-functions.sh" ] && source "${GSE_DIR_NORMALIZED}/lib/gse-functions.sh" || exit 1
+[ -e "${GSE_DIR_NORMALIZED}/lib/gse-functions.sh" ] && source "${GSE_DIR_NORMALIZED}/lib/gse-functions.sh" || exit 1
 
 
 # check each command return codes for errors
@@ -32,7 +32,7 @@ set -e
 #
 case "$1" in
 	--help|-h|help)
-	echo "Usage: $0 [ --factory-reset ]"
+	echo "Usage: $0 [ --factory-reset | --recover ]"
 	exit 0
 	;;
 
@@ -65,6 +65,10 @@ case "$1" in
 
 	--force-init)
 	MODE="init"
+	;;
+
+	--recover)
+	MODE="recover"
 	;;
 
 	*)
@@ -204,12 +208,12 @@ password ${GSE_GIT_PASSWORD}
 	cd "${GSE_DIR_NORMALIZED}"
 
 	# remove public commands
-	rm /usr/bin/gs-*
-	rm /usr/bin/gse-*
+	rm -rf /usr/bin/gs-*
+	rm -rf /usr/bin/gse-*
 	
 	# Revert symlinks for static system files
 	#
-	GSE_FILES_STATIC="`find static/ -type f`"
+	GSE_FILES_STATIC="`find static/ -type f; find static/ -type l`"
 	for _FILE in ${GSE_FILES_STATIC}; do
 		# strip prefix "static/"
 		GSE_FILE_SYSTEMPATH="/${_FILE#*/}"
@@ -225,19 +229,23 @@ password ${GSE_GIT_PASSWORD}
 
 	# Remove dynamic configuration files
 	#
-	GSE_FILES_DYNAMIC="`find dynamic/ -type f`"
+	GSE_FILES_DYNAMIC="`find dynamic/ -type f; find dynamic/ -type l`"
 	for _FILE in ${GSE_FILES_DYNAMIC}; do
 		# strip prefix "dynamic/"
 		GSE_FILE_SYSTEMPATH="/${_FILE#*/}"
 
-		comm -2 "${_FILE}" "${GSE_FILE_SYSTEMPATH}" >/dev/null
-		FILE_CHANGE_STATUS="$?"
+		if [ -e "${GSE_FILE_SYSTEMPATH}" ]; then
+			set +e
+			diff -q "${_FILE}" "${GSE_FILE_SYSTEMPATH}" >/dev/null
+			FILE_CHANGE_STATUS="$?"
+			set -e
 
-		# Delete file if it hasn't been changed by the user
-		if [ "${FILE_CHANGE_STATUS}" == "0" ]; then
-			rm -f "${GSE_FILE_SYSTEMPATH}"
-		else
-			echo -e "** Keeping user modified file '${GSE_FILE_SYSTEMPATH}' and leaving it untouched"
+			# Delete file if it hasn't been changed by the user
+			if [ "${FILE_CHANGE_STATUS}" == "0" ]; then
+				rm -f "${GSE_FILE_SYSTEMPATH}"
+			else
+				echo -e "** Keeping user modified file '${GSE_FILE_SYSTEMPATH}' and leaving it untouched"
+			fi
 		fi
 
 		# Restore original file if it was existing before and we didn't keep the users file
@@ -249,11 +257,9 @@ password ${GSE_GIT_PASSWORD}
 	# Run self-update
 	#
 	cd ~
-	if [ ! -d "${GSE_DIR}.${GSE_VERSION}" ]; then
-		echo "** Rename and backup old files in \"${GSE_DIR}\""
-		mv "${GSE_DIR}" "${GSE_DIR}.${GSE_VERSION}"
+	if [ ! -d "${GSE_DIR}-${GSE_VERSION}" ]; then
+		mv "${GSE_DIR}" "${GSE_DIR}-${GSE_VERSION}"
 	else
-		echo "** Deleting old files in \"${GSE_DIR}\""
 		rm -rf "${GSE_DIR}"
 	fi
 	mv "${GSE_UPDATE_DIR}" "${GSE_DIR}"
@@ -280,12 +286,10 @@ if [[ "${MODE}" == "init" || "${MODE}" == "self-update" || "${MODE}" == "factory
 
 	# Symlink static system files users should not need to change
 	#
-	GSE_FILES_STATIC="`find static/ -type f`"
+	GSE_FILES_STATIC="`find static/ -type f; find static/ -type l`"
 	for _FILE in ${GSE_FILES_STATIC}; do
 		# strip prefix "static/"
 		GSE_FILE_SYSTEMPATH="/${_FILE#*/}"
-
-		echo -e "** Symlinking file '${GSE_FILE_SYSTEMPATH}'"
 
 		# make sure destination path exists
 		mkdir -p "${GSE_FILE_SYSTEMPATH%/*}"
@@ -297,13 +301,16 @@ if [[ "${MODE}" == "init" || "${MODE}" == "self-update" || "${MODE}" == "factory
 		fi
 
 		# Symlink file
+		if [[ "${MODE}" == "init" || "${MODE}" == "factory-reset" ]]; then
+			echo -e "** Force symlinking file '${GSE_FILE_SYSTEMPATH}'"
+		fi
 		rm -f "${GSE_FILE_SYSTEMPATH}"
 		ln -s "${GSE_DIR_NORMALIZED}/${_FILE}" "${GSE_FILE_SYSTEMPATH}"
 	done
 
 	# Copy dynamic configuration files users may change
 	#
-	GSE_FILES_DYNAMIC="`find dynamic/ -type f`"
+	GSE_FILES_DYNAMIC="`find dynamic/ -type f; find dynamic/ -type l`"
 	for _FILE in ${GSE_FILES_DYNAMIC}; do
 		# strip prefix "dynamic/"
 		GSE_FILE_SYSTEMPATH="/${_FILE#*/}"
@@ -317,18 +324,26 @@ if [[ "${MODE}" == "init" || "${MODE}" == "self-update" || "${MODE}" == "factory
 			mv -f "${GSE_FILE_SYSTEMPATH}" "${GSE_FILE_SYSTEMPATH}.default-gse"
 		fi
 
+		# Check for equality of backup and original file
+		if [[ -e "${GSE_FILE_SYSTEMPATH}" && -e "${GSE_FILE_SYSTEMPATH}.default-gse" ]]; then
+			set +e
+			diff -q "${GSE_FILE_SYSTEMPATH}" "${GSE_FILE_SYSTEMPATH}.default-gse" >/dev/null
+			FILE_CHANGE_STATUS="$?"
+			set -e
+		fi
+
 		# Copy file
 		if [[ "${MODE}" == "init" || "${MODE}" == "factory-reset" ]]; then
 			echo -e "** Force installing file '${GSE_FILE_SYSTEMPATH}'"
 			cp -df "${GSE_DIR_NORMALIZED}/${_FILE}" "${GSE_FILE_SYSTEMPATH}"
-		elif [ ! -f "${GSE_FILE_SYSTEMPATH}" ]; then
-			echo -e "** Installing file '${GSE_FILE_SYSTEMPATH}'"
+		elif [[ -e "${GSE_FILE_SYSTEMPATH}" && -e "${GSE_FILE_SYSTEMPATH}.default-gse" && "${FILE_CHANGE_STATUS}" == "0" ]]; then
+			cp -df "${GSE_DIR_NORMALIZED}/${_FILE}" "${GSE_FILE_SYSTEMPATH}"			
+		elif [ ! -e "${GSE_FILE_SYSTEMPATH}" ]; then
 			cp -dn "${GSE_DIR_NORMALIZED}/${_FILE}" "${GSE_FILE_SYSTEMPATH}"
 		fi
 	done
 
 	# Remove Git remote reference
-	echo "** Remove Git remote reference"
 	GSE_GIT_REMOTE="`git --git-dir="${GSE_DIR_NORMALIZED}/.git" remote`"
 	for _REMOTE in ${GSE_GIT_REMOTE}; do
 		cd "${GSE_DIR_NORMALIZED}"; quiet_git remote rm ${_REMOTE}
@@ -336,21 +351,82 @@ if [[ "${MODE}" == "init" || "${MODE}" == "self-update" || "${MODE}" == "factory
 
 	# Enforce debug level according to GSE_ENV
 	set +e
-	"${GSE_DIR_NORMALIZED}/bin/gs-change-state.sh"
+	"${GSE_DIR_NORMALIZED}/bin/gs-change-state.sh" >/dev/null
 	set -e
 
 	cd - 2>&1 >/dev/null
 fi
 
+# Explicit recover of a single file
+#
+if [ "${MODE}" == "recover" ]; then
+	if [ x"$2" == x"" ]; then
+		echo "Please enter the exact path of the file you would like to be recovered."
+		exit 1
+	fi
+	
+	FILE="$2"
+	CURRENT_PATH="`pwd`"
+
+	# find static file via full-qualified path
+	if [ -e "${GSE_DIR_NORMALIZED}/static/${FILE#/*}" ]; then
+		mkdir -p "${FILE%/*}"
+		rm -f "${FILE}"
+		ln -s "${GSE_DIR_NORMALIZED}/static/${FILE#/*}" "${FILE}"
+		echo -e "\n\n***    ------------------------------------------------------------------"
+		echo -e "***     File '${FILE}'"
+		echo -e "***     has been recovered from static GSE data store."
+		echo -e "***    ------------------------------------------------------------------\n\n"
+
+	# find static file via current working directory
+	elif [ -e "${GSE_DIR_NORMALIZED}/static/${CURRENT_PATH#/*}/${FILE}" ]; then
+		[[ ${FILE} =~ "/" ]] && mkdir -p "${CURRENT_PATH}/${FILE%/*}"
+		rm -f "${CURRENT_PATH}/${FILE}"
+		ln -s "${GSE_DIR_NORMALIZED}/static/${CURRENT_PATH#/*}/${FILE}" "${CURRENT_PATH}/${FILE}"
+		echo -e "\n\n***    ------------------------------------------------------------------"
+		echo -e "***     File '${CURRENT_PATH}/${FILE}'"
+		echo -e "***     has been recovered from static GSE data store."
+		echo -e "***    ------------------------------------------------------------------\n\n"
+
+	# find dynamic file via full-qualified path
+	elif [ -e "${GSE_DIR_NORMALIZED}/dynamic/${FILE#/*}" ]; then
+		mkdir -p "${FILE%/*}"
+		cp -df "${GSE_DIR_NORMALIZED}/dynamic/${FILE#/*}" "${FILE}"
+		echo -e "\n\n***    ------------------------------------------------------------------"
+		echo -e "***     File '${FILE}'"
+		echo -e "***     has been recovered from dynamic GSE data store."
+		echo -e "***    ------------------------------------------------------------------\n\n"
+
+	# find dynamic file via current working directory
+	elif [ -e "${GSE_DIR_NORMALIZED}/dynamic/${CURRENT_PATH#/*}/${FILE}" ]; then
+		[[ ${FILE} =~ "/" ]] && mkdir -p "${CURRENT_PATH}/${FILE%/*}"
+		cp -df "${GSE_DIR_NORMALIZED}/dynamic/${CURRENT_PATH#/*}/${FILE}" "${CURRENT_PATH}/${FILE}"
+		echo -e "\n\n***    ------------------------------------------------------------------"
+		echo -e "***     File '${CURRENT_PATH}/${FILE}'"
+		echo -e "***     has been recovered from dynamic GSE data store."
+		echo -e "***    ------------------------------------------------------------------\n\n"
+
+	# If we can't find the specified file in GSE lib
+	else
+		echo -e "\n\n***    ------------------------------------------------------------------"
+		echo -e "***     File '${FILE}'"
+		echo -e "***     is not present in the GSE data store and thus cannot be recovered."
+		echo -e "***    ------------------------------------------------------------------\n\n"
+		exit 1
+	fi
+fi
+
+# Enforce correct file permissions
+#
+if [[ "${MODE}" == "self-update" || "${MODE}" == "factory-reset" ]]; then
+	set +e
+	"${GSE_DIR_NORMALIZED}/bin/gs-enforce-security.sh" | grep -Ev retained | grep -Ev "no changes" | grep -Ev "nor referent has been changed"
+	set -e
+fi
 
 # Finalize update or factory reset
 #
 if [[ "${MODE}" == "self-update" || "${MODE}" == "factory-reset" ]]; then
-	echo "** Enforcing file permissions and security settings ..."
-	set +e
-	"${GSE_DIR_NORMALIZED}/bin/gs-enforce-security.sh" | grep -Ev retained | grep -Ev "no changes" | grep -Ev "nor referent has been changed"
-	set -e
-
 	# Read GSE version from Git repo
 	#
 	cd "${GSE_DIR_NORMALIZED}"
