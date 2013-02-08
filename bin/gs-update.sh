@@ -361,6 +361,11 @@ if [[ "${MODE}" == "init" || "${MODE}" == "update" ]]; then
 	#
 	echo "** Precompile GS assets"
 	su - ${GSE_USER} -c "cd \"${GS_DIR_NORMALIZED}\"; RAILS_ENV=$RAILS_ENV bundle exec rake assets:precompile --trace"
+
+	# Create crontab file
+	#
+	echo "** Creating crontab file"
+	su - ${GSE_USER} -c "cd \"${GS_DIR_NORMALIZED}\"; whenever --update-crontab"
 fi
 
 # Finalize update
