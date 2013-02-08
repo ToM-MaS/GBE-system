@@ -45,6 +45,13 @@ if id -u gsmaster >/dev/null 2>&1; then
 	fi
 fi
 
+# Group memberships for user www-data
+if id -u www-data >/dev/null 2>&1; then
+	if [ x"`cat /etc/group | grep ^winbindd_priv`" != x"" ]; then
+		usermod -a -G winbindd_priv www-data 2>&1 >/dev/null
+	fi
+fi
+
 # GS program files
 [ ! -d "${GS_DIR}" ] && mkdir -p "${GS_DIR}"
 chown -vR "${GSE_USER}"."${GSE_GROUP}" "${GS_DIR}"
