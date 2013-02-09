@@ -70,6 +70,11 @@ if [ -e /usr/bin/ngrep ]; then
 	chmod -v 754 /usr/bin/ngrep
 	setcap cap_net_raw,cap_net_admin+eip /usr/bin/ngrep
 fi
+if [ -e /usr/bin/slurm ]; then
+	chgrp -v pcap /usr/bin/slurm
+	chmod -v 754 /usr/bin/slurm
+	setcap cap_net_raw,cap_net_admin+eip /usr/bin/slurm
+fi
 
 # Group memberships for GSE_USER
 if id -u ${GSE_USER} >/dev/null 2>&1; then
