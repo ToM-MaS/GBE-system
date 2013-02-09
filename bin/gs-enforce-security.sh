@@ -48,10 +48,27 @@ if [ -e /usr/sbin/pcapsipdump ]; then
 	setcap cap_net_raw,cap_net_admin=eip /usr/sbin/pcapsipdump
 	ln -sf /usr/sbin/pcapsipdump /usr/local/bin/pcapsipdump
 fi
+if [ -e /usr/sbin/iftop ]; then
+	chgrp -v pcap /usr/sbin/iftop
+	chmod -v 754 /usr/sbin/iftop
+	setcap cap_net_raw,cap_net_admin=eip /usr/sbin/iftop
+	ln -sf /usr/sbin/iftop /usr/local/bin/iftop
+fi
+if [ -e /usr/sbin/iotop ]; then
+	chgrp -v pcap /usr/sbin/iotop
+	chmod -v 754 /usr/sbin/iotop
+	setcap cap_net_admin=eip /usr/sbin/iotop
+	ln -sf /usr/sbin/iotop /usr/local/bin/iotop
+fi
 if [ -e /usr/bin/dumpcap ]; then
 	chgrp -v pcap /usr/bin/dumpcap
 	chmod -v 754 /usr/bin/dumpcap
 	setcap cap_net_raw,cap_net_admin+eip /usr/bin/dumpcap
+fi
+if [ -e /usr/bin/ngrep ]; then
+	chgrp -v pcap /usr/bin/ngrep
+	chmod -v 754 /usr/bin/ngrep
+	setcap cap_net_raw,cap_net_admin+eip /usr/bin/ngrep
 fi
 
 # Group memberships for GSE_USER
