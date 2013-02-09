@@ -281,6 +281,7 @@ if [[ "${MODE}" == "init" || "${MODE}" == "self-update" || "${MODE}" == "factory
 	ln -sf "${GSE_DIR_NORMALIZED}/bin/gs-update.sh" /usr/bin/gs-update
 	ln -sf "${GSE_DIR_NORMALIZED}/bin/gse-update.sh" /usr/bin/gse-update
 	ln -sf "${GSE_DIR_NORMALIZED}/bin/gs-addon.sh" /usr/bin/gs-addon
+	ln -sf "${GSE_DIR_NORMALIZED}/bin/gs-debug.sh" /usr/bin/gs-debug
 
 	cd "${GSE_DIR_NORMALIZED}"
 
