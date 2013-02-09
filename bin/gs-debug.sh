@@ -35,14 +35,14 @@ case "${GS_DEBUG_ACTION}" in
 			exit 1
 		fi
 
-		if [ x"$2" == "ip" ]; then
+		if [ x"$2" == x"ip" ]; then
 			if [ x"$3" == "" ]; then
 				echo -e "\nThird parameter missing: IP address. Aborting ...\n"
 				exit 1
 			fi
 			echo -e "\nReal-time cleartext traffic dump for SIP with partner IP $3\n"
 			/usr/bin/tshark -R "sip and ip.addr == $3"
-		elif [ x"$2" == "account" ]; then
+		elif [ x"$2" == x"account" ]; then
 			if [ x"$3" == "" ]; then
 				echo -e "\nThird parameter missing: SIP account. Aborting ...\n"
 				exit 1
