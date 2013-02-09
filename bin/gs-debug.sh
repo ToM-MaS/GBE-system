@@ -48,7 +48,7 @@ case "${GS_DEBUG_ACTION}" in
 				exit 1
 			fi
 			echo -e "\nReal-time cleartext traffic dump for SIP account $3\n"
-			/usr/bin/tshark -R 'sip.uri contains "$3"'
+			/usr/bin/tshark -R "rtcp.app.poc1.sip.uri contains $3"
 		else
 			echo -e "\nReal-time cleartext traffic dump for SIP\n"
 			/usr/bin/tshark -R "sip"
