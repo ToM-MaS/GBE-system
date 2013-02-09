@@ -32,13 +32,25 @@ if [ x"`cat /etc/group | grep ^pcap`" == x"" ]; then
 fi
 if [ -e /usr/sbin/tcpdump ]; then
 	chgrp -v pcap /usr/sbin/tcpdump
-	chmod -v 750 /usr/sbin/tcpdump
+	chmod -v 754 /usr/sbin/tcpdump
 	setcap cap_net_raw,cap_net_admin=eip /usr/sbin/tcpdump
 	ln -sf /usr/sbin/tcpdump /usr/local/bin/tcpdump
 fi
+if [ -e /usr/sbin/ssldump ]; then
+	chgrp -v pcap /usr/sbin/ssldump
+	chmod -v 754 /usr/sbin/ssldump
+	setcap cap_net_raw,cap_net_admin=eip /usr/sbin/ssldump
+	ln -sf /usr/sbin/ssldump /usr/local/bin/ssldump
+fi
+if [ -e /usr/sbin/pcapsipdump ]; then
+	chgrp -v pcap /usr/sbin/pcapsipdump
+	chmod -v 754 /usr/sbin/pcapsipdump
+	setcap cap_net_raw,cap_net_admin=eip /usr/sbin/pcapsipdump
+	ln -sf /usr/sbin/pcapsipdump /usr/local/bin/pcapsipdump
+fi
 if [ -e /usr/bin/dumpcap ]; then
 	chgrp -v pcap /usr/bin/dumpcap
-	chmod -v 750 /usr/bin/dumpcap
+	chmod -v 754 /usr/bin/dumpcap
 	setcap cap_net_raw,cap_net_admin+eip /usr/bin/dumpcap
 fi
 
