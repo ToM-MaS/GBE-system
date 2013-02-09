@@ -25,22 +25,38 @@ GS_DEBUG_ACTION="$1"
 
 case "${GS_DEBUG_ACTION}" in
 	livedump-full)
-		echo -e "\nReal-time traffic dump (full packets) on SIP port 5060\n"
+		echo -e "\nReal-time traffic dump (full packets) for SIP\n"
 		tcpdump -nq -s 0 -A -vvv port 5060
 		;;
 
 	livedump)
 		if [ ! -e /usr/bin/tshark ]; then
-			echo "Please install tshark first, e.g. by installing GS Add-On 'advanced-debug'."
+			echo -e "\nPlease install tshark first, e.g. by installing GS Add-On 'advanced-debug'.\nHowever you may still use '`basename $0` livedump-full' without installing additional packages.\n"
 			exit 1
 		fi
 
-		echo -e "\nReal-time cleartext traffic dump on SIP port 5060\n"
-		tshark -R "sip"
+		if [ x"$2" == "ip" ]; then
+			if [ x"$3" == "" ]; then
+				echo -e "\nThird parameter missing: IP address. Aborting ...\n"
+				exit 1
+			fi
+			echo -e "\nReal-time cleartext traffic dump for SIP with partner IP $3\n"
+			/usr/bin/tshark -R "sip and ip.addr == $3"
+		elif [ x"$2" == "account" ]; then
+			if [ x"$3" == "" ]; then
+				echo -e "\nThird parameter missing: SIP account. Aborting ...\n"
+				exit 1
+			fi
+			echo -e "\nReal-time cleartext traffic dump for SIP account $3\n"
+			/usr/bin/tshark -R 'sip.uri contains "$3"'
+		else
+			echo -e "\nReal-time cleartext traffic dump for SIP\n"
+			/usr/bin/tshark -R "sip"
+		fi
 		;;
 
 	help|-h|--help|*)
-		echo -e "\nUsage: `basename $0` [  ]\n"
+		echo -e "\nUsage: `basename $0` [ livedump | livedump-full ]\n"
 		exit 1
 		;;
 esac

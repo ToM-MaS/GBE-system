@@ -18,6 +18,7 @@ case "$1" in
 	install)
 		aptitude -q2 update
 		aptitude -yy -q2 install tshark kdump-tools
+		"${GSE_DIR_NORMALIZED}/bin/gs-enforce-security.sh" | grep -Ev retained | grep -Ev "no changes" | grep -Ev "nor referent has been changed"
 		;;
 
 	remove)
