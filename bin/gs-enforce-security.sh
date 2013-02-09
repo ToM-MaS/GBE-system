@@ -26,11 +26,28 @@ if [[ ${EUID} -ne 0 ]];
 	exit 1
 fi
 
+# network packet capturing
+if [ x"`cat /etc/group | grep ^pcap`" == x"" ]; then
+	groupadd -r -f pcap 2>&1 >/dev/null
+fi
+if [ -e /usr/sbin/tcpdump ]; then
+	chgrp -v pcap /usr/sbin/tcpdump
+	chmod -v 750 /usr/sbin/tcpdump
+	setcap cap_net_raw,cap_net_admin=eip /usr/sbin/tcpdump
+	ln -sf /usr/sbin/tcpdump /usr/local/bin/tcpdump
+fi
+if [ -e /usr/bin/dumpcap ]; then
+	chgrp -v pcap /usr/bin/dumpcap
+	chmod -v 750 /usr/bin/dumpcap
+	setcap cap_net_raw,cap_net_admin+eip /usr/bin/dumpcap
+fi
+
 # Group memberships for GSE_USER
 if id -u ${GSE_USER} >/dev/null 2>&1; then
 	usermod -g ${GSE_GROUP} ${GSE_USER} 2>&1 >/dev/null
 	usermod -a -G freeswitch ${GSE_USER} 2>&1 >/dev/null
 	usermod -a -G mon_ami ${GSE_USER} 2>&1 >/dev/null
+	usermod -a -G backup ${GSE_USER} 2>&1 >/dev/null
 fi
 
 # Group memberships for user gsmaster
@@ -39,6 +56,9 @@ if id -u gsmaster >/dev/null 2>&1; then
 	usermod -a -G freeswitch gsmaster 2>&1 >/dev/null
 	usermod -a -G mon_ami gsmaster 2>&1 >/dev/null
 	usermod -a -G adm gsmaster 2>&1 >/dev/null
+	usermod -a -G staff gsmaster 2>&1 >/dev/null
+	usermod -a -G backup gsmaster 2>&1 >/dev/null
+	usermod -a -G pcap gsmaster 2>&1 >/dev/null
 
 	if [ x"`cat /etc/group | grep ^gsmaster`" != x"" ]; then
 		groupdel gsmaster 2>&1 >/dev/null

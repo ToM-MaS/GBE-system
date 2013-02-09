@@ -14,15 +14,6 @@
 [ -e "${GSE_DIR_NORMALIZED}/lib/gse-functions.sh" ] && source "${GSE_DIR_NORMALIZED}/lib/gse-functions.sh" || exit 1
 
 
-# Enforce root rights
-#
-if [[ ${EUID} -ne 0 ]];
-	then
-	echo "ERROR: `basename $0` needs to be run as root. Aborting ..."
-	exit 1
-fi
-
-
 # Run switcher
 #
 echo -e "***    ------------------------------------------------------------------
