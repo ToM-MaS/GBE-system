@@ -54,6 +54,12 @@ if [ -e /usr/sbin/iftop ]; then
 	setcap cap_net_raw,cap_net_admin=eip /usr/sbin/iftop
 	ln -sf /usr/sbin/iftop /usr/local/bin/iftop
 fi
+if [ -e /usr/sbin/iptraf ]; then
+	chgrp -v pcap /usr/sbin/iptraf
+	chmod -v 754 /usr/sbin/iptraf
+	setcap cap_net_raw,cap_net_admin=eip /usr/sbin/iptraf
+	ln -sf /usr/sbin/iptraf /usr/local/bin/iptraf
+fi
 if [ -e /usr/sbin/iotop ]; then
 	chgrp -v pcap /usr/sbin/iotop
 	chmod -v 754 /usr/sbin/iotop
