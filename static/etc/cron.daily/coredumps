@@ -1,0 +1,12 @@
+#!/bin/sh
+mkdir -p /var/crash
+chmod 2777 /var/crash
+if [ $(find /var/crash -mtime +100 -a ! -type d | wc -l) -gt 0 ]; then
+    echo deleting:
+    find /var/crash -mtime +100 -a ! -type d
+    find /var/crash -mtime +100 -a ! -type d -print0 | xargs -0 rm -f
+fi
+if [ $(find /var/crash ! -type d | wc -l) -gt 0 ] ; then
+    echo still present:
+    find /var/crash ! -type d
+fi
