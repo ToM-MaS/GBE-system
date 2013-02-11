@@ -12,7 +12,7 @@
 [[ x"${GSE_DIR}" == x"" ]] && exit 1
 
 GSE_ADDON_NAME="`basename $0`"
-GSE_ADDON_DESCRIPTION="FreeSwitch high quality sound files (8 kHz) in german language (via TTS)"
+GSE_ADDON_DESCRIPTION="FreeSwitch sound files (8 kHz) in german language (via TTS)"
 
 case "$1" in
 	install)
