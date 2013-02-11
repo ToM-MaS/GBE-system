@@ -26,6 +26,10 @@ if [[ ${EUID} -ne 0 ]];
 	exit 1
 fi
 
+# Check for live status
+#
+[[ x`cat /proc/cmdline | grep boot=live` != x"" ]] && LIVE=true || LIVE=false
+
 # network packet capturing
 if [ x"`cat /etc/group | grep ^pcap`" == x"" ]; then
 	groupadd -r -f pcap 2>&1 >/dev/null
@@ -33,7 +37,7 @@ fi
 if [ -e /usr/sbin/tcpdump ]; then
 	chgrp -v pcap /usr/sbin/tcpdump
 	chmod -v 754 /usr/sbin/tcpdump
-	setcap cap_net_raw,cap_net_admin=eip /usr/sbin/tcpdump
+	[ "${LIVE}" == "false" ] && setcap cap_net_raw,cap_net_admin=eip /usr/sbin/tcpdump
 	ln -sf /usr/sbin/tcpdump /usr/local/bin/tcpdump
 fi
 if [ -e /usr/sbin/ssldump ]; then
@@ -45,30 +49,30 @@ fi
 if [ -e /usr/sbin/pcapsipdump ]; then
 	chgrp -v pcap /usr/sbin/pcapsipdump
 	chmod -v 754 /usr/sbin/pcapsipdump
-	setcap cap_net_raw,cap_net_admin=eip /usr/sbin/pcapsipdump
+	[ "${LIVE}" == "false" ] && setcap cap_net_raw,cap_net_admin=eip /usr/sbin/pcapsipdump
 	ln -sf /usr/sbin/pcapsipdump /usr/local/bin/pcapsipdump
 fi
 if [ -e /usr/sbin/iftop ]; then
 	chgrp -v pcap /usr/sbin/iftop
 	chmod -v 754 /usr/sbin/iftop
-	setcap cap_net_raw,cap_net_admin=eip /usr/sbin/iftop
+	[ "${LIVE}" == "false" ] && setcap cap_net_raw,cap_net_admin=eip /usr/sbin/iftop
 	ln -sf /usr/sbin/iftop /usr/local/bin/iftop
 fi
 if [ -e /usr/sbin/iotop ]; then
 	chgrp -v pcap /usr/sbin/iotop
 	chmod -v 754 /usr/sbin/iotop
-	setcap cap_net_admin=eip /usr/sbin/iotop
+	[ "${LIVE}" == "false" ] && setcap cap_net_admin=eip /usr/sbin/iotop
 	ln -sf /usr/sbin/iotop /usr/local/bin/iotop
 fi
 if [ -e /usr/bin/dumpcap ]; then
 	chgrp -v pcap /usr/bin/dumpcap
 	chmod -v 754 /usr/bin/dumpcap
-	setcap cap_net_raw,cap_net_admin+eip /usr/bin/dumpcap
+	[ "${LIVE}" == "false" ] && setcap cap_net_raw,cap_net_admin+eip /usr/bin/dumpcap
 fi
 if [ -e /usr/bin/ngrep ]; then
 	chgrp -v pcap /usr/bin/ngrep
 	chmod -v 754 /usr/bin/ngrep
-	setcap cap_net_raw,cap_net_admin+eip /usr/bin/ngrep
+	[ "${LIVE}" == "false" ] && setcap cap_net_raw,cap_net_admin+eip /usr/bin/ngrep
 fi
 
 # Group memberships for GSE_USER
