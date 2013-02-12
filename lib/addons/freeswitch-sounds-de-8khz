@@ -17,8 +17,8 @@ GSE_ADDON_DESCRIPTION="FreeSwitch sound files (8 kHz) in german language (via TT
 case "$1" in
 	install)
 		cd /usr/local/src
-		curl --retry 5 --retry-delay 3 -O "http://repo.profhost.eu/static/freeswitch/freeswitch-sounds-de-de-callie-8000-0.0.4.tar.gz"
-		[[ ! -e freeswitch-sounds-de-de-callie-8000-0.0.4.tar.gz ]] && exit 1
+		curl --retry 5 --retry-delay 3 -O "http://repo.profhost.eu/static/freeswitch/freeswitch-sounds-de-de-callie-8000-0.0.5.tar.gz"
+		[[ ! -e freeswitch-sounds-de-de-callie-8000-0.0.5.tar.gz ]] && exit 1
 		find /usr/local/src -name 'freeswitch-*.tar.gz' -type f -exec tar xfz {} -C /usr/share/freeswitch/sounds \;
 		find /usr/local/src -name 'freeswitch-*.tar.gz' -type f -exec rm {} \;
 		cd - 2>&1>/dev/null
