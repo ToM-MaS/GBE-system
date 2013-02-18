@@ -169,8 +169,11 @@ chmod -v 0770 /var/log/mon_ami
 
 # Spooling directories
 [ ! -d  /var/spool/freeswitch ] && mkdir -p /var/spool/freeswitch
-chown -vR freeswitch.gemeinschaft /var/spool/freeswitch
+chown -vR freeswitch.${GSE_GROUP} /var/spool/freeswitch
 chmod g+ws /var/spool/freeswitch
+[ ! -d  /var/spool/gemeinschaft ] && mkdir -p /var/spool/gemeinschaft
+chown -vR ${GSE_USER}.${GSE_GROUP} /var/spool/gemeinschaft
+chmod g+ws /var/spool/gemeinschaft
 
 # Setup some system commands via sudo
 [ ! -d  /etc/sudoers.d ] && mkdir -p /etc/sudoers.d
