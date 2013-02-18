@@ -42,9 +42,6 @@ start)
 			sed -i "s/^dhcp-option=net:OpenStage,vendor:OptiIpPhone,3.*\$/dhcp-option=net:OpenStage,vendor:OptiIpPhone,3,\"sdlp:\/\/${ADDRESS}:443\"/" /etc/dnsmasq.d/gs_phone_vendors.conf
 			sed -i "s/^dhcp-option=POLYCOM,66.*\$/dhcp-option=POLYCOM,66,https:\/\/${ADDRESS}:443/" /etc/dnsmasq.d/gs_phone_vendors.conf
 		fi
-		if [[ -e /etc/dnsmasq.d/gemeinschaft_simple.conf ]]; then
-			sed -i "s/^#dhcp-range=.*proxy.*\$/#dhcp-range=${ADDRESS},proxy/" /etc/dnsmasq.d/gemeinschaft_simple.conf
-		fi
 		/etc/init.d/dnsmasq restart
 	done
 
