@@ -114,6 +114,7 @@ chown -vR "${GSE_USER}"."${GSE_GROUP}" "${GS_DIR}"
 ln -sf `basename "${GS_DIR_LOCAL}"` "${GS_DIR_NORMALIZED_LOCAL}"
 chown -vR ${GSE_USER}.freeswitch "${GS_DIR_LOCAL}/freeswitch/conf"
 chmod -v 0770 "${GS_DIR_LOCAL}/freeswitch/conf"
+chmod -v g+s "${GS_DIR_LOCAL}/freeswitch/conf"
 if [ -e /var/lib/freeswitch/.odbc.ini ]; then
 	chown -v freeswitch.freeswitch /var/lib/freeswitch/.odbc.ini
 	chmod -v 0640 /var/lib/freeswitch/.odbc.ini
@@ -128,12 +129,14 @@ ln -sf "${GS_DIR_NORMALIZED}/misc/freeswitch/scripts" /usr/share/freeswitch/scri
 [ ! -d  "${GS_DIR_LOCAL}/firewall" ] && mkdir -p "${GS_DIR_LOCAL}/firewall"
 chown -vR ${GSE_USER}.freeswitch "${GS_DIR_LOCAL}/firewall"
 chmod -v 0770 "${GS_DIR_LOCAL}/firewall"
+chmod -v g+s "${GS_DIR_LOCAL}/firewall"
 
 # GS backup files
 GS_BACKUP_DIR="/var/backups/`basename ${GS_DIR}`"
 [ ! -d  "${GS_BACKUP_DIR}" ] && mkdir -p "${GS_BACKUP_DIR}"
 chown -vR "${GSE_USER}"."${GSE_GROUP}" "${GS_BACKUP_DIR}"
 chmod -v 0770 "${GS_BACKUP_DIR}"
+chmod -v g+s "${GS_BACKUP_DIR}"
 
 # GS fax files
 [ ! -d  "${GS_DIR_LOCAL}/fax/in" ] && mkdir -p "${GS_DIR_LOCAL}/fax/in"
