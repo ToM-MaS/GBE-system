@@ -111,6 +111,7 @@ chown -vR "${GSE_USER}"."${GSE_GROUP}" "${GS_DIR}"
 
 # FreeSwitch configurations
 [ ! -d  "${GS_DIR_LOCAL}/freeswitch/conf" ] && mkdir -p "${GS_DIR_LOCAL}/freeswitch/conf"
+ln -sf `basename "${GS_DIR_LOCAL}"` "${GS_DIR_NORMALIZED_LOCAL}"
 chown -vR ${GSE_USER}.freeswitch "${GS_DIR_LOCAL}/freeswitch/conf"
 chmod -v 0770 "${GS_DIR_LOCAL}/freeswitch/conf"
 if [ -e /var/lib/freeswitch/.odbc.ini ]; then
@@ -118,6 +119,10 @@ if [ -e /var/lib/freeswitch/.odbc.ini ]; then
 	chmod -v 0640 /var/lib/freeswitch/.odbc.ini
 fi
 [ -e "${GS_DIR_LOCAL}/freeswitch/conf/freeswitch.serial" ] && chmod -v 0640 "${GS_DIR_LOCAL}/freeswitch/conf/freeswitch.serial"
+[ -d /etc/freeswitch ] && rm -rf /etc/freeswitch
+ln -sf "${GS_DIR_NORMALIZED_LOCAL}/freeswitch/conf" /etc/freeswitch
+[ -d /usr/share/freeswitch/scripts ] && rm -rf /usr/share/freeswitch/scripts
+ln -sf "${GS_DIR_NORMALIZED}/misc/freeswitch/scripts" /usr/share/freeswitch/scripts
 
 # GS firewall settings
 [ ! -d  "${GS_DIR_LOCAL}/firewall" ] && mkdir -p "${GS_DIR_LOCAL}/firewall"
@@ -126,9 +131,16 @@ chmod -v 0770 "${GS_DIR_LOCAL}/firewall"
 
 # GS backup files
 GS_BACKUP_DIR="/var/backups/`basename ${GS_DIR}`"
-[ ! -d  "${GS_BACKUP_DIR}" ] && mkdir -p "/${GS_BACKUP_DIR}"
+[ ! -d  "${GS_BACKUP_DIR}" ] && mkdir -p "${GS_BACKUP_DIR}"
 chown -vR "${GSE_USER}"."${GSE_GROUP}" "${GS_BACKUP_DIR}"
 chmod -v 0770 "${GS_BACKUP_DIR}"
+
+# GS fax files
+[ ! -d  "${GS_DIR_LOCAL}/fax/in" ] && mkdir -p "${GS_DIR_LOCAL}/fax/in"
+[ ! -d  "${GS_DIR_LOCAL}/fax/out" ] && mkdir -p "${GS_DIR_LOCAL}/fax/out"
+chown -vR ${GSE_USER}.freeswitch "${GS_DIR_LOCAL}/fax"
+chmod -vR 0770 "${GS_DIR_LOCAL}/fax"
+chmod -vR g+s "${GS_DIR_LOCAL}/fax"
 
 # FreeSwitch variable files
 [ ! -d  "${GS_DIR_LOCAL}/freeswitch/db" ] && mkdir -p "${GS_DIR_LOCAL}/freeswitch/db"
@@ -152,6 +164,7 @@ chmod -v 0770 /var/lib/${GSE_USER}
 
 # Logfiles
 [ ! -d  /var/log/gemeinschaft ] && mkdir -p /var/log/gemeinschaft
+[ ! -d  /var/log/mon_ami ] && mkdir -p /var/log/mon_ami
 chown -vR "${GSE_USER}"."${GSE_GROUP}" /var/log/gemeinschaft
 chown -vR mon_ami.mon_ami /var/log/mon_ami
 chmod -v 0770 /var/log/gemeinschaft
