@@ -153,12 +153,6 @@ chmod -vR g+s "${GS_DIR_LOCAL}/fax"
 chown -vR freeswitch.freeswitch "${GS_DIR_LOCAL}/freeswitch/db" "${GS_DIR_LOCAL}/freeswitch/recordings" "${GS_DIR_LOCAL}/freeswitch/voicemail" "${GS_DIR_LOCAL}/freeswitch/storage"
 chmod -v 0770 "${GS_DIR_LOCAL}/freeswitch/db" "${GS_DIR_LOCAL}/freeswitch/recordings" "${GS_DIR_LOCAL}/freeswitch/voicemail" "${GS_DIR_LOCAL}/freeswitch/storage"
 
-# FreeSwitch files
-[ ! -d  /usr/share/freeswitch/sounds ] && mkdir -p /usr/share/freeswitch/sounds
-chown -v ${GSE_USER}.root /usr/share/freeswitch/sounds
-find /usr/share/freeswitch/sounds -type d -exec chmod -v 0775 {} \;
-find /usr/share/freeswitch/sounds -type f -exec chmod -v 0664 {} \;
-
 # GSE_USER homedir
 [ ! -d  "/var/lib/${GSE_USER}" ] && mkdir -p "/var/lib/${GSE_USER}"
 chown -vR ${GSE_USER}.${GSE_GROUP} "/var/lib/${GSE_USER}"
