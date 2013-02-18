@@ -142,8 +142,8 @@ chmod -v g+s "${GS_BACKUP_DIR}"
 [ ! -d  "${GS_DIR_LOCAL}/fax/in" ] && mkdir -p "${GS_DIR_LOCAL}/fax/in"
 [ ! -d  "${GS_DIR_LOCAL}/fax/out" ] && mkdir -p "${GS_DIR_LOCAL}/fax/out"
 chown -vR ${GSE_USER}.freeswitch "${GS_DIR_LOCAL}/fax"
-chmod -vR 0770 "${GS_DIR_LOCAL}/fax"
-chmod -vR g+s "${GS_DIR_LOCAL}/fax"
+chmod -v 0770 "${GS_DIR_LOCAL}/fax" "${GS_DIR_LOCAL}/fax/in" "${GS_DIR_LOCAL}/fax/out"
+chmod -v g+s "${GS_DIR_LOCAL}/fax" "${GS_DIR_LOCAL}/fax/in" "${GS_DIR_LOCAL}/fax/out"
 
 # FreeSwitch variable files
 [ ! -d  "${GS_DIR_LOCAL}/freeswitch/db" ] && mkdir -p "${GS_DIR_LOCAL}/freeswitch/db"
