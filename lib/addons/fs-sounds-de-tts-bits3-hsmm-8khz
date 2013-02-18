@@ -1,7 +1,7 @@
 #!/bin/bash
 #
 # Gemeinschaft 5
-# System add-on: German FreeSwitch sounds 16kHz
+# System add-on: German FreeSwitch sounds 8kHz
 #
 # Copyright (c) 2013, Julian Pawlowski <jp@jps-networks.eu>
 # See LICENSE.GSE file for details.
@@ -12,22 +12,23 @@
 [[ x"${GSE_DIR}" == x"" ]] && exit 1
 
 GSE_ADDON_NAME="`basename $0`"
-GSE_ADDON_DESCRIPTION="FreeSwitch high quality sound files (16 kHz) in german language (via TTS)"
+GSE_ADDON_DESCRIPTION="FreeSwitch sound files in german language (via TTS)"
+VOICE="bits3-hsmm"
+FREQ="8000"
 
 case "$1" in
 	install)
 		cd /usr/local/src
-		curl --retry 5 --retry-delay 3 -O "http://repo.profhost.eu/static/freeswitch/freeswitch-sounds-de-de-callie-16000-0.0.5.tar.gz"
-		[[ ! -e freeswitch-sounds-de-de-callie-16000-0.0.5.tar.gz ]] && exit 1
+		curl --retry 5 --retry-delay 3 -O "http://repo.profhost.eu/static/freeswitch/freeswitch-sounds-de-tts-${VOICE}-${FREQ}-current.tar.gz"
+		[[ ! -e freeswitch-sounds-de-tts-${VOICE}-${FREQ}-current.tar.gz ]] && exit 1
 		find /usr/local/src -name 'freeswitch-*.tar.gz' -type f -exec tar xfz {} -C /usr/share/freeswitch/sounds \;
 		find /usr/local/src -name 'freeswitch-*.tar.gz' -type f -exec rm {} \;
 		cd - 2>&1>/dev/null
-		"${GSE_DIR_NORMALIZED}/bin/gs-enforce-security.sh" | grep -Ev retained | grep -Ev "no changes" | grep -Ev "nor referent has been changed"
 		exit 0
 		;;
 
 	remove)
-		FILELIST="`find /usr/share/freeswitch/sounds/de -name '16000' -type d`"
+		FILELIST="`find /usr/share/freeswitch/sounds/de/tts/${VOICE} -name '${FREQ}' -type d`"
 		rm -rf ${FILELIST}
 		;;
 	
