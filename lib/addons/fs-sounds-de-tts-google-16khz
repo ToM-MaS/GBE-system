@@ -12,7 +12,7 @@
 [[ x"${GSE_DIR}" == x"" ]] && exit 1
 
 GSE_ADDON_NAME="`basename $0`"
-GSE_ADDON_DESCRIPTION="FreeSwitch sound files in german language (via TTS)"
+GSE_ADDON_DESCRIPTION="FreeSwitch HQ sound files in german language (via TTS)"
 VOICE="google"
 FREQ="16000"
 
