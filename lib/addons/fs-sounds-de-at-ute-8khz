@@ -12,7 +12,7 @@
 [[ x"${GSE_DIR}" == x"" ]] && exit 1
 
 GSE_ADDON_NAME="`basename $0`"
-GSE_ADDON_DESCRIPTION="FreeSwitch sound files in austrian-german language"
+GSE_ADDON_DESCRIPTION="FreeSwitch sound files in austrian-german language (Human voice: Ute)"
 FREQ="8000"
 
 case "$1" in

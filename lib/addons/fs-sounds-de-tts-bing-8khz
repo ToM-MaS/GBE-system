@@ -12,15 +12,16 @@
 [[ x"${GSE_DIR}" == x"" ]] && exit 1
 
 GSE_ADDON_NAME="`basename $0`"
-GSE_ADDON_DESCRIPTION="FreeSwitch sound files in german language (via TTS)"
+GSE_ADDON_DESCRIPTION="FreeSwitch sound files in german language (via Bing TTS)"
 VOICE="bing"
 FREQ="8000"
+LANG="de"
 
 case "$1" in
 	install)
 		cd /usr/local/src
-		curl --retry 5 --retry-delay 3 -O "http://repo.profhost.eu/static/freeswitch/freeswitch-sounds-de-tts-${VOICE}-${FREQ}-current.tar.gz"
-		[[ ! -e freeswitch-sounds-de-tts-${VOICE}-${FREQ}-current.tar.gz ]] && exit 1
+		curl --retry 5 --retry-delay 3 -O "http://repo.profhost.eu/static/freeswitch/freeswitch-sounds-${LANG}-tts-${VOICE}-${FREQ}-current.tar.gz"
+		[[ ! -e freeswitch-sounds-${LANG}-tts-${VOICE}-${FREQ}-current.tar.gz ]] && exit 1
 		find /usr/local/src -name 'freeswitch-*.tar.gz' -type f -exec tar xfz {} -C /usr/share/freeswitch/sounds \;
 		find /usr/local/src -name 'freeswitch-*.tar.gz' -type f -exec rm {} \;
 		cd - 2>&1>/dev/null
@@ -28,7 +29,7 @@ case "$1" in
 		;;
 
 	remove)
-		FILELIST="`find /usr/share/freeswitch/sounds/de/tts/${VOICE} -name '${FREQ}' -type d`"
+		FILELIST="`find /usr/share/freeswitch/sounds/${LANG}/tts/${VOICE} -name '${FREQ}' -type d`"
 		rm -rf ${FILELIST}
 		;;
 	

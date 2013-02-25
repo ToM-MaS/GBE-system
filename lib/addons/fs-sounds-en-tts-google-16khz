@@ -1,7 +1,7 @@
 #!/bin/bash
 #
 # Gemeinschaft 5
-# System add-on: FreeSwitch sounds 16kHz
+# System add-on: English FreeSwitch sounds 16kHz
 #
 # Copyright (c) 2013, Julian Pawlowski <jp@jps-networks.eu>
 # See LICENSE.GSE file for details.
@@ -12,13 +12,16 @@
 [[ x"${GSE_DIR}" == x"" ]] && exit 1
 
 GSE_ADDON_NAME="`basename $0`"
-GSE_ADDON_DESCRIPTION="FreeSwitch HQ sound files in english language (Human voice: Callie)"
+GSE_ADDON_DESCRIPTION="FreeSwitch HQ sound files in english language (via Google TTS)"
+VOICE="google"
+FREQ="16000"
+LANG="en"
 
 case "$1" in
 	install)
 		cd /usr/local/src
-		curl --retry 5 --retry-delay 3 -O "http://files.freeswitch.org/freeswitch-sounds-en-us-callie-16000-1.0.24.tar.gz"
-		[[ ! -e freeswitch-sounds-en-us-callie-16000-1.0.24.tar.gz ]] && exit 1
+		curl --retry 5 --retry-delay 3 -O "http://repo.profhost.eu/static/freeswitch/freeswitch-sounds-${LANG}-tts-${VOICE}-${FREQ}-current.tar.gz"
+		[[ ! -e freeswitch-sounds-${LANG}-tts-${VOICE}-${FREQ}-current.tar.gz ]] && exit 1
 		find /usr/local/src -name 'freeswitch-*.tar.gz' -type f -exec tar xfz {} -C /usr/share/freeswitch/sounds \;
 		find /usr/local/src -name 'freeswitch-*.tar.gz' -type f -exec rm {} \;
 		cd - 2>&1>/dev/null
@@ -26,7 +29,7 @@ case "$1" in
 		;;
 
 	remove)
-		FILELIST="`find /usr/share/freeswitch/sounds/en/us/callie -name '16000' -type d`"
+		FILELIST="`find /usr/share/freeswitch/sounds/${LANG}/tts/${VOICE} -name '${FREQ}' -type d`"
 		rm -rf ${FILELIST}
 		;;
 	
