@@ -193,9 +193,10 @@ echo "Cmnd_Alias FS_STOP = /usr/sbin/service freeswitch stop" >> /etc/sudoers.d/
 echo "Cmnd_Alias FS_START = /usr/sbin/service freeswitch start" >> /etc/sudoers.d/gemeinschaft
 echo "Cmnd_Alias FS_RESTART = /usr/sbin/service freeswitch restart" >> /etc/sudoers.d/gemeinschaft
 echo "Cmnd_Alias FS_RELOAD = /usr/sbin/service freeswitch reload" >> /etc/sudoers.d/gemeinschaft
+echo "Cmnd_Alias TAR = /usr/bin/tar" >> /etc/sudoers.d/gemeinschaft
 
 # Allow GS service account some system commands via sudo
-echo "${GSE_USER} ALL = (ALL) NOPASSWD: UPDATE, UPDATE_CANCEL, SHUTDOWN, REBOOT, FW, FW6, APACHE_STOP, APACHE_START, APACHE_RESTART, APACHE_RELOAD, FS_STOP, FS_START, FS_RESTART, FS_RELOAD" >> /etc/sudoers.d/gemeinschaft
+echo "${GSE_USER} ALL = (ALL) NOPASSWD: UPDATE, UPDATE_CANCEL, SHUTDOWN, REBOOT, FW, FW6, APACHE_STOP, APACHE_START, APACHE_RESTART, APACHE_RELOAD, FS_STOP, FS_START, FS_RESTART, FS_RELOAD, TAR" >> /etc/sudoers.d/gemeinschaft
 
 # Allow FreeSwitch some system commands via sudo
 echo "freeswitch ALL = (ALL) NOPASSWD: FW, FW6" >> /etc/sudoers.d/gemeinschaft
