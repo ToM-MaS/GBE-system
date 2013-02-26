@@ -185,9 +185,17 @@ echo "Cmnd_Alias SHUTDOWN = /sbin/shutdown -h now" >> /etc/sudoers.d/gemeinschaf
 echo "Cmnd_Alias REBOOT = /sbin/shutdown -r now" >> /etc/sudoers.d/gemeinschaft
 echo "Cmnd_Alias FW = /usr/sbin/service shorewall refresh" >> /etc/sudoers.d/gemeinschaft
 echo "Cmnd_Alias FW6 = /usr/sbin/service shorewall6 refresh" >> /etc/sudoers.d/gemeinschaft
+echo "Cmnd_Alias APACHE_STOP = /usr/sbin/service apache2 stop" >> /etc/sudoers.d/gemeinschaft
+echo "Cmnd_Alias APACHE_START = /usr/sbin/service apache2 start" >> /etc/sudoers.d/gemeinschaft
+echo "Cmnd_Alias APACHE_RESTART = /usr/sbin/service apache2 restart" >> /etc/sudoers.d/gemeinschaft
+echo "Cmnd_Alias APACHE_RELOAD = /usr/sbin/service apache2 reload" >> /etc/sudoers.d/gemeinschaft
+echo "Cmnd_Alias FS_STOP = /usr/sbin/service freeswitch stop" >> /etc/sudoers.d/gemeinschaft
+echo "Cmnd_Alias FS_START = /usr/sbin/service freeswitch start" >> /etc/sudoers.d/gemeinschaft
+echo "Cmnd_Alias FS_RESTART = /usr/sbin/service freeswitch restart" >> /etc/sudoers.d/gemeinschaft
+echo "Cmnd_Alias FS_RELOAD = /usr/sbin/service freeswitch reload" >> /etc/sudoers.d/gemeinschaft
 
 # Allow GS service account some system commands via sudo
-echo "${GSE_USER} ALL = (ALL) NOPASSWD: UPDATE, UPDATE_CANCEL, SHUTDOWN, REBOOT, FW, FW6" >> /etc/sudoers.d/gemeinschaft
+echo "${GSE_USER} ALL = (ALL) NOPASSWD: UPDATE, UPDATE_CANCEL, SHUTDOWN, REBOOT, FW, FW6, APACHE_STOP, APACHE_START, APACHE_RESTART, APACHE_RELOAD, FS_STOP, FS_START, FS_RESTART, FS_RELOAD" >> /etc/sudoers.d/gemeinschaft
 
 # Allow FreeSwitch some system commands via sudo
 echo "freeswitch ALL = (ALL) NOPASSWD: FW, FW6" >> /etc/sudoers.d/gemeinschaft
