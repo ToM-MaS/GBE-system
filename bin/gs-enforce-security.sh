@@ -111,24 +111,39 @@ chown -vR "${GSE_USER}"."${GSE_GROUP}" "${GS_DIR}"
 
 # FreeSwitch configurations
 [ ! -d  "${GS_DIR_LOCAL}/freeswitch/conf" ] && mkdir -p "${GS_DIR_LOCAL}/freeswitch/conf"
+ln -sf `basename "${GS_DIR_LOCAL}"` "${GS_DIR_NORMALIZED_LOCAL}"
 chown -vR ${GSE_USER}.freeswitch "${GS_DIR_LOCAL}/freeswitch/conf"
 chmod -v 0770 "${GS_DIR_LOCAL}/freeswitch/conf"
+chmod -v g+s "${GS_DIR_LOCAL}/freeswitch/conf"
 if [ -e /var/lib/freeswitch/.odbc.ini ]; then
 	chown -v freeswitch.freeswitch /var/lib/freeswitch/.odbc.ini
 	chmod -v 0640 /var/lib/freeswitch/.odbc.ini
 fi
 [ -e "${GS_DIR_LOCAL}/freeswitch/conf/freeswitch.serial" ] && chmod -v 0640 "${GS_DIR_LOCAL}/freeswitch/conf/freeswitch.serial"
+[ -d /etc/freeswitch ] && rm -rf /etc/freeswitch
+ln -sf "${GS_DIR_NORMALIZED_LOCAL}/freeswitch/conf" /etc/freeswitch
+[ -d /usr/share/freeswitch/scripts ] && rm -rf /usr/share/freeswitch/scripts
+ln -sf "${GS_DIR_NORMALIZED}/misc/freeswitch/scripts" /usr/share/freeswitch/scripts
 
 # GS firewall settings
 [ ! -d  "${GS_DIR_LOCAL}/firewall" ] && mkdir -p "${GS_DIR_LOCAL}/firewall"
 chown -vR ${GSE_USER}.freeswitch "${GS_DIR_LOCAL}/firewall"
 chmod -v 0770 "${GS_DIR_LOCAL}/firewall"
+chmod -v g+s "${GS_DIR_LOCAL}/firewall"
 
 # GS backup files
 GS_BACKUP_DIR="/var/backups/`basename ${GS_DIR}`"
-[ ! -d  "${GS_BACKUP_DIR}" ] && mkdir -p "/${GS_BACKUP_DIR}"
+[ ! -d  "${GS_BACKUP_DIR}" ] && mkdir -p "${GS_BACKUP_DIR}"
 chown -vR "${GSE_USER}"."${GSE_GROUP}" "${GS_BACKUP_DIR}"
 chmod -v 0770 "${GS_BACKUP_DIR}"
+chmod -v g+s "${GS_BACKUP_DIR}"
+
+# GS fax files
+[ ! -d  "${GS_DIR_LOCAL}/fax/in" ] && mkdir -p "${GS_DIR_LOCAL}/fax/in"
+[ ! -d  "${GS_DIR_LOCAL}/fax/out" ] && mkdir -p "${GS_DIR_LOCAL}/fax/out"
+chown -vR ${GSE_USER}.freeswitch "${GS_DIR_LOCAL}/fax"
+chmod -v 0770 "${GS_DIR_LOCAL}/fax" "${GS_DIR_LOCAL}/fax/in" "${GS_DIR_LOCAL}/fax/out"
+chmod -v g+s "${GS_DIR_LOCAL}/fax" "${GS_DIR_LOCAL}/fax/in" "${GS_DIR_LOCAL}/fax/out"
 
 # FreeSwitch variable files
 [ ! -d  "${GS_DIR_LOCAL}/freeswitch/db" ] && mkdir -p "${GS_DIR_LOCAL}/freeswitch/db"
@@ -138,12 +153,6 @@ chmod -v 0770 "${GS_BACKUP_DIR}"
 chown -vR freeswitch.freeswitch "${GS_DIR_LOCAL}/freeswitch/db" "${GS_DIR_LOCAL}/freeswitch/recordings" "${GS_DIR_LOCAL}/freeswitch/voicemail" "${GS_DIR_LOCAL}/freeswitch/storage"
 chmod -v 0770 "${GS_DIR_LOCAL}/freeswitch/db" "${GS_DIR_LOCAL}/freeswitch/recordings" "${GS_DIR_LOCAL}/freeswitch/voicemail" "${GS_DIR_LOCAL}/freeswitch/storage"
 
-# FreeSwitch files
-[ ! -d  /usr/share/freeswitch/sounds ] && mkdir -p /usr/share/freeswitch/sounds
-chown -v ${GSE_USER}.root /usr/share/freeswitch/sounds
-find /usr/share/freeswitch/sounds -type d -exec chmod -v 0775 {} \;
-find /usr/share/freeswitch/sounds -type f -exec chmod -v 0664 {} \;
-
 # GSE_USER homedir
 [ ! -d  "/var/lib/${GSE_USER}" ] && mkdir -p "/var/lib/${GSE_USER}"
 chown -vR ${GSE_USER}.${GSE_GROUP} "/var/lib/${GSE_USER}"
@@ -152,6 +161,7 @@ chmod -v 0770 /var/lib/${GSE_USER}
 
 # Logfiles
 [ ! -d  /var/log/gemeinschaft ] && mkdir -p /var/log/gemeinschaft
+[ ! -d  /var/log/mon_ami ] && mkdir -p /var/log/mon_ami
 chown -vR "${GSE_USER}"."${GSE_GROUP}" /var/log/gemeinschaft
 chown -vR mon_ami.mon_ami /var/log/mon_ami
 chmod -v 0770 /var/log/gemeinschaft
@@ -159,7 +169,13 @@ chmod -v 0770 /var/log/mon_ami
 
 # Spooling directories
 [ ! -d  /var/spool/freeswitch ] && mkdir -p /var/spool/freeswitch
-chown -vR freeswitch.root /var/spool/freeswitch
+chown -vR freeswitch.${GSE_GROUP} /var/spool/freeswitch
+chmod -v 0770 /var/spool/freeswitch
+chmod -v g+ws /var/spool/freeswitch
+[ ! -d  /var/spool/gemeinschaft ] && mkdir -p /var/spool/gemeinschaft
+chown -vR ${GSE_USER}.${GSE_GROUP} /var/spool/gemeinschaft
+chmod -v 0770 /var/spool/gemeinschaft
+chmod -v g+ws /var/spool/gemeinschaft
 
 # Setup some system commands via sudo
 [ ! -d  /etc/sudoers.d ] && mkdir -p /etc/sudoers.d
@@ -169,9 +185,18 @@ echo "Cmnd_Alias SHUTDOWN = /sbin/shutdown -h now" >> /etc/sudoers.d/gemeinschaf
 echo "Cmnd_Alias REBOOT = /sbin/shutdown -r now" >> /etc/sudoers.d/gemeinschaft
 echo "Cmnd_Alias FW = /usr/sbin/service shorewall refresh" >> /etc/sudoers.d/gemeinschaft
 echo "Cmnd_Alias FW6 = /usr/sbin/service shorewall6 refresh" >> /etc/sudoers.d/gemeinschaft
+echo "Cmnd_Alias APACHE_STOP = /usr/sbin/service apache2 stop" >> /etc/sudoers.d/gemeinschaft
+echo "Cmnd_Alias APACHE_START = /usr/sbin/service apache2 start" >> /etc/sudoers.d/gemeinschaft
+echo "Cmnd_Alias APACHE_RESTART = /usr/sbin/service apache2 restart" >> /etc/sudoers.d/gemeinschaft
+echo "Cmnd_Alias APACHE_RELOAD = /usr/sbin/service apache2 reload" >> /etc/sudoers.d/gemeinschaft
+echo "Cmnd_Alias FS_STOP = /usr/sbin/service freeswitch stop" >> /etc/sudoers.d/gemeinschaft
+echo "Cmnd_Alias FS_START = /usr/sbin/service freeswitch start" >> /etc/sudoers.d/gemeinschaft
+echo "Cmnd_Alias FS_RESTART = /usr/sbin/service freeswitch restart" >> /etc/sudoers.d/gemeinschaft
+echo "Cmnd_Alias FS_RELOAD = /usr/sbin/service freeswitch reload" >> /etc/sudoers.d/gemeinschaft
+echo "Cmnd_Alias TAR = /bin/tar" >> /etc/sudoers.d/gemeinschaft
 
 # Allow GS service account some system commands via sudo
-echo "${GSE_USER} ALL = (ALL) NOPASSWD: UPDATE, UPDATE_CANCEL, SHUTDOWN, REBOOT, FW, FW6" >> /etc/sudoers.d/gemeinschaft
+echo "${GSE_USER} ALL = (ALL) NOPASSWD: UPDATE, UPDATE_CANCEL, SHUTDOWN, REBOOT, FW, FW6, APACHE_STOP, APACHE_START, APACHE_RESTART, APACHE_RELOAD, FS_STOP, FS_START, FS_RESTART, FS_RELOAD, TAR" >> /etc/sudoers.d/gemeinschaft
 
 # Allow FreeSwitch some system commands via sudo
 echo "freeswitch ALL = (ALL) NOPASSWD: FW, FW6" >> /etc/sudoers.d/gemeinschaft

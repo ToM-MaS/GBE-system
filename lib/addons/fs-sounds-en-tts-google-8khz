@@ -1,0 +1,39 @@
+#!/bin/bash
+#
+# Gemeinschaft 5
+# System add-on: English FreeSwitch sounds 8kHz
+#
+# Copyright (c) 2013, Julian Pawlowski <jp@jps-networks.eu>
+# See LICENSE.GSE file for details.
+#
+
+# General settings
+[ -e /etc/gemeinschaft/system.conf ] && source /etc/gemeinschaft/system.conf || echo "FATAL ERROR: Local configuration file in /etc/gemeinschaft/system.conf missing"
+[[ x"${GSE_DIR}" == x"" ]] && exit 1
+
+GSE_ADDON_NAME="`basename $0`"
+GSE_ADDON_DESCRIPTION="FreeSwitch sound files in english language (via Google TTS)"
+VOICE="google"
+FREQ="8000"
+LANG="en"
+
+case "$1" in
+	install)
+		cd /usr/local/src
+		curl --retry 5 --retry-delay 3 -O "http://repo.profhost.eu/static/freeswitch/freeswitch-sounds-${LANG}-tts-${VOICE}-${FREQ}-current.tar.gz"
+		[[ ! -e freeswitch-sounds-${LANG}-tts-${VOICE}-${FREQ}-current.tar.gz ]] && exit 1
+		find /usr/local/src -name 'freeswitch-*.tar.gz' -type f -exec tar xfz {} -C /usr/share/freeswitch/sounds \;
+		find /usr/local/src -name 'freeswitch-*.tar.gz' -type f -exec rm {} \;
+		cd - 2>&1>/dev/null
+		exit 0
+		;;
+
+	remove)
+		FILELIST="`find /usr/share/freeswitch/sounds/${LANG}/tts/${VOICE} -name '${FREQ}' -type d`"
+		rm -rf ${FILELIST}
+		;;
+	
+	*)
+		echo -e "${GSE_ADDON_NAME}\n\t${GSE_ADDON_DESCRIPTION}"
+		;;
+esac
