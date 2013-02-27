@@ -43,6 +43,8 @@ start)
 			sed -i "s/^dhcp-option=POLYCOM,66.*\$/dhcp-option=POLYCOM,66,https:\/\/${ADDRESS}:443/" /etc/dnsmasq.d/gs_phone_vendors.conf
 		fi
 		/etc/init.d/dnsmasq restart
+		
+		break;
 	done
 
 	# Update Gemeinschaft config with current IPv4 address
@@ -57,14 +59,20 @@ start)
 			then
 				MYSQL_PASSWD="`cat "${GS_MYSQL_PASSWORD_FILE}"`"
  				ADDRESS_OLD="`mysql -e "SELECT value from gs_parameters WHERE name = 'HOMEBASE_IP_ADDRESS';" --user=${GS_MYSQL_USER} --password="${MYSQL_PASSWD}" ${GS_MYSQL_DB}`"
- 				mysql -e "UPDATE gs_parameters SET value = '${ADDRESS}' WHERE name = 'HOMEBASE_IP_ADDRESS';" --user=${GS_MYSQL_USER} --password="${MYSQL_PASSWD}" ${GS_MYSQL_DB}
- 				mysql -e "UPDATE gs_nodes SET ip_address = '${ADDRESS}' WHERE ip_address = '${ADDRESS_OLD}';" --user=${GS_MYSQL_USER} --password="${MYSQL_PASSWD}" ${GS_MYSQL_DB}
- 				mysql -e "UPDATE sip_domains SET host = '${ADDRESS}' WHERE host = '${ADDRESS_OLD}';" --user=${GS_MYSQL_USER} --password="${MYSQL_PASSWD}" ${GS_MYSQL_DB}
- 				mysql -e "UPDATE sip_domains SET realm = '${ADDRESS}' WHERE realm = '${ADDRESS_OLD}';" --user=${GS_MYSQL_USER} --password="${MYSQL_PASSWD}" ${GS_MYSQL_DB}
+				if [ "${ADDRESS}" != "${ADDRESS_OLD}" ]; then
+					echo "** IP address change detected. OLD: ${ADDRESS_OLD} NEW: ${ADDRESS}"
+	 				mysql -e "UPDATE gs_parameters SET value = '${ADDRESS}' WHERE name = 'HOMEBASE_IP_ADDRESS';" --user=${GS_MYSQL_USER} --password="${MYSQL_PASSWD}" ${GS_MYSQL_DB}
+	 				mysql -e "UPDATE gs_nodes SET ip_address = '${ADDRESS}' WHERE ip_address = '${ADDRESS_OLD}';" --user=${GS_MYSQL_USER} --password="${MYSQL_PASSWD}" ${GS_MYSQL_DB}
+	 				mysql -e "UPDATE sip_domains SET host = '${ADDRESS}' WHERE host = '${ADDRESS_OLD}';" --user=${GS_MYSQL_USER} --password="${MYSQL_PASSWD}" ${GS_MYSQL_DB}
+	 				mysql -e "UPDATE sip_domains SET realm = '${ADDRESS}' WHERE realm = '${ADDRESS_OLD}';" --user=${GS_MYSQL_USER} --password="${MYSQL_PASSWD}" ${GS_MYSQL_DB}
+					
+					service freeswitch restart
+				fi
  		else
 			echo "ERROR: GS database password file ${GS_MYSQL_PASSWORD_FILE} not found"
 		fi
 
+		break;
 	done
 
 	if [[ ${LIVE} == false && ${GS_ENFORCE_SECURITY_ON_BOOTUP} == true ]]
