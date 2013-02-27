@@ -1,7 +1,7 @@
 #!/bin/bash
 #
 # Gemeinschaft 5
-# System add-on: FreeSwitch music 16kHz
+# System add-on: FreeSwitch sounds 8kHz
 #
 # Copyright (c) 2013, Julian Pawlowski <jp@jps-networks.eu>
 # See LICENSE.GSE file for details.
@@ -12,13 +12,13 @@
 [[ x"${GSE_DIR}" == x"" ]] && exit 1
 
 GSE_ADDON_NAME="`basename $0`"
-GSE_ADDON_DESCRIPTION="FreeSwitch HQ music files (16 kHz)"
+GSE_ADDON_DESCRIPTION="FreeSwitch sound files in english language (Human voice: Callie)"
 
 case "$1" in
 	install)
 		cd /usr/local/src
-		curl --retry 5 --retry-delay 3 -O -O "http://files.freeswitch.org/freeswitch-sounds-music-16000-1.0.8.tar.gz"
-		[[ ! -e freeswitch-sounds-music-16000-1.0.8.tar.gz ]] && exit 1
+		curl --retry 5 --retry-delay 3 -O "http://files.freeswitch.org/freeswitch-sounds-en-us-callie-8000-1.0.24.tar.gz"
+		[[ ! -e freeswitch-sounds-en-us-callie-8000-1.0.24.tar.gz ]] && exit 1
 		mkdir -p /usr/share/freeswitch/sounds
 		find /usr/local/src -name 'freeswitch-*.tar.gz' -type f -exec tar xfz {} -C /usr/share/freeswitch/sounds \;
 		find /usr/local/src -name 'freeswitch-*.tar.gz' -type f -exec rm {} \;
@@ -27,7 +27,7 @@ case "$1" in
 		;;
 
 	remove)
-		FILELIST="`find /usr/share/freeswitch/sounds/en /usr/share/freeswitch/sounds/music -name '16000' -type d`"
+		FILELIST="`find /usr/share/freeswitch/sounds/en/us/callie -name '8000' -type d`"
 		rm -rf ${FILELIST}
 		;;
 	
