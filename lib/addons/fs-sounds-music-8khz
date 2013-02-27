@@ -19,10 +19,10 @@ case "$1" in
 		cd /usr/local/src
 		curl --retry 5 --retry-delay 3 -O -O "http://files.freeswitch.org/freeswitch-sounds-music-8000-1.0.8.tar.gz"
 		[[ ! -e freeswitch-sounds-music-8000-1.0.8.tar.gz ]] && exit 1
+		mkdir -p /usr/share/freeswitch/sounds
 		find /usr/local/src -name 'freeswitch-*.tar.gz' -type f -exec tar xfz {} -C /usr/share/freeswitch/sounds \;
 		find /usr/local/src -name 'freeswitch-*.tar.gz' -type f -exec rm {} \;
 		cd - 2>&1>/dev/null
-		"${GSE_DIR_NORMALIZED}/bin/gs-enforce-security.sh" | grep -Ev retained | grep -Ev "no changes" | grep -Ev "nor referent has been changed"
 		exit 0
 		;;
 

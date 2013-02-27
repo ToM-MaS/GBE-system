@@ -22,6 +22,7 @@ case "$1" in
 		cd /usr/local/src
 		curl --retry 5 --retry-delay 3 -O "http://repo.profhost.eu/static/freeswitch/freeswitch-sounds-${LANG}-tts-${VOICE}-${FREQ}-current.tar.gz"
 		[[ ! -e freeswitch-sounds-${LANG}-tts-${VOICE}-${FREQ}-current.tar.gz ]] && exit 1
+		mkdir -p /usr/share/freeswitch/sounds
 		find /usr/local/src -name 'freeswitch-*.tar.gz' -type f -exec tar xfz {} -C /usr/share/freeswitch/sounds \;
 		find /usr/local/src -name 'freeswitch-*.tar.gz' -type f -exec rm {} \;
 		cd - 2>&1>/dev/null

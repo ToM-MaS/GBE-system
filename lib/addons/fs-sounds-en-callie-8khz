@@ -19,6 +19,7 @@ case "$1" in
 		cd /usr/local/src
 		curl --retry 5 --retry-delay 3 -O "http://files.freeswitch.org/freeswitch-sounds-en-us-callie-8000-1.0.24.tar.gz"
 		[[ ! -e freeswitch-sounds-en-us-callie-8000-1.0.24.tar.gz ]] && exit 1
+		mkdir -p /usr/share/freeswitch/sounds
 		find /usr/local/src -name 'freeswitch-*.tar.gz' -type f -exec tar xfz {} -C /usr/share/freeswitch/sounds \;
 		find /usr/local/src -name 'freeswitch-*.tar.gz' -type f -exec rm {} \;
 		cd - 2>&1>/dev/null
