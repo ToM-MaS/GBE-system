@@ -1,0 +1,37 @@
+#!/bin/bash
+#
+# Gemeinschaft 5
+# System add-on: FreeSwitch music 8kHz
+#
+# Copyright (c) 2013, Julian Pawlowski <jp@jps-networks.eu>
+# See LICENSE.GSE file for details.
+#
+
+# General settings
+[ -e /etc/gemeinschaft/system.conf ] && source /etc/gemeinschaft/system.conf || echo "FATAL ERROR: Local configuration file in /etc/gemeinschaft/system.conf missing"
+[[ x"${GSE_DIR}" == x"" ]] && exit 1
+
+GSE_ADDON_NAME="`basename $0`"
+GSE_ADDON_DESCRIPTION="FreeSwitch music files (8 kHz)"
+
+case "$1" in
+	install)
+		cd /usr/local/src
+		curl --retry 5 --retry-delay 3 -O -O "http://files.freeswitch.org/freeswitch-sounds-music-8000-1.0.8.tar.gz"
+		[[ ! -e freeswitch-sounds-music-8000-1.0.8.tar.gz ]] && exit 1
+		find /usr/local/src -name 'freeswitch-*.tar.gz' -type f -exec tar xfz {} -C /usr/share/freeswitch/sounds \;
+		find /usr/local/src -name 'freeswitch-*.tar.gz' -type f -exec rm {} \;
+		cd - 2>&1>/dev/null
+		"${GSE_DIR_NORMALIZED}/bin/gs-enforce-security.sh" | grep -Ev retained | grep -Ev "no changes" | grep -Ev "nor referent has been changed"
+		exit 0
+		;;
+
+	remove)
+		FILELIST="`/usr/share/freeswitch/sounds/music -name '8000' -type d`"
+		rm -rf ${FILELIST}
+		;;
+	
+	*)
+		echo -e "${GSE_ADDON_NAME}\n\t${GSE_ADDON_DESCRIPTION}"
+		;;
+esac
