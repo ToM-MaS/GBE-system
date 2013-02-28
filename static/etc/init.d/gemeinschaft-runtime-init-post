@@ -58,7 +58,7 @@ start)
 		if [ -e "${GS_MYSQL_PASSWORD_FILE}" ];
 			then
 				MYSQL_PASSWD="`cat "${GS_MYSQL_PASSWORD_FILE}"`"
- 				ADDRESS_OLD="`mysql -e "SELECT value from gs_parameters WHERE name = 'HOMEBASE_IP_ADDRESS';" --user=${GS_MYSQL_USER} --password="${MYSQL_PASSWD}" ${GS_MYSQL_DB}`"
+ 				ADDRESS_OLD="`mysql --batch --skip-column-names -e "SELECT value from gs_parameters WHERE name = 'HOMEBASE_IP_ADDRESS';" --user=${GS_MYSQL_USER} --password="${MYSQL_PASSWD}" ${GS_MYSQL_DB}`"
 				if [ "${ADDRESS}" != "${ADDRESS_OLD}" ]; then
 					echo "** IP address change detected. OLD: ${ADDRESS_OLD} NEW: ${ADDRESS}"
 	 				mysql -e "UPDATE gs_parameters SET value = '${ADDRESS}' WHERE name = 'HOMEBASE_IP_ADDRESS';" --user=${GS_MYSQL_USER} --password="${MYSQL_PASSWD}" ${GS_MYSQL_DB}
