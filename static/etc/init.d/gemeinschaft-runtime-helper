@@ -27,7 +27,8 @@ start)
 	# Read GSE version from Git repo
 	#
 	cd "${GSE_DIR_NORMALIZED}"
-	GSE_LATEST_VERSION="`git tag -l | tail -n1`"
+	GSE_LATEST_TAGGED_COMMIT="`git rev-list --tags --max-count=1`"
+	GSE_LATEST_VERSION="`git describe --tags ${GSE_LATEST_TAGGED_COMMIT}`"
 	GSE_CURRENT_REVISION="`git rev-parse --abbrev-ref HEAD`"
 	cd - 2>&1>/dev/null
 
@@ -42,7 +43,8 @@ start)
 	# Read GS version from Git repo
 	#
 	cd "${GS_DIR_NORMALIZED}"
-	GS_LATEST_VERSION="`git tag -l | tail -n1`"
+	GSE_LATEST_TAGGED_COMMIT="`git rev-list --tags --max-count=1`"
+	GSE_LATEST_VERSION="`git describe --tags ${GSE_LATEST_TAGGED_COMMIT}`"
 	GS_CURRENT_REVISION="`git rev-parse --abbrev-ref HEAD`"
 	cd - 2>&1>/dev/null
 
