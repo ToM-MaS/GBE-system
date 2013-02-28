@@ -43,8 +43,8 @@ start)
 	# Read GS version from Git repo
 	#
 	cd "${GS_DIR_NORMALIZED}"
-	GSE_LATEST_TAGGED_COMMIT="`git rev-list --tags --max-count=1`"
-	GSE_LATEST_VERSION="`git describe --tags ${GSE_LATEST_TAGGED_COMMIT}`"
+	GS_LATEST_TAGGED_COMMIT="`git rev-list --tags --max-count=1`"
+	GS_LATEST_VERSION="`git describe --tags ${GSE_LATEST_TAGGED_COMMIT}`"
 	GS_CURRENT_REVISION="`git rev-parse --abbrev-ref HEAD`"
 	cd - 2>&1>/dev/null
 
