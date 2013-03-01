@@ -1,0 +1,70 @@
+#!/bin/bash
+#
+# Gemeinschaft 5
+# System add-on: FreeSwitch G.729 codec
+#
+# Copyright (c) 2013, Julian Pawlowski <jp@jps-networks.eu>
+# See LICENSE.GSE file for details.
+#
+
+# General settings
+[ -e /etc/gemeinschaft/system.conf ] && source /etc/gemeinschaft/system.conf || echo "FATAL ERROR: Local configuration file in /etc/gemeinschaft/system.conf missing"
+[[ x"${GSE_DIR}" == x"" ]] && exit 1
+
+GSE_ADDON_NAME="`basename $0`"
+GSE_ADDON_DESCRIPTION="FreeSwitch G.729 codec installation and license activation"
+VERSION="194"
+
+case "$1" in
+	install)
+		cd /usr/local/src
+		curl --retry 5 --retry-delay 3 -O -O "http://files.freeswitch.org/g729/fsg729-${VERSION}-installer"
+		[[ ! -e "fsg729-${VERSION}-installer" ]] && exit 1
+		chmod 755 "fsg729-${VERSION}-installer"
+
+		./fsg729-${VERSION}-installer && rm -f ./fsg729-${VERSION}-installer
+		[[ ! -e /opt/freeswitch/bin/validator || ! -e /usr/lib/freeswitch/mod/mod_com_g729.so || ! -e /usr/sbin/freeswitch_licence_server ]] && exit 1
+
+		/opt/freeswitch/bin/validator
+		[[ $? != 0 || ! -e ./licences.zip ]] && exit 1
+
+		if [ ! -e /usr/bin/unzip ]; then
+			aptitude -q2 update
+			aptitude -yy -q2 install unzip
+			[[ $? != 0 ]] && exit 1
+		fi
+
+		unzip licences.zip -d /etc/freeswitch/
+		[[ $? != 0 ]] && exit 1 || rm -rf licences.zip
+
+		"${GSE_DIR_NORMALIZED}/bin/gs-enforce-security.sh" | grep -Ev retained | grep -Ev "no changes" | grep -Ev "nor referent has been changed"
+
+		fs_cli -x "unload mod_g729"
+		fs_cli -x "load mod_com_g729"
+		fs_cli -x "g729_info"
+		
+		G729_RESULT="`fs_cli -x g729_available`"
+		
+		[ "${G729_RESULT}" != true ] && exit 1
+		
+		echo -e "\n\nG.729 ACTIVATION COMPLETE !\n\nTo keep the codec enabled after reboot please add mod_com_g729 to freeswitch.xml and remove mod_g729 to avoid conflicts.\n\n"
+
+		cd - 2>&1>/dev/null
+		exit 0
+		;;
+
+	remove)
+		echo -e "\n\nThis will only remove G.729 activation tools and G.729 code module.\nYour license file will not be touched!\n\n"
+		fs_cli -x "unload mod_com_g729"
+		killall freeswitch_licence_server
+		rm -f /opt/freeswitch/bin/validator /usr/lib/freeswitch/mod/mod_com_g729.so /usr/sbin/freeswitch_licence_server
+		
+		echo -e "\nPlease make sure to remove mod_com_g729 from freeswitch.xml to avoid any issues during next boot.\n"
+
+		exit 0
+		;;
+	
+	*)
+		echo -e "${GSE_ADDON_NAME}\n\t${GSE_ADDON_DESCRIPTION}"
+		;;
+esac
