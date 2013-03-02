@@ -176,7 +176,7 @@ password ${GSE_GIT_PASSWORD}
 	rm -rf ~/.netrc
 
 	# Make sure we checkout the latest tagged version in case we are in the master branch, otherwise set HEAD to the latest revision of GSE_BRANCH
-	[ "${GSE_BRANCH}" == "master" ] && quiet_git checkout "`git tag -l | tail -n1`" || quiet_git checkout "${GSE_BRANCH}"
+	[ "${GSE_BRANCH}" == "master" ] && quiet_git checkout "`git for-each-ref --format '%(refname)' refs/tags | cut -d "/" -f 3 | tail -n1`" || quiet_git checkout "${GSE_BRANCH}"
 
 	# Check version compatibility, allow auto-update only for minor versions
 	GSE_GIT_VERSION="`git tag --contains HEAD`"
