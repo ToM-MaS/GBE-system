@@ -35,7 +35,6 @@ case "$1" in
 		fi
 		cd - 2>&1>/dev/null
 
-		cd /tmp
 		if [ ! -e ./licences.zip ]; then
 			/opt/freeswitch/bin/validator
 			if [[ $? != 0 || ! -e ./licences.zip ]]; then
@@ -46,10 +45,10 @@ case "$1" in
 
 		unzip ./licences.zip -d /etc/freeswitch/
 		if [[ $? != 0 ]]; then
-			echo "Your downloaded license file in `pwd`/licences.zip could not be extracted, it might be corrupted."
+			echo "Your license archive file in `pwd`/licences.zip could not be extracted, it might be corrupted."
 			exit 1
 		else
-			rm -rf ./licences.zip
+			echo "Your license archive file has been saved to `pwd`/licenses.zip, you may want to backup it!"
 		fi
 
 		"${GSE_DIR_NORMALIZED}/bin/gs-enforce-security.sh" | grep -Ev retained | grep -Ev "no changes" | grep -Ev "nor referent has been changed"
