@@ -12,30 +12,45 @@
 [[ x"${GSE_DIR}" == x"" ]] && exit 1
 
 GSE_ADDON_NAME="`basename $0`"
-GSE_ADDON_DESCRIPTION="FreeSwitch G.729 codec installation and license activation"
+GSE_ADDON_DESCRIPTION="FreeSwitch commercial G729 codec installation and license activation"
 VERSION="194"
 
 case "$1" in
 	install)
+		if [ ! -e /usr/bin/unzip ]; then
+			aptitude -q2 update
+			aptitude -yy -q2 install unzip
+			[[ $? != 0 || ! -e /usr/bin/unzip ]] && exit 1
+		fi
+
 		cd /usr/local/src
 		curl --retry 5 --retry-delay 3 -O -O "http://files.freeswitch.org/g729/fsg729-${VERSION}-installer"
 		[[ ! -e "fsg729-${VERSION}-installer" ]] && exit 1
 		chmod 755 "fsg729-${VERSION}-installer"
 
 		./fsg729-${VERSION}-installer && rm -f ./fsg729-${VERSION}-installer
-		[[ ! -e /opt/freeswitch/bin/validator || ! -e /usr/lib/freeswitch/mod/mod_com_g729.so || ! -e /usr/sbin/freeswitch_licence_server ]] && exit 1
+		if [[ ! -e /opt/freeswitch/bin/validator || ! -e /usr/lib/freeswitch/mod/mod_com_g729.so || ! -e /usr/sbin/freeswitch_licence_server ]]; then
+			rm -f /opt/freeswitch/bin/validator /usr/lib/freeswitch/mod/mod_com_g729.so /usr/sbin/freeswitch_licence_server
+			exit 1
+		fi
+		cd - 2>&1>/dev/null
 
-		/opt/freeswitch/bin/validator
-		[[ $? != 0 || ! -e ./licences.zip ]] && exit 1
-
-		if [ ! -e /usr/bin/unzip ]; then
-			aptitude -q2 update
-			aptitude -yy -q2 install unzip
-			[[ $? != 0 ]] && exit 1
+		cd /tmp
+		if [ ! -e ./licences.zip ]; then
+			/opt/freeswitch/bin/validator
+			if [[ $? != 0 || ! -e ./licences.zip ]]; then
+				rm -f /opt/freeswitch/bin/validator /usr/lib/freeswitch/mod/mod_com_g729.so /usr/sbin/freeswitch_licence_server
+				exit 1
+			fi
 		fi
 
-		unzip licences.zip -d /etc/freeswitch/
-		[[ $? != 0 ]] && exit 1 || rm -rf licences.zip
+		unzip ./licences.zip -d /etc/freeswitch/
+		if [[ $? != 0 ]]; then
+			echo "Your downloaded license file in `pwd`/licences.zip could not be extracted, it might be corrupted."
+			exit 1
+		else
+			rm -rf ./licences.zip
+		fi
 
 		"${GSE_DIR_NORMALIZED}/bin/gs-enforce-security.sh" | grep -Ev retained | grep -Ev "no changes" | grep -Ev "nor referent has been changed"
 
@@ -45,16 +60,18 @@ case "$1" in
 		
 		G729_RESULT="`fs_cli -x g729_available`"
 		
-		[ "${G729_RESULT}" != true ] && exit 1
-		
-		echo -e "\n\nG.729 ACTIVATION COMPLETE !\n\nTo keep the codec enabled after reboot please add mod_com_g729 to freeswitch.xml and remove mod_g729 to avoid conflicts.\n\n"
+		if [ "${G729_RESULT}" != true ]; then
+			echo -e "\n\nCommercial G729 installation COMPLETE but activation in FreeSwitch FAILED !\n\nTo enable the codec please add mod_com_g729 to freeswitch.xml and remove mod_g729 to avoid conflicts.\n\n"
+		else
+			echo -e "\n\nCommercial G729 installation & activation COMPLETE !\n\nTo keep the codec enabled after reboot please add mod_com_g729 to freeswitch.xml and remove mod_g729 to avoid conflicts.\n\n"
+	 	fi
 
 		cd - 2>&1>/dev/null
 		exit 0
 		;;
 
 	remove)
-		echo -e "\n\nThis will only remove G.729 activation tools and G.729 code module.\nYour license file will not be touched!\n\n"
+		echo -e "\n\nThis will only remove G729 commercial activation tools and G729 commercial module.\nYour license file will not be touched!\n\n"
 		fs_cli -x "unload mod_com_g729"
 		killall freeswitch_licence_server
 		rm -f /opt/freeswitch/bin/validator /usr/lib/freeswitch/mod/mod_com_g729.so /usr/sbin/freeswitch_licence_server
