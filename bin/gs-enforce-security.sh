@@ -130,7 +130,7 @@ ln -sf "${GS_DIR_NORMALIZED}/misc/freeswitch/scripts" /usr/share/freeswitch/scri
 chown -vR freeswitch.freeswitch "${GS_DIR_LOCAL}/firewall"
 chmod -v 0770 "${GS_DIR_LOCAL}/firewall"
 chmod -v g+s "${GS_DIR_LOCAL}/firewall"
-chmod -v 660 "${GS_DIR_LOCAL}/firewall/*"
+chmod -v 660 "${GS_DIR_LOCAL}/firewall/"*
 
 # GS backup files
 GS_BACKUP_DIR="/var/backups/`basename ${GS_DIR}`"
