@@ -14,10 +14,6 @@
 [ -e "${GSE_DIR_NORMALIZED}/lib/gse-functions.sh" ] && source "${GSE_DIR_NORMALIZED}/lib/gse-functions.sh" || exit 1
 
 
-# check each command return codes for errors
-#
-set -e
-
 # Enforce root rights
 #
 if [[ ${EUID} -ne 0 ]];
@@ -127,9 +123,10 @@ ln -sf "${GS_DIR_NORMALIZED}/misc/freeswitch/scripts" /usr/share/freeswitch/scri
 
 # GS firewall settings
 [ ! -d  "${GS_DIR_LOCAL}/firewall" ] && mkdir -p "${GS_DIR_LOCAL}/firewall"
-chown -vR ${GSE_USER}.freeswitch "${GS_DIR_LOCAL}/firewall"
+chown -vR freeswitch.freeswitch "${GS_DIR_LOCAL}/firewall"
 chmod -v 0770 "${GS_DIR_LOCAL}/firewall"
 chmod -v g+s "${GS_DIR_LOCAL}/firewall"
+find "${GS_DIR_LOCAL}/firewall/" -type f -exec chmod -v 660 {} \;
 
 # GS backup files
 GS_BACKUP_DIR="/var/backups/`basename ${GS_DIR}`"
