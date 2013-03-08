@@ -16,12 +16,13 @@ GSE_ADDON_DESCRIPTION="FreeSwitch sound files in german language (via Google TTS
 VOICE="google"
 FREQ="8000"
 LANG="de"
+VERSION="1.0.2"
 
 case "$1" in
 	install)
 		cd /usr/local/src
-		curl --retry 5 --retry-delay 3 -O "http://repo.profhost.eu/static/freeswitch/freeswitch-sounds-${LANG}-tts-${VOICE}-${FREQ}-current.tar.gz"
-		[[ ! -e freeswitch-sounds-${LANG}-tts-${VOICE}-${FREQ}-current.tar.gz ]] && exit 1
+		curl --retry 5 --retry-delay 3 -O "http://repo.amooma.de/static/freeswitch/freeswitch-sounds-${LANG}-tts-${VOICE}-${FREQ}-${VERSION}.tar.gz"
+		[[ ! -e freeswitch-sounds-${LANG}-tts-${VOICE}-${FREQ}-${VERSION}.tar.gz ]] && exit 1
 		mkdir -p /usr/share/freeswitch/sounds
 		find /usr/local/src -name 'freeswitch-*.tar.gz' -type f -exec tar xfz {} -C /usr/share/freeswitch/sounds \;
 		find /usr/local/src -name 'freeswitch-*.tar.gz' -type f -exec rm {} \;

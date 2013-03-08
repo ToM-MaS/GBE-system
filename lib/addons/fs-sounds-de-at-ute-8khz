@@ -14,12 +14,13 @@
 GSE_ADDON_NAME="`basename $0`"
 GSE_ADDON_DESCRIPTION="FreeSwitch sound files in austrian-german language (Human voice: Ute)"
 FREQ="8000"
+VERSION="0.0.1"
 
 case "$1" in
 	install)
 		cd /usr/local/src
-		curl --retry 5 --retry-delay 3 -O "http://freeswitch.xpirio.com/freeswitch-sounds-de-at-ute-8000-0.0.1.tar.gz"
-		[[ ! -e freeswitch-sounds-de-at-ute-8000-0.0.1.tar.gz ]] && exit 1
+		curl --retry 5 --retry-delay 3 -O "http://freeswitch.xpirio.com/freeswitch-sounds-de-at-ute-${FREQ}-${VERSION}.tar.gz"
+		[[ ! -e freeswitch-sounds-de-at-ute-${FREQ}-${VERSION}.tar.gz ]] && exit 1
 		mkdir -p /usr/share/freeswitch/sounds
 		find /usr/local/src -name 'freeswitch-*.tar.gz' -type f -exec tar xfz {} -C /usr/share/freeswitch/sounds \;
 		find /usr/local/src -name 'freeswitch-*.tar.gz' -type f -exec rm {} \;
