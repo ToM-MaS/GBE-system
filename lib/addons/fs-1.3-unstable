@@ -1,0 +1,44 @@
+#!/bin/bash
+#
+# Gemeinschaft 5
+# System add-on: FreeSwitch 1.3 unstable tree
+#
+# Copyright (c) 2013, Julian Pawlowski <jp@jps-networks.eu>
+# See LICENSE.GSE file for details.
+#
+
+# General settings
+[ -e /etc/gemeinschaft/system.conf ] && source /etc/gemeinschaft/system.conf || echo "FATAL ERROR: Local configuration file in /etc/gemeinschaft/system.conf missing"
+[[ x"${GSE_DIR}" == x"" ]] && exit 1
+
+GSE_ADDON_NAME="`basename $0`"
+GSE_ADDON_DESCRIPTION="Replace FreeSWITCH 1.2 stable version by version from 1.3 unstable tree"
+VERSION="0.1"
+
+case "$1" in
+	install)
+		echo "deb http://repo.amooma.de/debian wheezy-unstable main" > /etc/apt/sources.list.d/gemeinschaft-unstable.list
+
+		aptitude update && aptitude -yy upgrade
+		[ $? != 0 ] && exit 1
+		;;
+
+	remove)
+		echo "Removing this add-on is currently not supported."
+		exit 1
+		;;
+
+	update)
+		echo "deb http://repo.amooma.de/debian wheezy-unstable main" > /etc/apt/sources.list.d/gemeinschaft-unstable.list
+		;;
+
+	version)
+		echo -e "${VERSION}"
+		;;
+	
+	*)
+		echo -e "${GSE_ADDON_NAME} (v${VERSION})\n\t${GSE_ADDON_DESCRIPTION}"
+		;;
+esac
+
+exit 0
