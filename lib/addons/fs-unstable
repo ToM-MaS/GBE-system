@@ -17,10 +17,21 @@ VERSION="0.1"
 
 case "$1" in
 	install)
+		service mon_ami status 2>&1 >/dev/null
+		if [ $? == 0 ]; then
+			MONAMI_PRESENT=true
+			service mon_ami stop
+		fi
+		service freeswitch status 2>&1 >/dev/null
+		[ $? == 0 ] && service freeswitch stop
+
 		echo "deb http://repo.amooma.de/debian wheezy-unstable main" > /etc/apt/sources.list.d/gemeinschaft-unstable.list
 
 		aptitude update && aptitude -yy upgrade
 		[ $? != 0 ] && exit 1
+
+		service freeswitch start
+		[ x"${MONAMI_PRESENT}" == x"true" ] && service mon_ami start
 		;;
 
 	remove)
