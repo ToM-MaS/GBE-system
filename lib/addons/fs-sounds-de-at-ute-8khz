@@ -20,7 +20,8 @@ case "$1" in
 	install)
 		cd /usr/local/src
 		curl --retry 5 --retry-delay 3 -O "http://freeswitch.xpirio.com/freeswitch-sounds-de-at-ute-${FREQ}-${VERSION}.tar.gz"
-		[[ ! -e freeswitch-sounds-de-at-ute-${FREQ}-${VERSION}.tar.gz ]] && exit 1
+		FILE_FORMAT="`file freeswitch-sounds-de-at-ute-${FREQ}-${VERSION}.tar.gz | grep "gzip compressed data"`"
+		[ x"${FILE_FORMAT}" == x"" ] && exit 1
 		mkdir -p /usr/share/freeswitch/sounds
 		find /usr/local/src -name 'freeswitch-*.tar.gz' -type f -exec tar xfz {} -C /usr/share/freeswitch/sounds \;
 		find /usr/local/src -name 'freeswitch-*.tar.gz' -type f -exec rm {} \;

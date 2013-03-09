@@ -25,7 +25,8 @@ case "$1" in
 
 		cd /usr/local/src
 		curl --retry 5 --retry-delay 3 -O -O "http://files.freeswitch.org/g729/fsg729-${VERSION}-installer"
-		[[ ! -e "fsg729-${VERSION}-installer" ]] && exit 1
+		FILE_FORMAT="`file fsg729-${VERSION}-installer | grep "data"`"
+		[ x"${FILE_FORMAT}" == x"" ] && exit 1
 		chmod 755 "fsg729-${VERSION}-installer"
 
 		./fsg729-${VERSION}-installer && rm -f ./fsg729-${VERSION}-installer
@@ -82,7 +83,8 @@ case "$1" in
 
 		cd /usr/local/src
 		curl --retry 5 --retry-delay 3 -O -O "http://files.freeswitch.org/g729/fsg729-${VERSION}-installer"
-		[[ ! -e "fsg729-${VERSION}-installer" ]] && exit 1
+		FILE_FORMAT="`file fsg729-${VERSION}-installer | grep "data"`"
+		[ x"${FILE_FORMAT}" == x"" ] && exit 1
 		chmod 755 "fsg729-${VERSION}-installer"
 
 		./fsg729-${VERSION}-installer && rm -f ./fsg729-${VERSION}-installer
