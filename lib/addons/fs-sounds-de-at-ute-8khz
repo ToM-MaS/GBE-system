@@ -34,8 +34,8 @@ case "$1" in
 		;;
 	
 	update)
-		$0 remove
-		$0 install
+		bash $0 remove
+		bash $0 install
 		;;
 
 	version)

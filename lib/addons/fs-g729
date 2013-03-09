@@ -79,7 +79,7 @@ case "$1" in
 		;;
 
 	update)
-		$0 remove >/dev/null
+		bash $0 remove >/dev/null
 
 		cd /usr/local/src
 		curl --retry 5 --retry-delay 3 -O -O "http://files.freeswitch.org/g729/fsg729-${GSE_ADDON_VERSION}-installer"
