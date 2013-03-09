@@ -100,7 +100,7 @@ case "$1" in
 		;;
 	
 	*)
-		echo -e "${GSE_ADDON_NAME}\n\t${GSE_ADDON_DESCRIPTION} (v${VERSION})"
+		echo -e "${GSE_ADDON_NAME} (v${VERSION})\n\t${GSE_ADDON_DESCRIPTION}"
 		;;
 esac
 
