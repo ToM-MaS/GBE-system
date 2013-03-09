@@ -25,6 +25,15 @@ GS_UPDATE_DIR="${GS_DIR}.update"
 [ -e "${GSE_DIR_NORMALIZED}/lib/gse-functions.sh" ] && source "${GSE_DIR_NORMALIZED}/lib/gse-functions.sh" || exit 1
 
 
+# Set live status
+#
+if [[ x`cat /proc/cmdline | grep boot=live` != x"" ]]; then
+	LIVE=true
+else
+	LIVE=false
+fi
+
+
 # check each command return codes for errors
 #
 set -e
@@ -132,8 +141,7 @@ case "$1" in
 
 	# Check for live status
 	#
-	if [[ x`cat /proc/cmdline | grep boot=live` != x"" ]]
-		then
+	if [[ x"${LIVE}" == x"true" ]]; then
 		echo "LIVE mode detected. Aborting ..."
 		exit 1
 	fi
@@ -340,11 +348,13 @@ if [[ "${MODE}" == "init" || "${MODE}" == "update" ]]; then
 	"${GSE_DIR_NORMALIZED}/bin/gs-change-state.sh"
 	set -e
 
-	# Enforce 
-	echo "** Enforcing file permissions and security settings ..."
-	set +e
-	"${GSE_DIR_NORMALIZED}/bin/gs-enforce-security.sh" | grep -Ev retained | grep -Ev "no changes" | grep -Ev "nor referent has been changed"
-	set -e
+	# Enforce
+	if [[ x"${LIVE}" == x"false" ]]; then
+		echo "** Enforcing file permissions and security settings ..."
+		set +e
+		"${GSE_DIR_NORMALIZED}/bin/gs-enforce-security.sh" | grep -Ev retained | grep -Ev "no changes" | grep -Ev "nor referent has been changed"
+		set -e
+	fi
 
 	# Special tasks for update only
 	#
