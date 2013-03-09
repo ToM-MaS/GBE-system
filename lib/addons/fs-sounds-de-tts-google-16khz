@@ -16,13 +16,13 @@ GSE_ADDON_DESCRIPTION="FreeSwitch HQ sound files in german language (via Google 
 VOICE="google"
 FREQ="16000"
 LANG="de"
-VERSION="1.0.2"
+GSE_ADDON_VERSION="1.0.2"
 
 case "$1" in
 	install)
 		cd /usr/local/src
-		curl --retry 5 --retry-delay 3 -O "http://repo.amooma.de/static/freeswitch/freeswitch-sounds-${LANG}-tts-${VOICE}-${FREQ}-${VERSION}.tar.gz"
-		FILE_FORMAT="`file freeswitch-sounds-${LANG}-tts-${VOICE}-${FREQ}-${VERSION}.tar.gz | grep "gzip compressed data"`"
+		curl --retry 5 --retry-delay 3 -O "http://repo.amooma.de/static/freeswitch/freeswitch-sounds-${LANG}-tts-${VOICE}-${FREQ}-${GSE_ADDON_VERSION}.tar.gz"
+		FILE_FORMAT="`file freeswitch-sounds-${LANG}-tts-${VOICE}-${FREQ}-${GSE_ADDON_VERSION}.tar.gz | grep "gzip compressed data"`"
 		[ x"${FILE_FORMAT}" == x"" ] && exit 1
 		mkdir -p /usr/share/freeswitch/sounds
 		find /usr/local/src -name 'freeswitch-*.tar.gz' -type f -exec tar xfz {} -C /usr/share/freeswitch/sounds \;
@@ -41,11 +41,11 @@ case "$1" in
 		;;
 
 	version)
-		echo -e "${VERSION}"
+		echo -e "${GSE_ADDON_VERSION}"
 		;;
 
 	*)
-		echo -e "${GSE_ADDON_NAME} (v${VERSION})\n\t${GSE_ADDON_DESCRIPTION}"
+		echo -e "${GSE_ADDON_NAME} (v${GSE_ADDON_VERSION})\n\t${GSE_ADDON_DESCRIPTION}"
 		;;
 esac
 

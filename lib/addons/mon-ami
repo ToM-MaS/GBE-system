@@ -13,7 +13,7 @@
 
 GSE_ADDON_NAME="`basename $0`"
 GSE_ADDON_DESCRIPTION="Enable MonAMI Asterisk Manger Interface Emulator"
-VERSION="1.0.0"
+GSE_ADDON_VERSION="1.0.0"
 
 case "$1" in
 	install)
@@ -30,11 +30,11 @@ case "$1" in
 		;;
 
 	version)
-		echo -e "${VERSION}"
+		echo -e "${GSE_ADDON_VERSION}"
 		;;
 
 	*)
-		echo -e "${GSE_ADDON_NAME} (v${VERSION})\n\t${GSE_ADDON_DESCRIPTION}"
+		echo -e "${GSE_ADDON_NAME} (v${GSE_ADDON_VERSION})\n\t${GSE_ADDON_DESCRIPTION}"
 		;;
 esac
 

@@ -13,7 +13,7 @@
 
 GSE_ADDON_NAME="`basename $0`"
 GSE_ADDON_DESCRIPTION="Replace FreeSWITCH 1.2 stable version by version from 1.3 unstable tree"
-VERSION="0.1"
+GSE_ADDON_VERSION="0.1"
 
 case "$1" in
 	install)
@@ -44,11 +44,11 @@ case "$1" in
 		;;
 
 	version)
-		echo -e "${VERSION}"
+		echo -e "${GSE_ADDON_VERSION}"
 		;;
 	
 	*)
-		echo -e "${GSE_ADDON_NAME} (v${VERSION})\n\t${GSE_ADDON_DESCRIPTION}"
+		echo -e "${GSE_ADDON_NAME} (v${GSE_ADDON_VERSION})\n\t${GSE_ADDON_DESCRIPTION}"
 		;;
 esac
 

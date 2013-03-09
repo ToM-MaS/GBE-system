@@ -25,23 +25,20 @@ if [[ ${EUID} -ne 0 ]];
 	exit 1
 fi
 
-# For Debian
-if [ -e /etc/debian_version ]; then
-	OS_DISTRIBUTION="Debian"
-	OS_VERSION="`cat /etc/debian_version`"
-	OS_VERSION_MAJOR=${OS_VERSION%%.*}
+OS_DISTRIBUTION="`lsb_release -i -s`"
+OS_CODENAME="`lsb_release -c -s`"
+OS_VERSION="`lsb_release -r -s`"
+OS_ARCH="`uname -m`"
 
-	if [ x"${OS_VERSION_MAJOR}" == x"6" ]; then
-		OS_CODENAME="squeeze"
-	elif [ x"${OS_VERSION_MAJOR}" == x"7" ]; then
-		OS_CODENAME="wheezy"
-	else
-		echo "ERROR: ${OS_DISTRIBUTION} version ${OS_VERSION} is not supported. Aborting ..."
-		exit 1
-	fi
-# Unsupported Distribution
-else
-	echo "ERROR: This Linux distribution is not supported. Aborting ..."
+# Check for supported distribution
+if [ "${OS_DISTRIBUTION,,}" != "debian" ]; then
+	echo "ERROR: Linux distribution ${OS_DISTRIBUTION} is currently not supported. Aborting ..."
+	exit 1
+fi
+
+# Check for supported distribution codename
+if [ "${OS_CODENAME,,}" != "wheezy" ]; then
+	echo "ERROR: ${OS_DISTRIBUTION} ${OS_VERSION} (${OS_CODENAME}) is currently not supported. Aborting ..."
 	exit 1
 fi
 
@@ -57,7 +54,7 @@ GSE_ADDON_ACTION="$1"
 GSE_ADDON_NAME="$2"
 
 case "${GSE_ADDON_ACTION}" in
-	install|remove)
+	install|update|remove)
 		if [ x"${GSE_ADDON_NAME}" ==  x"" ]; then
 			echo -e "\n\nPlease specify an add-on name.\n"
 			exit 1
@@ -71,15 +68,18 @@ case "${GSE_ADDON_ACTION}" in
 			if [ -e "${GSE_ADDON_SCRIPT}" ]; then
 
 				[ -e "${GSE_ADDON_STATUSFILE}" ] && GSE_ADDON_STATUS="`sed -n "/^${GSE_ADDON_NAME} .*$/p" "${GSE_ADDON_STATUSFILE}"`" || GSE_ADDON_STATUS=""
+				[ x"${GSE_ADDON_STATUS}" != x"" ] && GSE_ADDON_VERSION_INSTALLED="`echo ${GSE_ADDON_STATUS} | cut -d " " -f3`" || GSE_ADDON_VERSION_INSTALLED=""
+				[ x"${GSE_ADDON_STATUS}" != x"" ] && GSE_ADDON_INSTALLDATE="`echo ${GSE_ADDON_STATUS} | cut -d " " -f2`" || GSE_ADDON_INSTALLDATE=""
+				GSE_ADDON_VERSION="`bash ${GSE_ADDON_SCRIPT} version`"
 
 				# Process installation
 				if [ "${GSE_ADDON_ACTION}" == "install" ]; then
 					if [ x"${GSE_ADDON_STATUS}" == x"" ]; then
-						echo -e "\nStarting installation of add-on '${GSE_ADDON_NAME}' ...\n"
+						echo -e "\nStarting installation of add-on '${GSE_ADDON_NAME}' version ${GSE_ADDON_VERSION} ...\n"
 						export OS_DISTRIBUTION
-						export OS_VERSION
-						export OS_VERSION_MAJOR
 						export OS_CODENAME
+						export OS_VERSION
+						export OS_ARCH
 						bash ${GSE_ADDON_SCRIPT} install
 						if [ $? != 0 ]; then
 							echo -e "\n\n***    ------------------------------------------------------------------"
@@ -90,12 +90,48 @@ case "${GSE_ADDON_ACTION}" in
 							echo -e "\n\n***    ------------------------------------------------------------------"
 							echo -e "***     Add-on '${GSE_ADDON_NAME}' was INSTALLED SUCCESSFULLY!"
 							echo -e "***    ------------------------------------------------------------------\n\n"
-							echo "${GSE_ADDON_NAME} `date +'%Y-%m-%d_%T'`" >> "${GSE_ADDON_STATUSFILE}"
+							echo "${GSE_ADDON_NAME} `date +'%Y-%m-%d_%T'` ${GSE_ADDON_VERSION}" >> "${GSE_ADDON_STATUSFILE}"
+						fi
+					else
+						echo -e "\nAdd-on '${GSE_ADDON_NAME}' is already installed.\n"
+						$0 update ${GSE_ADDON_NAME}
+						exit 0
+					fi
+
+				# Process update
+				elif [ "${GSE_ADDON_ACTION}" == "update" ]; then
+					if [ x"${GSE_ADDON_STATUS}" != x"" ]; then
+						GSE_ADDON_VERSION_INSTALLED="`echo ${GSE_ADDON_STATUS} | cut -d " " -f3`"
+						
+						if [ "${GSE_ADDON_VERSION_INSTALLED}" != "${GSE_ADDON_VERSION}" ]; then
+							echo -e "\nStarting update of add-on '${GSE_ADDON_NAME}' to new version ${GSE_ADDON_VERSION} ...\n"
+							export OS_DISTRIBUTION
+							export OS_CODENAME
+							export OS_VERSION
+							export OS_ARCH
+							bash ${GSE_ADDON_SCRIPT} update
+							if [ $? != 0 ]; then
+								echo -e "\n\n***    ------------------------------------------------------------------"
+								echo -e "***     ERROR: Update of add-on '${GSE_ADDON_NAME}' FAILED!"
+								echo -e "***    ------------------------------------------------------------------\n\n"
+								exit 1
+							else
+								echo -e "\n\n***    ------------------------------------------------------------------"
+								echo -e "***     Add-on '${GSE_ADDON_NAME}' was UPDATED SUCCESSFULLY!"
+								echo -e "***    ------------------------------------------------------------------\n\n"
+								sed -i "/^${GSE_ADDON_NAME} .*$/d" "${GSE_ADDON_STATUSFILE}"
+								echo "${GSE_ADDON_NAME} `date +'%Y-%m-%d_%T'` ${GSE_ADDON_VERSION}" >> "${GSE_ADDON_STATUSFILE}"
+							fi
+						else
+							echo -e "\n\n***    ------------------------------------------------------------------"
+							echo -e "***     Add-on '${GSE_ADDON_NAME}' is already up-to-date, no update needed."
+							echo -e "***    ------------------------------------------------------------------\n\n"
 						fi
 					else
 						echo -e "\n\n***    ------------------------------------------------------------------"
-						echo -e "***     Add-on '${GSE_ADDON_NAME}' was already installed on ${GSE_ADDON_STATUS#* }."
+						echo -e "***     Add-on '${GSE_ADDON_NAME}' is currently not installed."
 						echo -e "***    ------------------------------------------------------------------\n\n"
+						exit 1
 					fi
 
 				# Process removal
@@ -103,9 +139,9 @@ case "${GSE_ADDON_ACTION}" in
 					if [ x"${GSE_ADDON_STATUS}" != x"" ]; then
 						echo -e "\nRemoving add-on '${GSE_ADDON_NAME}' ...\n"
 						export OS_DISTRIBUTION
-						export OS_VERSION
-						export OS_VERSION_MAJOR
 						export OS_CODENAME
+						export OS_VERSION
+						export OS_ARCH
 						bash ${GSE_ADDON_SCRIPT} remove
 						if [ $? != 0 ]; then
 							echo -e "\n\n***    ------------------------------------------------------------------"
@@ -195,7 +231,7 @@ case "${GSE_ADDON_ACTION}" in
 		;;
 	
 	help|-h|--help|*)
-		echo -e "\nUsage: `basename $0` [ install | remove | list | search | status ] <ADD-ON NAME>\n"
+		echo -e "\nUsage: `basename $0` [ install | update | update-check | remove | list | search | status ] <ADD-ON NAME>\n"
 		exit 1
 		;;
 esac

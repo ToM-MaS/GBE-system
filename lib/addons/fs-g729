@@ -13,7 +13,7 @@
 
 GSE_ADDON_NAME="`basename $0`"
 GSE_ADDON_DESCRIPTION="FreeSwitch commercial G729 codec installation and license activation"
-VERSION="194"
+GSE_ADDON_VERSION="194"
 
 case "$1" in
 	install)
@@ -24,12 +24,12 @@ case "$1" in
 		fi
 
 		cd /usr/local/src
-		curl --retry 5 --retry-delay 3 -O -O "http://files.freeswitch.org/g729/fsg729-${VERSION}-installer"
-		FILE_FORMAT="`file fsg729-${VERSION}-installer | grep "data"`"
+		curl --retry 5 --retry-delay 3 -O -O "http://files.freeswitch.org/g729/fsg729-${GSE_ADDON_VERSION}-installer"
+		FILE_FORMAT="`file fsg729-${GSE_ADDON_VERSION}-installer | grep "data"`"
 		[ x"${FILE_FORMAT}" == x"" ] && exit 1
-		chmod 755 "fsg729-${VERSION}-installer"
+		chmod 755 "fsg729-${GSE_ADDON_VERSION}-installer"
 
-		./fsg729-${VERSION}-installer && rm -f ./fsg729-${VERSION}-installer
+		./fsg729-${GSE_ADDON_VERSION}-installer && rm -f ./fsg729-${GSE_ADDON_VERSION}-installer
 		if [[ ! -e /opt/freeswitch/bin/validator || ! -e /usr/lib/freeswitch/mod/mod_com_g729.so || ! -e /usr/sbin/freeswitch_licence_server ]]; then
 			rm -f /opt/freeswitch/bin/validator /usr/lib/freeswitch/mod/mod_com_g729.so /usr/sbin/freeswitch_licence_server
 			exit 1
@@ -82,12 +82,12 @@ case "$1" in
 		$0 remove >/dev/null
 
 		cd /usr/local/src
-		curl --retry 5 --retry-delay 3 -O -O "http://files.freeswitch.org/g729/fsg729-${VERSION}-installer"
-		FILE_FORMAT="`file fsg729-${VERSION}-installer | grep "data"`"
+		curl --retry 5 --retry-delay 3 -O -O "http://files.freeswitch.org/g729/fsg729-${GSE_ADDON_VERSION}-installer"
+		FILE_FORMAT="`file fsg729-${GSE_ADDON_VERSION}-installer | grep "data"`"
 		[ x"${FILE_FORMAT}" == x"" ] && exit 1
-		chmod 755 "fsg729-${VERSION}-installer"
+		chmod 755 "fsg729-${GSE_ADDON_VERSION}-installer"
 
-		./fsg729-${VERSION}-installer && rm -f ./fsg729-${VERSION}-installer
+		./fsg729-${GSE_ADDON_VERSION}-installer && rm -f ./fsg729-${GSE_ADDON_VERSION}-installer
 		if [[ ! -e /opt/freeswitch/bin/validator || ! -e /usr/lib/freeswitch/mod/mod_com_g729.so || ! -e /usr/sbin/freeswitch_licence_server ]]; then
 			rm -f /opt/freeswitch/bin/validator /usr/lib/freeswitch/mod/mod_com_g729.so /usr/sbin/freeswitch_licence_server
 			exit 1
@@ -96,11 +96,11 @@ case "$1" in
 		;;
 
 	version)
-		echo -e "${VERSION}"
+		echo -e "${GSE_ADDON_VERSION}"
 		;;
 	
 	*)
-		echo -e "${GSE_ADDON_NAME} (v${VERSION})\n\t${GSE_ADDON_DESCRIPTION}"
+		echo -e "${GSE_ADDON_NAME} (v${GSE_ADDON_VERSION})\n\t${GSE_ADDON_DESCRIPTION}"
 		;;
 esac
 
