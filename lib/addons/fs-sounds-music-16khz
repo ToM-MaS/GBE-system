@@ -13,17 +13,17 @@
 
 GSE_ADDON_NAME="`basename $0`"
 GSE_ADDON_DESCRIPTION="FreeSwitch HQ music files (16 kHz)"
+VERSION="1.0.8"
 
 case "$1" in
 	install)
 		cd /usr/local/src
-		curl --retry 5 --retry-delay 3 -O -O "http://files.freeswitch.org/freeswitch-sounds-music-16000-1.0.8.tar.gz"
-		[[ ! -e freeswitch-sounds-music-16000-1.0.8.tar.gz ]] && exit 1
+		curl --retry 5 --retry-delay 3 -O -O "http://files.freeswitch.org/freeswitch-sounds-music-16000-${VERSION}.tar.gz"
+		[[ ! -e freeswitch-sounds-music-16000-${VERSION}.tar.gz ]] && exit 1
 		mkdir -p /usr/share/freeswitch/sounds
 		find /usr/local/src -name 'freeswitch-*.tar.gz' -type f -exec tar xfz {} -C /usr/share/freeswitch/sounds \;
 		find /usr/local/src -name 'freeswitch-*.tar.gz' -type f -exec rm {} \;
 		cd - 2>&1>/dev/null
-		exit 0
 		;;
 
 	remove)
@@ -31,7 +31,18 @@ case "$1" in
 		rm -rf ${FILELIST}
 		;;
 	
+	update)
+		$0 remove
+		$0 install
+		;;
+
+	version)
+		echo -e "${VERSION}"
+		;;
+
 	*)
-		echo -e "${GSE_ADDON_NAME}\n\t${GSE_ADDON_DESCRIPTION}"
+		echo -e "${GSE_ADDON_NAME}\n\t${GSE_ADDON_DESCRIPTION} (v${VERSION})"
 		;;
 esac
+
+exit 0

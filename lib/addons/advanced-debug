@@ -26,7 +26,17 @@ case "$1" in
 		aptitude -yy -q2 purge tshark kdump-tools
 		;;
 	
+	update)
+		$0 install
+		;;
+
+	version)
+		echo -e "${VERSION}"
+		;;
+	
 	*)
-		echo -e "${GSE_ADDON_NAME}\n\t${GSE_ADDON_DESCRIPTION}"
+		echo -e "${GSE_ADDON_NAME}\n\t${GSE_ADDON_DESCRIPTION} (v${VERSION})"
 		;;
 esac
+
+exit 0
