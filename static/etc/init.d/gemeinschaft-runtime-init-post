@@ -86,14 +86,18 @@ start)
 
 	# Delayed Worker
 	echo "Starting Gemeinschaft daemon for delayed jobs ..."
-	su - ${GSE_USER} -c "cd ${GS_DIR_NORMALIZED}; RAILS_ENV=$RAILS_ENV script/delayed_job start"
+	su - ${GSE_USER} -c "cd ${GS_DIR_NORMALIZED}; RAILS_ENV=production script/delayed_job start"
+
+	# Push server
+	echo "Starting Gemeinschaft daemon for push messages ..."
+	su - ${GSE_USER} -c "cd ${GS_DIR_NORMALIZED}; RAILS_ENV=production bundle exec rackup private_pub.ru -s thin -E production >/dev/null &"
 	;;
-	
+
 stop)
 
 	# Delayed Worker
 	echo "Stopping Gemeinschaft daemon for delayed jobs ..."
-	su - ${GSE_USER} -c "cd ${GS_DIR_NORMALIZED}; RAILS_ENV=$RAILS_ENV script/delayed_job stop"
+	su - ${GSE_USER} -c "cd ${GS_DIR_NORMALIZED}; RAILS_ENV=production script/delayed_job stop"
 	;;
 
 *)
