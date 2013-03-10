@@ -42,6 +42,9 @@ SECTION NEW
 HTTP(ACCEPT) all $FW
 HTTPS(ACCEPT) all $FW
 
+# push service
+ACCEPT all $FW tcp 9292
+
 # Allow mDNS
 #mDNS(ACCEPT) all $FW
 
