@@ -145,6 +145,3 @@ Timeout 100
 	SSLCertificateFile    /etc/ssl/gemeinschaft.crt
 	SSLCertificateKeyFile /etc/ssl/gemeinschaft.key
 </VirtualHost>
-
-PassengerPreStart http://127.0.0.1:80/
-PassengerPreStart https://127.0.0.1:443/
