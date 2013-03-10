@@ -52,6 +52,29 @@ Timeout 100
 	        Satisfy any
 		</IfModule>
 	</Directory>
+
+	<IfModule mod_websocket.c>
+		<Location /faye>
+			SetHandler websocket-handler
+			WebSocketHandler /usr/lib/apache2/modules/mod_websocket_vnc_proxy.so vnc_proxy_init
+			WebSocketTcpProxyBase64 off
+			WebSocketTcpProxyHost 127.0.0.1
+			WebSocketTcpProxyPort 9292
+		</Location>
+	</IfModule>
+	<IfModule mod_websocket_draft76.c>
+		<Location /faye>
+			SetHandler websocket-handler
+			WebSocketHandler /usr/lib/apache2/modules/mod_websocket_vnc_proxy.so vnc_proxy_init
+			SupportDraft75 On
+			WebSocketTcpProxyBase64 off
+			WebSocketTcpProxyHost 127.0.0.1
+			WebSocketTcpProxyPort 9292
+		</Location>
+	</IfModule>
+	<IfModule reqtimeout_module>
+		RequestReadTimeout body=300,minrate=1
+	</IfModule>
 </VirtualHost>
 
 
@@ -94,6 +117,29 @@ Timeout 100
 	        Satisfy any
 		</IfModule>
 	</Directory>
+
+	<IfModule mod_websocket.c>
+		<Location /faye>
+			SetHandler websocket-handler
+			WebSocketHandler /usr/lib/apache2/modules/mod_websocket_vnc_proxy.so vnc_proxy_init
+			WebSocketTcpProxyBase64 off
+			WebSocketTcpProxyHost 127.0.0.1
+			WebSocketTcpProxyPort 9292
+		</Location>
+	</IfModule>
+	<IfModule mod_websocket_draft76.c>
+		<Location /faye>
+			SetHandler websocket-handler
+			WebSocketHandler /usr/lib/apache2/modules/mod_websocket_vnc_proxy.so vnc_proxy_init
+			SupportDraft75 On
+			WebSocketTcpProxyBase64 off
+			WebSocketTcpProxyHost 127.0.0.1
+			WebSocketTcpProxyPort 9292
+		</Location>
+	</IfModule>
+	<IfModule reqtimeout_module>
+		RequestReadTimeout body=300,minrate=1
+	</IfModule>
 
 	SSLEngine on
 	SSLCertificateFile    /etc/ssl/gemeinschaft.crt
