@@ -71,7 +71,9 @@ start)
  		else
 			echo "ERROR: GS database password file ${GS_MYSQL_PASSWORD_FILE} not found"
 		fi
-
+		
+		# Update push server settings
+		sed -i "s/^server:.*\$/http:\/\/${ADDRESS}\/faye/" /opt/gemeinschaft/config/private_pub.yml
 		break;
 	done
 
