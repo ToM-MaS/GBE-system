@@ -73,7 +73,7 @@ start)
 		fi
 		
 		# Update push server settings
-		sed -i "s/^server:.*\$/http:\/\/${ADDRESS}\/faye/" /opt/gemeinschaft/config/private_pub.yml
+		sed -i "s/server:.*\$/server: \"http:\/\/${ADDRESS}\/faye\"/" /opt/gemeinschaft/config/private_pub.yml
 		break;
 	done
 
@@ -92,7 +92,7 @@ start)
 
 	# Push server
 	echo "Starting Gemeinschaft daemon for push messages ..."
-	su - ${GSE_USER} -c "cd ${GS_DIR_NORMALIZED}; RAILS_ENV=production bundle exec rackup private_pub.ru -s thin -E production >/dev/null &"
+	su - ${GSE_USER} -c "cd ${GS_DIR_NORMALIZED}; RAILS_ENV=production bundle exec rackup private_pub.ru -s thin -p 9292 -E production >/dev/null &"
 	;;
 
 stop)

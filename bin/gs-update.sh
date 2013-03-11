@@ -377,6 +377,11 @@ if [[ "${MODE}" == "init" || "${MODE}" == "update" ]]; then
 	#
 	echo "** Creating crontab file"
 	su - ${GSE_USER} -c "cd \"${GS_DIR_NORMALIZED}\"; whenever --update-crontab"
+
+	# Generate secret token for push server
+	#
+	PUSH_SECRET_TOKEN="`apg -m64 -a0 -n 1 -M NCL`"
+	sed -i "s/secret_token:.*\$/secret_token: \"${PUSH_SECRET_TOKEN}\"/" /opt/gemeinschaft/config/private_pub.yml
 fi
 
 # Finalize update
