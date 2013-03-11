@@ -13,7 +13,7 @@ MaxKeepAliveRequests 40
 KeepAliveTimeout 60
 Timeout 100
 
-<VirtualHost *:80>
+<VirtualHost *:8080>
 	ErrorLog ${APACHE_LOG_DIR}/error.log
 	CustomLog ${APACHE_LOG_DIR}/access.log combined
 	LogLevel error
@@ -52,100 +52,4 @@ Timeout 100
 	        Satisfy any
 		</IfModule>
 	</Directory>
-
-	<IfModule mod_websocket.c>
-		<Location /faye>
-			PassengerEnabled off
-			SetHandler websocket-handler
-			WebSocketHandler /usr/lib/apache2/modules/mod_websocket_vnc_proxy.so vnc_proxy_init
-			WebSocketTcpProxyBase64 off
-			WebSocketTcpProxyHost 127.0.0.1
-			WebSocketTcpProxyPort 9292
-		</Location>
-	</IfModule>
-	<IfModule mod_websocket_draft76.c>
-		<Location /faye>
-			PassengerEnabled off
-			SetHandler websocket-handler
-			WebSocketHandler /usr/lib/apache2/modules/mod_websocket_vnc_proxy.so vnc_proxy_init
-			SupportDraft75 On
-			WebSocketTcpProxyBase64 off
-			WebSocketTcpProxyHost 127.0.0.1
-			WebSocketTcpProxyPort 9292
-		</Location>
-	</IfModule>
-	<IfModule reqtimeout_module>
-		RequestReadTimeout body=300,minrate=1
-	</IfModule>
-</VirtualHost>
-
-
-<VirtualHost *:443>
-	ErrorLog ${APACHE_LOG_DIR}/error.log
-	CustomLog ${APACHE_LOG_DIR}/access.log combined
-	LogLevel error
-
-	DocumentRoot /opt/gemeinschaft/public
-
-	PassengerEnabled on
-	PassengerAppRoot /opt/gemeinschaft
-	PassengerMinInstances 1
-	PassengerStatThrottleRate 10
-	PassengerSpawnMethod smart-lv2
-	PassengerUseGlobalQueue on
-	PassengerUser  gs5
-	PassengerGroup gemeinschaft
-
-	RailsBaseURI /
-	RailsEnv development
-
-	<Directory /opt/gemeinschaft/public>
-		AllowOverride all
-		Options -MultiViews
-		Options FollowSymLinks
-
-		<IfModule mod_auth_ntlm_winbind.c>
-	        AuthName "NTLM Authentication"
-	        NTLMAuth on
-	        NTLMAuthHelper "/usr/bin/ntlm_auth --helper-protocol=squid-2.5-ntlmssp"
-	        NTLMBasicAuthoritative on
-	        AuthType NTLM
-	        require valid-user
-
-	        Order Allow,Deny
-	        Allow from 10.0.0.0/8     #phones do not do ntlm auth
-	        Deny from 172.16.0.0/16   #workstations do ntlm auth
-	        Allow from All
-	        Satisfy any
-		</IfModule>
-	</Directory>
-
-	<IfModule mod_websocket.c>
-		<Location /faye>
-			PassengerEnabled off
-			SetHandler websocket-handler
-			WebSocketHandler /usr/lib/apache2/modules/mod_websocket_vnc_proxy.so vnc_proxy_init
-			WebSocketTcpProxyBase64 off
-			WebSocketTcpProxyHost 127.0.0.1
-			WebSocketTcpProxyPort 9292
-		</Location>
-	</IfModule>
-	<IfModule mod_websocket_draft76.c>
-		<Location /faye>
-			PassengerEnabled off
-			SetHandler websocket-handler
-			WebSocketHandler /usr/lib/apache2/modules/mod_websocket_vnc_proxy.so vnc_proxy_init
-			SupportDraft75 On
-			WebSocketTcpProxyBase64 off
-			WebSocketTcpProxyHost 127.0.0.1
-			WebSocketTcpProxyPort 9292
-		</Location>
-	</IfModule>
-	<IfModule reqtimeout_module>
-		RequestReadTimeout body=300,minrate=1
-	</IfModule>
-
-	SSLEngine on
-	SSLCertificateFile    /etc/ssl/gemeinschaft.crt
-	SSLCertificateKeyFile /etc/ssl/gemeinschaft.key
 </VirtualHost>
