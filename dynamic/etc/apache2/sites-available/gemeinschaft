@@ -13,9 +13,15 @@ MaxKeepAliveRequests 40
 KeepAliveTimeout 60
 Timeout 100
 
+LogFormat "%h %l %u %t \"%r\" %>s %b \"%{Referer}i\" \"%{User-Agent}i\"" combined
+LogFormat "%{X-Forwarded-For}i %l %u %t \"%r\" %>s %b \"%{Referer}i\" \"%{User-Agent}i\"" proxy
+SetEnvIf X-Forwarded-For "^.*\..*\..*\..*" forwarded
+SetEnvIf X-Forwarded-For "^.*:.*:.*" forwarded
+
 <VirtualHost *:8080>
 	ErrorLog ${APACHE_LOG_DIR}/error.log
-	CustomLog ${APACHE_LOG_DIR}/access.log combined
+	CustomLog ${APACHE_LOG_DIR}/access.log combined env=!forwarded
+	CustomLog ${APACHE_LOG_DIR}/access.log proxy env=forwarded
 	LogLevel error
 
 	DocumentRoot /opt/gemeinschaft/public
