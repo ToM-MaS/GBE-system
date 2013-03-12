@@ -96,7 +96,7 @@ start)
 	# https://github.com/ryanb/private_pub/issues/30
 	# https://github.com/faye/faye/issues/25
 	echo "Starting Gemeinschaft daemon for push messages ..."
-	su - ${GSE_USER} -c "cd ${GS_DIR_NORMALIZED}; bundle exec rackup private_pub.ru -s thin -p 9292 -E production -D"
+	su - ${GSE_USER} -c "cd ${GS_DIR_NORMALIZED}; RAILS_ENV=production bundle exec rackup private_pub.ru -s thin -p 9292 -E production -D"
 	;;
 
 stop)
