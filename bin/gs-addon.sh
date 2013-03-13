@@ -129,7 +129,7 @@ case "${GSE_ADDON_ACTION}" in
 								echo -e "***     Add-on '${GSE_ADDON_NAME}' was UPDATED SUCCESSFULLY!"
 								echo -e "***    ------------------------------------------------------------------\n\n"
 								sed -i "/^${GSE_ADDON_NAME} .*$/d" "${GSE_ADDON_STATUSFILE}"
-								echo "${GSE_ADDON_NAME} `date +'%Y-%m-%d_%T'` ${GSE_ADDON_VERSION}" >> "${GSE_ADDON_STATUSFILE}"
+								echo "${GSE_ADDON_NAME} ${GSE_ADDON_INSTALLDATE} ${GSE_ADDON_VERSION} `date +'%Y-%m-%d_%T'`" >> "${GSE_ADDON_STATUSFILE}"
 							fi
 						else
 							echo -e "\n\n***    ------------------------------------------------------------------"
@@ -214,7 +214,7 @@ case "${GSE_ADDON_ACTION}" in
 								echo -e "***     Add-on '${GSE_ADDON_NAME}' was UPDATED SUCCESSFULLY!"
 								echo -e "***    ------------------------------------------------------------------\n\n"
 								sed -i "/^${GSE_ADDON_NAME} .*$/d" "${GSE_ADDON_STATUSFILE}"
-								echo "${GSE_ADDON_NAME} `date +'%Y-%m-%d_%T'` ${GSE_ADDON_VERSION}" >> "${GSE_ADDON_STATUSFILE}"
+								echo "${GSE_ADDON_NAME} ${GSE_ADDON_INSTALLDATE} ${GSE_ADDON_VERSION} `date +'%Y-%m-%d_%T'`" >> "${GSE_ADDON_STATUSFILE}"
 							fi
 						fi
 
