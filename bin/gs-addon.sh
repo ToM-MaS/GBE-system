@@ -42,6 +42,11 @@ if [ "${OS_CODENAME,,}" != "wheezy" ]; then
 	exit 1
 fi
 
+# Harmonize architecures
+[ "${OS_ARCH,,}" == "i486" ] && OS_ARCH="i386"
+[ "${OS_ARCH,,}" == "i586" ] && OS_ARCH="i386"
+[ "${OS_ARCH,,}" == "i686" ] && OS_ARCH="i386"
+
 
 # Run switcher
 #
@@ -55,12 +60,12 @@ GSE_ADDON_NAME="$2"
 
 case "${GSE_ADDON_ACTION}" in
 	install|update|remove)
-		if [ x"${GSE_ADDON_NAME}" ==  x"" ]; then
+		if [[ x"${GSE_ADDON_NAME}" ==  x"" && "${GSE_ADDON_ACTION}" != "update" ]]; then
 			echo -e "\n\nPlease specify an add-on name.\n"
 			exit 1
 		fi
 		if [ -d "${GSE_ADDON_DIR}" ]; then
-			
+
 			# Try to find the specified add-on script
 			[ -d "${GSE_ADDON_DIR}/${OS_CODENAME}" ] && GSE_ADDON_SCRIPT="`find "${GSE_ADDON_DIR}/${OS_CODENAME}" -maxdepth 1 -type f -name "${GSE_ADDON_NAME}" ! -iname ".*"`" || GSE_ADDON_SCRIPT=""
 			[ "${GSE_ADDON_SCRIPT}" == "" ] && GSE_ADDON_SCRIPT="`find "${GSE_ADDON_DIR}" -maxdepth 1 -type f -name "${GSE_ADDON_NAME}" ! -iname ".*"`"
@@ -181,6 +186,41 @@ case "${GSE_ADDON_ACTION}" in
 			echo -e "***     FATAL ERROR: ${GSE_ADDON_DIR} not found."
 			echo -e "***    ------------------------------------------------------------------\n\n"
 			exit 3
+		fi
+		;;
+
+	update-check|check-update)
+		if [ -e "${GSE_ADDON_STATUSFILE}" ]; then
+			IFS="
+"
+			UPDATE_AVAILABLE=false
+
+			for ADDON in `cat "${GSE_ADDON_STATUSFILE}"`; do
+				ADDON_NAME="`echo ${ADDON} | cut -d " " -f1`"
+				ADDON_INSTALLDATE="`echo ${ADDON} | cut -d " " -f2`"
+				CURRENT_VERSION="`echo ${ADDON} | cut -d " " -f3`"
+				ADDON_UPDATEDATE="`echo ${ADDON} | cut -d " " -f4`"
+				
+				# Try to find the specified add-on script
+				[ -d "${GSE_ADDON_DIR}/${OS_CODENAME}" ] && GSE_ADDON_SCRIPT="`find "${GSE_ADDON_DIR}/${OS_CODENAME}" -maxdepth 1 -type f -name "${ADDON_NAME}" ! -iname ".*"`" || GSE_ADDON_SCRIPT=""
+				[ "${GSE_ADDON_SCRIPT}" == "" ] && GSE_ADDON_SCRIPT="`find "${GSE_ADDON_DIR}" -maxdepth 1 -type f -name "${ADDON_NAME}" ! -iname ".*"`"
+
+				if [ -e "${GSE_ADDON_SCRIPT}" ]; then
+					NEW_VERSION="`bash ${GSE_ADDON_SCRIPT} version`"
+					if [ "${NEW_VERSION}" != "${CURRENT_VERSION}" ]; then
+						"New version ${NEW_VERSION} available for add-on ${ADDON_NAME}."
+						UPDATE_AVAILABLE=true
+					fi
+				else
+					echo -e "WARNING: Add-on '${ADDON_NAME}' seems to be deprecated as no script is existing anymore."
+				fi
+			done
+
+			if [ "${UPDATE_AVAILABLE}" == "false" ]; then
+				echo -e "\nAll installed system add-ons are currently up-to-date.\n"
+			else
+				echo -e "\nYou may update all system add-ons at once by running '$0 update'\nor '$0 update <ADD-ON>' individual update.\n"
+			fi
 		fi
 		;;
 

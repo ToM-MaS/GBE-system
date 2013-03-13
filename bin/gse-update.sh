@@ -418,17 +418,15 @@ if [ "${MODE}" == "recover" ]; then
 	fi
 fi
 
-# Enforce correct file permissions
-#
-if [[ "${MODE}" == "self-update" || "${MODE}" == "factory-reset" ]]; then
-	set +e
-	"${GSE_DIR_NORMALIZED}/bin/gs-enforce-security.sh" | grep -Ev retained | grep -Ev "no changes" | grep -Ev "nor referent has been changed"
-	set -e
-fi
-
 # Finalize update or factory reset
 #
 if [[ "${MODE}" == "self-update" || "${MODE}" == "factory-reset" ]]; then
+	# Enforce correct file permissions
+	#
+	set +e
+	"${GSE_DIR_NORMALIZED}/bin/gs-enforce-security.sh" | grep -Ev retained | grep -Ev "no changes" | grep -Ev "nor referent has been changed"
+	set -e
+
 	# Read GSE version from Git repo
 	#
 	cd "${GSE_DIR_NORMALIZED}"
@@ -452,4 +450,8 @@ if [[ "${MODE}" == "self-update" || "${MODE}" == "factory-reset" ]]; then
 		egrep -Ev "^GSE_VERSION=" /etc/gemeinschaft/system.conf.bak > /etc/gemeinschaft/system.conf
 		echo "GSE_VERSION=\"${GSE_VERSION}\"" >> /etc/gemeinschaft/system.conf
 	fi
+	
+	# Display available updates for system add-ons
+	#
+	"${GSE_DIR_NORMALIZED}/bin/gs-addon.sh" update-check
 fi
