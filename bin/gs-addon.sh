@@ -184,19 +184,19 @@ case "${GSE_ADDON_ACTION}" in
 				IFS="
 "
 				for ADDON in `cat "${GSE_ADDON_STATUSFILE}"`; do
-					ADDON_NAME="`echo ${ADDON} | cut -d " " -f1`"
-					ADDON_INSTALLDATE="`echo ${ADDON} | cut -d " " -f2`"
-					CURRENT_VERSION="`echo ${ADDON} | cut -d " " -f3`"
-					ADDON_UPDATEDATE="`echo ${ADDON} | cut -d " " -f4`"
+					GSE_ADDON_NAME="`echo ${ADDON} | cut -d " " -f1`"
+					GSE_ADDON_INSTALLDATE="`echo ${ADDON} | cut -d " " -f2`"
+					GSE_ADDON_VERSION_INSTALLED="`echo ${ADDON} | cut -d " " -f3`"
+					GSE_ADDON_UPDATEDATE="`echo ${ADDON} | cut -d " " -f4`"
 				
 					# Try to find the specified add-on script
-					[ -d "${GSE_ADDON_DIR}/${OS_CODENAME}" ] && GSE_ADDON_SCRIPT="`find "${GSE_ADDON_DIR}/${OS_CODENAME}" -maxdepth 1 -type f -name "${ADDON_NAME}" ! -iname ".*"`" || GSE_ADDON_SCRIPT=""
-					[ "${GSE_ADDON_SCRIPT}" == "" ] && GSE_ADDON_SCRIPT="`find "${GSE_ADDON_DIR}" -maxdepth 1 -type f -name "${ADDON_NAME}" ! -iname ".*"`"
+					[ -d "${GSE_ADDON_DIR}/${OS_CODENAME}" ] && GSE_ADDON_SCRIPT="`find "${GSE_ADDON_DIR}/${OS_CODENAME}" -maxdepth 1 -type f -name "${GSE_ADDON_NAME}" ! -iname ".*"`" || GSE_ADDON_SCRIPT=""
+					[ "${GSE_ADDON_SCRIPT}" == "" ] && GSE_ADDON_SCRIPT="`find "${GSE_ADDON_DIR}" -maxdepth 1 -type f -name "${GSE_ADDON_NAME}" ! -iname ".*"`"
 
 					if [ -e "${GSE_ADDON_SCRIPT}" ]; then
-						NEW_VERSION="`bash ${GSE_ADDON_SCRIPT} version`"
+						GSE_ADDON_VERSION="`bash ${GSE_ADDON_SCRIPT} version`"
 
-						if [ "${NEW_VERSION}" != "${CURRENT_VERSION}" ]; then
+						if [ "${GSE_ADDON_VERSION}" != "${GSE_ADDON_VERSION_INSTALLED}" ]; then
 							UPDATE_AVAILABLE=true
 							echo -e "\nStarting update of add-on '${GSE_ADDON_NAME}' to new version ${GSE_ADDON_VERSION} ...\n"
 							export OS_DISTRIBUTION
@@ -262,23 +262,23 @@ case "${GSE_ADDON_ACTION}" in
 			UPDATE_AVAILABLE=false
 
 			for ADDON in `cat "${GSE_ADDON_STATUSFILE}"`; do
-				ADDON_NAME="`echo ${ADDON} | cut -d " " -f1`"
-				ADDON_INSTALLDATE="`echo ${ADDON} | cut -d " " -f2`"
-				CURRENT_VERSION="`echo ${ADDON} | cut -d " " -f3`"
-				ADDON_UPDATEDATE="`echo ${ADDON} | cut -d " " -f4`"
+				GSE_ADDON_NAME="`echo ${ADDON} | cut -d " " -f1`"
+				GSE_ADDON_INSTALLDATE="`echo ${ADDON} | cut -d " " -f2`"
+				GSE_ADDON_VERSION_INSTALLED="`echo ${ADDON} | cut -d " " -f3`"
+				GSE_ADDON_UPDATEDATE="`echo ${ADDON} | cut -d " " -f4`"
 				
 				# Try to find the specified add-on script
-				[ -d "${GSE_ADDON_DIR}/${OS_CODENAME}" ] && GSE_ADDON_SCRIPT="`find "${GSE_ADDON_DIR}/${OS_CODENAME}" -maxdepth 1 -type f -name "${ADDON_NAME}" ! -iname ".*"`" || GSE_ADDON_SCRIPT=""
-				[ "${GSE_ADDON_SCRIPT}" == "" ] && GSE_ADDON_SCRIPT="`find "${GSE_ADDON_DIR}" -maxdepth 1 -type f -name "${ADDON_NAME}" ! -iname ".*"`"
+				[ -d "${GSE_ADDON_DIR}/${OS_CODENAME}" ] && GSE_ADDON_SCRIPT="`find "${GSE_ADDON_DIR}/${OS_CODENAME}" -maxdepth 1 -type f -name "${GSE_ADDON_NAME}" ! -iname ".*"`" || GSE_ADDON_SCRIPT=""
+				[ "${GSE_ADDON_SCRIPT}" == "" ] && GSE_ADDON_SCRIPT="`find "${GSE_ADDON_DIR}" -maxdepth 1 -type f -name "${GSE_ADDON_NAME}" ! -iname ".*"`"
 
 				if [ -e "${GSE_ADDON_SCRIPT}" ]; then
-					NEW_VERSION="`bash ${GSE_ADDON_SCRIPT} version`"
-					if [ "${NEW_VERSION}" != "${CURRENT_VERSION}" ]; then
-						"New version ${NEW_VERSION} available for add-on ${ADDON_NAME}."
+					GSE_ADDON_VERSION="`bash ${GSE_ADDON_SCRIPT} version`"
+					if [ "${GSE_ADDON_VERSION}" != "${GSE_ADDON_VERSION_INSTALLED}" ]; then
+						echo -e "\nNew version ${GSE_ADDON_VERSION} available for add-on ${GSE_ADDON_NAME}."
 						UPDATE_AVAILABLE=true
 					fi
 				else
-					echo -e "WARNING: Add-on '${ADDON_NAME}' seems to be deprecated as no definition file was found in the library anymore."
+					echo -e "WARNING: Add-on '${GSE_ADDON_NAME}' seems to be deprecated as no definition file was found in the library anymore."
 				fi
 			done
 
@@ -289,7 +289,7 @@ case "${GSE_ADDON_ACTION}" in
 			else
 				echo -e "\n\n***    ------------------------------------------------------------------"
 				echo -e "***     You may update all system add-ons at once by running"
-				echo -e "***     '$0 update' or '$0 update <ADD-ON>' for individual update."
+				echo -e "***     'gs-addon update' or 'gs-addon update <ADD-ON>' for individual update."
 				echo -e "***    ------------------------------------------------------------------\n\n"
 				exit 2
 			fi
