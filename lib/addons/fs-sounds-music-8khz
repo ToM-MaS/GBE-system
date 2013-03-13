@@ -28,7 +28,7 @@ case "$1" in
 		;;
 
 	remove)
-		FILELIST="`/usr/share/freeswitch/sounds/music -name '8000' -type d`"
+		FILELIST="`find /usr/share/freeswitch/sounds/music -name '8000' -type d`"
 		rm -rf ${FILELIST}
 		;;
 	
