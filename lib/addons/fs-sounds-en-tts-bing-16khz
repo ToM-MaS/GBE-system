@@ -16,7 +16,7 @@ GSE_ADDON_DESCRIPTION="FreeSwitch HQ sound files in english language (via Bing T
 VOICE="bing"
 FREQ="16000"
 LANG="en"
-GSE_ADDON_VERSION="1.0.2"
+GSE_ADDON_VERSION="1.0.3"
 
 case "$1" in
 	install)
