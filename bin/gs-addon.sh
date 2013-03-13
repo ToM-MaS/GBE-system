@@ -42,7 +42,7 @@ if [ "${OS_CODENAME,,}" != "wheezy" ]; then
 	exit 1
 fi
 
-# Harmonize architecures
+# Harmonize architectures
 [ "${OS_ARCH,,}" == "i486" ] && OS_ARCH="i386"
 [ "${OS_ARCH,,}" == "i586" ] && OS_ARCH="i386"
 [ "${OS_ARCH,,}" == "i686" ] && OS_ARCH="i386"
@@ -76,10 +76,10 @@ case "${GSE_ADDON_ACTION}" in
 
 			if [ -e "${GSE_ADDON_SCRIPT}" ]; then
 
-				[ -e "${GSE_ADDON_STATUSFILE}" ] && GSE_ADDON_STATUS="`sed -n "/^${GSE_ADDON_NAME} .*$/p" "${GSE_ADDON_STATUSFILE}"`" || GSE_ADDON_STATUS=""
+				[[ -e "${GSE_ADDON_STATUSFILE}" && x"${GSE_ADDON_NAME}" !=  x"" ]] && GSE_ADDON_STATUS="`sed -n "/^${GSE_ADDON_NAME} .*$/p" "${GSE_ADDON_STATUSFILE}"`" || GSE_ADDON_STATUS=""
 				[ x"${GSE_ADDON_STATUS}" != x"" ] && GSE_ADDON_VERSION_INSTALLED="`echo ${GSE_ADDON_STATUS} | cut -d " " -f3`" || GSE_ADDON_VERSION_INSTALLED=""
 				[ x"${GSE_ADDON_STATUS}" != x"" ] && GSE_ADDON_INSTALLDATE="`echo ${GSE_ADDON_STATUS} | cut -d " " -f2`" || GSE_ADDON_INSTALLDATE=""
-				GSE_ADDON_VERSION="`bash ${GSE_ADDON_SCRIPT} version`"
+				[ x"${GSE_ADDON_SCRIPT}" != x"" ] && GSE_ADDON_VERSION="`bash ${GSE_ADDON_SCRIPT} version`" || GSE_ADDON_VERSION=""
 
 				# Process installation
 				if [ "${GSE_ADDON_ACTION}" == "install" ]; then
@@ -133,14 +133,76 @@ case "${GSE_ADDON_ACTION}" in
 							fi
 						else
 							echo -e "\n\n***    ------------------------------------------------------------------"
-							echo -e "***     Add-on '${GSE_ADDON_NAME}' is already up-to-date, no update needed."
+							echo -e "***     Add-on '${GSE_ADDON_NAME}' is already UP-TO-DATE, no update needed."
 							echo -e "***    ------------------------------------------------------------------\n\n"
 						fi
-					else
+					elif [ "${GSE_ADDON_NAME}" != "" ]; then
 						echo -e "\n\n***    ------------------------------------------------------------------"
 						echo -e "***     Add-on '${GSE_ADDON_NAME}' is currently not installed."
 						echo -e "***    ------------------------------------------------------------------\n\n"
 						exit 1
+
+					# Update all installed add-ons at once
+					else
+						UPDATE_FAILURES=false
+						UPDATE_AVAILABLE=false
+						IFS="
+"
+						for ADDON in `cat "${GSE_ADDON_STATUSFILE}"`; do
+							ADDON_NAME="`echo ${ADDON} | cut -d " " -f1`"
+							ADDON_INSTALLDATE="`echo ${ADDON} | cut -d " " -f2`"
+							CURRENT_VERSION="`echo ${ADDON} | cut -d " " -f3`"
+							ADDON_UPDATEDATE="`echo ${ADDON} | cut -d " " -f4`"
+				
+							# Try to find the specified add-on script
+							[ -d "${GSE_ADDON_DIR}/${OS_CODENAME}" ] && GSE_ADDON_SCRIPT="`find "${GSE_ADDON_DIR}/${OS_CODENAME}" -maxdepth 1 -type f -name "${ADDON_NAME}" ! -iname ".*"`" || GSE_ADDON_SCRIPT=""
+							[ "${GSE_ADDON_SCRIPT}" == "" ] && GSE_ADDON_SCRIPT="`find "${GSE_ADDON_DIR}" -maxdepth 1 -type f -name "${ADDON_NAME}" ! -iname ".*"`"
+
+							if [ -e "${GSE_ADDON_SCRIPT}" ]; then
+								NEW_VERSION="`bash ${GSE_ADDON_SCRIPT} version`"
+
+								if [ "${NEW_VERSION}" != "${CURRENT_VERSION}" ]; then
+									UPDATE_AVAILABLE=true
+									echo -e "\nStarting update of add-on '${GSE_ADDON_NAME}' to new version ${GSE_ADDON_VERSION} ...\n"
+									export OS_DISTRIBUTION
+									export OS_CODENAME
+									export OS_VERSION
+									export OS_ARCH
+									bash ${GSE_ADDON_SCRIPT} update
+									if [ $? != 0 ]; then
+										echo -e "\n\n***    ------------------------------------------------------------------"
+										echo -e "***     ERROR: Update of add-on '${GSE_ADDON_NAME}' FAILED!"
+										echo -e "***    ------------------------------------------------------------------\n\n"
+										UPDATE_FAILURES=true
+									else
+										echo -e "\n\n***    ------------------------------------------------------------------"
+										echo -e "***     Add-on '${GSE_ADDON_NAME}' was UPDATED SUCCESSFULLY!"
+										echo -e "***    ------------------------------------------------------------------\n\n"
+										sed -i "/^${GSE_ADDON_NAME} .*$/d" "${GSE_ADDON_STATUSFILE}"
+										echo "${GSE_ADDON_NAME} `date +'%Y-%m-%d_%T'` ${GSE_ADDON_VERSION}" >> "${GSE_ADDON_STATUSFILE}"
+									fi
+								fi
+
+							else
+								echo -e "WARNING: Add-on '${ADDON_NAME}' seems to be deprecated as no definition file was found in the library anymore."
+							fi
+						done
+
+						if [ "${UPDATE_AVAILABLE}" == "false" ]; then
+							echo -e "\n\n***    ------------------------------------------------------------------"
+							echo -e "***      ALL system add-ons are already UP-TO-DATE, no update needed."
+							echo -e "***    ------------------------------------------------------------------\n\n"
+						elif [ "${UPDATE_FAILURES}" == "false" ]; then
+							echo -e "\n\n***    ------------------------------------------------------------------"
+							echo -e "***      ALL system add-ons were updated SUCCESSFULLY."
+							echo -e "***    ------------------------------------------------------------------\n\n"
+						else
+							echo -e "\n\n***    ------------------------------------------------------------------"
+							echo -e "***      ERRORS occurred during update of some system add-ons."
+							echo -e "***      Please check the script output from above."
+							echo -e "***    ------------------------------------------------------------------\n\n"
+							exit 1
+						fi
 					fi
 
 				# Process removal
@@ -216,14 +278,20 @@ case "${GSE_ADDON_ACTION}" in
 						UPDATE_AVAILABLE=true
 					fi
 				else
-					echo -e "WARNING: Add-on '${ADDON_NAME}' seems to be deprecated as no script is existing anymore."
+					echo -e "WARNING: Add-on '${ADDON_NAME}' seems to be deprecated as no definition file was found in the library anymore."
 				fi
 			done
 
 			if [ "${UPDATE_AVAILABLE}" == "false" ]; then
-				echo -e "\nAll installed system add-ons are currently up-to-date.\n"
+				echo -e "\n\n***    ------------------------------------------------------------------"
+				echo -e "***     ALL installed system add-ons are currently UP-TO-DATE."
+				echo -e "***    ------------------------------------------------------------------\n\n"
 			else
-				echo -e "\nYou may update all system add-ons at once by running '$0 update'\nor '$0 update <ADD-ON>' individual update.\n"
+				echo -e "\n\n***    ------------------------------------------------------------------"
+				echo -e "***     You may update all system add-ons at once by running"
+				echo -e "***     '$0 update' or '$0 update <ADD-ON>' for individual update."
+				echo -e "***    ------------------------------------------------------------------\n\n"
+				exit 2
 			fi
 		fi
 		;;
