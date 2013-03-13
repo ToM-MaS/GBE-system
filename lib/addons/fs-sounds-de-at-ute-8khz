@@ -14,17 +14,18 @@
 GSE_ADDON_NAME="`basename $0`"
 GSE_ADDON_DESCRIPTION="FreeSwitch sound files in austrian-german language (Human voice: Ute)"
 FREQ="8000"
+GSE_ADDON_VERSION="0.0.1"
 
 case "$1" in
 	install)
 		cd /usr/local/src
-		curl --retry 5 --retry-delay 3 -O "http://freeswitch.xpirio.com/freeswitch-sounds-de-at-ute-8000-0.0.1.tar.gz"
-		[[ ! -e freeswitch-sounds-de-at-ute-8000-0.0.1.tar.gz ]] && exit 1
+		curl --retry 5 --retry-delay 3 -O "http://freeswitch.xpirio.com/freeswitch-sounds-de-at-ute-${FREQ}-${GSE_ADDON_VERSION}.tar.gz"
+		FILE_FORMAT="`file freeswitch-sounds-de-at-ute-${FREQ}-${GSE_ADDON_VERSION}.tar.gz | grep "gzip compressed data"`"
+		[ x"${FILE_FORMAT}" == x"" ] && exit 1
 		mkdir -p /usr/share/freeswitch/sounds
 		find /usr/local/src -name 'freeswitch-*.tar.gz' -type f -exec tar xfz {} -C /usr/share/freeswitch/sounds \;
 		find /usr/local/src -name 'freeswitch-*.tar.gz' -type f -exec rm {} \;
 		cd - 2>&1>/dev/null
-		exit 0
 		;;
 
 	remove)
@@ -32,7 +33,18 @@ case "$1" in
 		rm -rf ${FILELIST}
 		;;
 	
+	update)
+		bash $0 remove
+		bash $0 install
+		;;
+
+	version)
+		echo -e "${GSE_ADDON_VERSION}"
+		;;
+
 	*)
-		echo -e "${GSE_ADDON_NAME}\n\t${GSE_ADDON_DESCRIPTION}"
+		echo -e "${GSE_ADDON_NAME} (v${GSE_ADDON_VERSION})\n\t${GSE_ADDON_DESCRIPTION}"
 		;;
 esac
+
+exit 0

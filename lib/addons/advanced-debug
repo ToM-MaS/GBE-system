@@ -13,6 +13,7 @@
 
 GSE_ADDON_NAME="`basename $0`"
 GSE_ADDON_DESCRIPTION="Install advanced debugging tools"
+GSE_ADDON_VERSION="0.1"
 
 case "$1" in
 	install)
@@ -25,7 +26,17 @@ case "$1" in
 		aptitude -yy -q2 purge tshark kdump-tools
 		;;
 	
+	update)
+		bash $0 install
+		;;
+
+	version)
+		echo -e "${GSE_ADDON_VERSION}"
+		;;
+	
 	*)
-		echo -e "${GSE_ADDON_NAME}\n\t${GSE_ADDON_DESCRIPTION}"
+		echo -e "${GSE_ADDON_NAME} (v${GSE_ADDON_VERSION})\n\t${GSE_ADDON_DESCRIPTION}"
 		;;
 esac
+
+exit 0
