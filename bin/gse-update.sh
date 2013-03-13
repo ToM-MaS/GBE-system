@@ -453,5 +453,5 @@ if [[ "${MODE}" == "self-update" || "${MODE}" == "factory-reset" ]]; then
 	
 	# Display available updates for system add-ons
 	#
-	"${GSE_DIR_NORMALIZED}/bin/gs-addon.sh" update-check
+	"${GSE_DIR_NORMALIZED}/bin/gs-addon.sh" update-check scriptmode
 fi

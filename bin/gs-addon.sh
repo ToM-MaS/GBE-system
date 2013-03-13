@@ -47,13 +47,17 @@ fi
 [ "${OS_ARCH,,}" == "i586" ] && OS_ARCH="i386"
 [ "${OS_ARCH,,}" == "i686" ] && OS_ARCH="i386"
 
+# Detect scriptmode
+[[ "$@" =~ "scriptmode" ]] && SCRIPTMODE=true || SCRIPTMODE=false
 
 # Run switcher
 #
+if [[ "${SCRIPTMODE}" == "false" ]]; then
 echo -e "***    ------------------------------------------------------------------
 ***     GEMEINSCHAFT SYSTEM ADD-ON MANAGEMENT v${GSE_VERSION}
 ***     Base System Build: #${GS_BUILDNAME}
 ***    ------------------------------------------------------------------"
+fi
 
 GSE_ADDON_ACTION="$1"
 GSE_ADDON_NAME="$2"
