@@ -187,6 +187,11 @@ password ${GSE_GIT_PASSWORD}
 		echo -e "\n\n***    ------------------------------------------------------------------"
 		echo -e "***     System Environment is already up-to-date, no update needed."
 		echo -e "***    ------------------------------------------------------------------\n\n"
+
+		# Display available updates for system add-ons
+		#
+		"${GSE_DIR_NORMALIZED}/bin/gs-addon.sh" update-check scriptmode
+
 		exit 0
 	elif [[ "${GSE_GIT_VERSION:0:3}" == "${GSE_VERSION:0:3}" || x"${GSE_GIT_VERSION}" == x"" ]]; then
 		[ "${GSE_BRANCH}" != "master" ] && GSE_GIT_VERSION="from ${GSE_BRANCH} branch"
@@ -197,8 +202,15 @@ password ${GSE_GIT_PASSWORD}
 	else
 		rm -rf "${GSE_UPDATE_DIR}"*
 		echo -e "\n\n***    ------------------------------------------------------------------"
-		echo -e "***     Updating GSE to the next major version ${GSE_GIT_VERSION} is not supported\n***     via this script.\n***     Please use backup & restore via web interface."
+		echo -e "***     Updating GSE to the next major version ${GSE_GIT_VERSION} is not supported"
+		echo -e "***     via this script."
+		echo -e "***     Please use backup & restore via web interface."
 		echo -e "***    ------------------------------------------------------------------\n\n"
+
+		# Display available updates for system add-ons
+		#
+		"${GSE_DIR_NORMALIZED}/bin/gs-addon.sh" update-check scriptmode
+
 		exit 1
 	fi
 
