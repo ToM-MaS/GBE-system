@@ -282,7 +282,7 @@ password ${GS_GIT_PASSWORD}
 		[ "${GS_BRANCH}" != "master" ] && GS_GIT_VERSION="from ${GS_BRANCH} branch"
 		mv "${GS_UPDATE_DIR}.tmp" "${GS_UPDATE_DIR}"
 		echo -e "\n\n***    ------------------------------------------------------------------"
-		echo -e "***     Scheduled update to new version ${GS_GIT_VERSION}.\n***     Please reboot the system to start the update process."
+		echo -e "***     Scheduled update to new Gemeinschaft version ${GS_GIT_VERSION}.\n***     Please reboot the system to start the update process."
 		echo -e "***    ------------------------------------------------------------------\n\n"
 	else
 		rm -rf "${GS_UPDATE_DIR}"*
