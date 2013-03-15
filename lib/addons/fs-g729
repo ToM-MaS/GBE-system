@@ -12,7 +12,7 @@
 [[ x"${GSE_DIR}" == x"" ]] && exit 1
 
 GSE_ADDON_NAME="`basename $0`"
-GSE_ADDON_DESCRIPTION="FreeSwitch commercial G729 codec installation and license activation"
+GSE_ADDON_DESCRIPTION="FreeSwitch commercial G729 codec installation and licence activation"
 GSE_ADDON_VERSION="194"
 
 case "$1" in
@@ -46,10 +46,10 @@ case "$1" in
 
 		unzip ./licences.zip -d /etc/freeswitch/
 		if [[ $? != 0 ]]; then
-			echo "Your license archive file in `pwd`/licences.zip could not be extracted, it might be corrupted."
+			echo "Your licence archive file in `pwd`/licences.zip could not be extracted, it might be corrupted."
 			exit 1
 		else
-			echo "Your license archive file has been saved to `pwd`/licenses.zip, you may want to backup it!"
+			echo "Your licence archive file has been saved to `pwd`/licences.zip, you may want to backup it!"
 		fi
 
 		"${GSE_DIR_NORMALIZED}/bin/gs-enforce-security.sh" | grep -Ev retained | grep -Ev "no changes" | grep -Ev "nor referent has been changed"
@@ -70,7 +70,7 @@ case "$1" in
 		;;
 
 	remove)
-		echo -e "\n\nThis will only remove G729 commercial activation tools and G729 commercial module.\nYour license file will not be touched!\n\n"
+		echo -e "\n\nThis will only remove G729 commercial activation tools and G729 commercial module.\nYour licence file will not be touched!\n\n"
 		fs_cli -x "unload mod_com_g729"
 		killall freeswitch_licence_server
 		rm -f /opt/freeswitch/bin/validator /usr/lib/freeswitch/mod/mod_com_g729.so /usr/sbin/freeswitch_licence_server
