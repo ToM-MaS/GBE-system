@@ -320,7 +320,7 @@ if [[ "${MODE}" == "init" || "${MODE}" == "self-update" || "${MODE}" == "factory
 		fi
 
 		rm -f "${GSE_FILE_SYSTEMPATH}"
-		DEST_FS_TYPE="`df -T "${GSE_FILE_SYSTEMPATH}" | awk '{print $2}' | tail -n1`"
+		DEST_FS_TYPE="`df -T "${GSE_FILE_SYSTEMPATH%/*}" | awk '{print $2}' | tail -n1`"
 
 		if [ "${DEST_FS_TYPE}" != "vfat" ]; then
 			ln -s "${GSE_DIR_NORMALIZED}/${_FILE}" "${GSE_FILE_SYSTEMPATH}"
@@ -394,7 +394,7 @@ if [ "${MODE}" == "recover" ]; then
 	if [ -e "${GSE_DIR_NORMALIZED}/static/${FILE#/*}" ]; then
 		mkdir -p "${FILE%/*}"
 		rm -f "${FILE}"
-		DEST_FS_TYPE="`df -T "${FILE}" | awk '{print $2}' | tail -n1`"
+		DEST_FS_TYPE="`df -T "${FILE%/*}" | awk '{print $2}' | tail -n1`"
 
 		if [ "${DEST_FS_TYPE}" != "vfat" ]; then
 			ln -s "${GSE_DIR_NORMALIZED}/static/${FILE#/*}" "${FILE}"
@@ -411,7 +411,7 @@ if [ "${MODE}" == "recover" ]; then
 	elif [ -e "${GSE_DIR_NORMALIZED}/static/${CURRENT_PATH#/*}/${FILE}" ]; then
 		[[ ${FILE} =~ "/" ]] && mkdir -p "${CURRENT_PATH}/${FILE%/*}"
 		rm -f "${CURRENT_PATH}/${FILE}"
-		DEST_FS_TYPE="`df -T "${FILE}" | awk '{print $2}' | tail -n1`"
+		DEST_FS_TYPE="`df -T "${CURRENT_PATH}" | awk '{print $2}' | tail -n1`"
 
 		if [ "${DEST_FS_TYPE}" != "vfat" ]; then
 			ln -s "${GSE_DIR_NORMALIZED}/static/${CURRENT_PATH#/*}/${FILE}" "${CURRENT_PATH}/${FILE}"
