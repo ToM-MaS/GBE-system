@@ -6,7 +6,6 @@
    MaxRequestsPerChild   0
 </IfModule>
 
-
 HostnameLookups Off
 KeepAlive On
 MaxKeepAliveRequests 40
@@ -18,6 +17,21 @@ LogFormat "%{X-Forwarded-For}i %l %u %t \"%r\" %>s %b \"%{Referer}i\" \"%{User-A
 SetEnvIf X-Forwarded-For "^.*\..*\..*\..*" forwarded
 SetEnvIf X-Forwarded-For "^.*:.*:.*" forwarded
 
+<IfModule mod_passenger.c>
+	PassengerRuby /var/lib/gemeinschaft/.rvm/wrappers/default/ruby
+	PassengerMaxPoolSize 4
+	PassengerMaxInstancesPerApp 3
+	PassengerPoolIdleTime 200
+	PassengerMaxRequests 10000
+	PassengerLogLevel 0
+	RailsFrameworkSpawnerIdleTime 0
+	RailsAppSpawnerIdleTime 0
+	PassengerUserSwitching on
+	PassengerDefaultUser nobody
+	PassengerFriendlyErrorPages off
+	PassengerSpawnMethod smart-lv2
+</IfModule>
+
 <VirtualHost *:8080>
 	ErrorLog ${APACHE_LOG_DIR}/error.log
 	CustomLog ${APACHE_LOG_DIR}/access.log combined env=!forwarded
@@ -26,17 +40,19 @@ SetEnvIf X-Forwarded-For "^.*:.*:.*" forwarded
 
 	DocumentRoot /opt/gemeinschaft/public
 
-	PassengerEnabled on
-	PassengerAppRoot /opt/gemeinschaft
-	PassengerMinInstances 1
-	PassengerStatThrottleRate 10
-	PassengerSpawnMethod smart-lv2
-	PassengerUseGlobalQueue on
-	PassengerUser  gs5
-	PassengerGroup gemeinschaft
+	<IfModule mod_passenger.c>
+		PassengerEnabled on
+		PassengerAppRoot /opt/gemeinschaft
+		PassengerMinInstances 1
+		PassengerStatThrottleRate 10
+		PassengerSpawnMethod smart-lv2
+		PassengerUseGlobalQueue on
+		PassengerUser  gs5
+		PassengerGroup gemeinschaft
 
-	RailsBaseURI /
-	RailsEnv development
+		RailsBaseURI /
+		RailsEnv development
+	</IfModule>
 
 	<Directory /opt/gemeinschaft/public>
 		AllowOverride all

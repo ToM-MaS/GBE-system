@@ -1,0 +1,6 @@
+# this is for manually installed FS versions
+FREESWITCH_ENABLED="true"
+FREESWITCH_PARAMS="-rp -nc"
+
+# this is for FS installations via Debian packages
+DAEMON_ARGS="-u freeswitch -g freeswitch -rp -nc"
