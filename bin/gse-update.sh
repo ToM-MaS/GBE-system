@@ -318,8 +318,16 @@ if [[ "${MODE}" == "init" || "${MODE}" == "self-update" || "${MODE}" == "factory
 		if [[ "${MODE}" == "init" || "${MODE}" == "factory-reset" ]]; then
 			echo -e "** Force symlinking file '${GSE_FILE_SYSTEMPATH}'"
 		fi
+
 		rm -f "${GSE_FILE_SYSTEMPATH}"
-		ln -s "${GSE_DIR_NORMALIZED}/${_FILE}" "${GSE_FILE_SYSTEMPATH}"
+		DEST_FS_TYPE="`df -T "${GSE_FILE_SYSTEMPATH}" | awk '{print $2}' | tail -n1`"
+
+		if [ "${DEST_FS_TYPE}" != "vfat" ]; then
+			ln -s "${GSE_DIR_NORMALIZED}/${_FILE}" "${GSE_FILE_SYSTEMPATH}"
+		else
+			# vfat does not support symlinks so we just create a copy
+			cp "${GSE_DIR_NORMALIZED}/${_FILE}" "${GSE_FILE_SYSTEMPATH}"
+		fi
 	done
 
 	# Copy dynamic configuration files users may change
@@ -386,7 +394,14 @@ if [ "${MODE}" == "recover" ]; then
 	if [ -e "${GSE_DIR_NORMALIZED}/static/${FILE#/*}" ]; then
 		mkdir -p "${FILE%/*}"
 		rm -f "${FILE}"
-		ln -s "${GSE_DIR_NORMALIZED}/static/${FILE#/*}" "${FILE}"
+		DEST_FS_TYPE="`df -T "${FILE}" | awk '{print $2}' | tail -n1`"
+
+		if [ "${DEST_FS_TYPE}" != "vfat" ]; then
+			ln -s "${GSE_DIR_NORMALIZED}/static/${FILE#/*}" "${FILE}"
+		else
+			# vfat does not support symlinks so we just create a copy
+			cp "${GSE_DIR_NORMALIZED}/static/${FILE#/*}" "${FILE}"
+		fi
 		echo -e "\n\n***    ------------------------------------------------------------------"
 		echo -e "***     File '${FILE}'"
 		echo -e "***     has been recovered from static GSE data store."
@@ -396,7 +411,14 @@ if [ "${MODE}" == "recover" ]; then
 	elif [ -e "${GSE_DIR_NORMALIZED}/static/${CURRENT_PATH#/*}/${FILE}" ]; then
 		[[ ${FILE} =~ "/" ]] && mkdir -p "${CURRENT_PATH}/${FILE%/*}"
 		rm -f "${CURRENT_PATH}/${FILE}"
-		ln -s "${GSE_DIR_NORMALIZED}/static/${CURRENT_PATH#/*}/${FILE}" "${CURRENT_PATH}/${FILE}"
+		DEST_FS_TYPE="`df -T "${FILE}" | awk '{print $2}' | tail -n1`"
+
+		if [ "${DEST_FS_TYPE}" != "vfat" ]; then
+			ln -s "${GSE_DIR_NORMALIZED}/static/${CURRENT_PATH#/*}/${FILE}" "${CURRENT_PATH}/${FILE}"
+		else
+			# vfat does not support symlinks so we just create a copy
+			cp "${GSE_DIR_NORMALIZED}/static/${CURRENT_PATH#/*}/${FILE}" "${CURRENT_PATH}/${FILE}"
+		fi
 		echo -e "\n\n***    ------------------------------------------------------------------"
 		echo -e "***     File '${CURRENT_PATH}/${FILE}'"
 		echo -e "***     has been recovered from static GSE data store."
