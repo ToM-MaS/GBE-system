@@ -42,7 +42,7 @@ fi
 if [ -e /usr/sbin/ssldump ]; then
 	chgrp -v pcap /usr/sbin/ssldump
 	chmod -v 754 /usr/sbin/ssldump
-	setcap cap_net_raw,cap_net_admin=eip /usr/sbin/ssldump
+	[[ "${LIVE}" == "false" && "${CHROOTED}" == "false" ]] && setcap cap_net_raw,cap_net_admin=eip /usr/sbin/ssldump
 	ln -sf /usr/sbin/ssldump /usr/local/bin/ssldump
 fi
 if [ -e /usr/sbin/pcapsipdump ]; then
