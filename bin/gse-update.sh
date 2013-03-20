@@ -291,6 +291,12 @@ fi
 # Run essential init and update commands
 #
 if [[ "${MODE}" == "init" || "${MODE}" == "self-update" || "${MODE}" == "factory-reset" ]]; then
+	# Fix mtab
+	if [[ ! -s /etc/mtab && ! -L /etc/mtab ]]; then
+		rm -f /etc/mtab
+		ln -s /proc/mounts /etc/mtab
+	fi
+
 	# Symlink public commands
 	ln -sf "${GSE_DIR_NORMALIZED}/bin/gs-update.sh" /usr/bin/gs-update
 	ln -sf "${GSE_DIR_NORMALIZED}/bin/gse-update.sh" /usr/bin/gse-update
