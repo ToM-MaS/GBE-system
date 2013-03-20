@@ -324,7 +324,7 @@ if [[ "${MODE}" == "init" || "${MODE}" == "self-update" || "${MODE}" == "factory
 		rm -f "${GSE_FILE_SYSTEMPATH}"
 		DEST_FS_TYPE="`df -T "${GSE_FILE_SYSTEMPATH%/*}" | awk '{print $2}' | tail -n1`"
 
-		if [ "${DEST_FS_TYPE}" != "vfat" ]; then
+		if [[ "${DEST_FS_TYPE}" != "vfat" && "${DEST_FS_TYPE}" != "-" ]]; then
 			ln -s "${GSE_DIR_NORMALIZED}/${_FILE}" "${GSE_FILE_SYSTEMPATH}"
 		else
 			# vfat does not support symlinks so we just create a copy
@@ -398,7 +398,7 @@ if [ "${MODE}" == "recover" ]; then
 		rm -f "${FILE}"
 		DEST_FS_TYPE="`df -T "${FILE%/*}" | awk '{print $2}' | tail -n1`"
 
-		if [ "${DEST_FS_TYPE}" != "vfat" ]; then
+		if [[ "${DEST_FS_TYPE}" != "vfat" && "${DEST_FS_TYPE}" != "-" ]]; then
 			ln -s "${GSE_DIR_NORMALIZED}/static/${FILE#/*}" "${FILE}"
 		else
 			# vfat does not support symlinks so we just create a copy
@@ -415,7 +415,7 @@ if [ "${MODE}" == "recover" ]; then
 		rm -f "${CURRENT_PATH}/${FILE}"
 		DEST_FS_TYPE="`df -T "${CURRENT_PATH}" | awk '{print $2}' | tail -n1`"
 
-		if [ "${DEST_FS_TYPE}" != "vfat" ]; then
+		if [[ "${DEST_FS_TYPE}" != "vfat" && "${DEST_FS_TYPE}" != "-" ]]; then
 			ln -s "${GSE_DIR_NORMALIZED}/static/${CURRENT_PATH#/*}/${FILE}" "${CURRENT_PATH}/${FILE}"
 		else
 			# vfat does not support symlinks so we just create a copy
