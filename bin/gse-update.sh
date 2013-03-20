@@ -328,7 +328,8 @@ if [[ "${MODE}" == "init" || "${MODE}" == "self-update" || "${MODE}" == "factory
 			ln -s "${GSE_DIR_NORMALIZED}/${_FILE}" "${GSE_FILE_SYSTEMPATH}"
 		else
 			# vfat does not support symlinks so we just create a copy
-			cp "${GSE_DIR_NORMALIZED}/${_FILE}" "${GSE_FILE_SYSTEMPATH}"
+			[ -f "${GSE_DIR_NORMALIZED}/${_FILE}" ] && cp "${GSE_DIR_NORMALIZED}/${_FILE}" "${GSE_FILE_SYSTEMPATH}"
+			[[ -L "${GSE_DIR_NORMALIZED}/${_FILE}" && -f "`readlink ${GSE_DIR_NORMALIZED}/${_FILE}`" ]] && cp "`readlink ${GSE_DIR_NORMALIZED}/${_FILE}`" "${GSE_FILE_SYSTEMPATH}"
 		fi
 	done
 
@@ -402,7 +403,8 @@ if [ "${MODE}" == "recover" ]; then
 			ln -s "${GSE_DIR_NORMALIZED}/static/${FILE#/*}" "${FILE}"
 		else
 			# vfat does not support symlinks so we just create a copy
-			cp "${GSE_DIR_NORMALIZED}/static/${FILE#/*}" "${FILE}"
+			[ -f "${GSE_DIR_NORMALIZED}/static/${FILE#/*}" ] && cp "${GSE_DIR_NORMALIZED}/static/${FILE#/*}" "${FILE}"
+			[[ -L "${GSE_DIR_NORMALIZED}/static/${FILE#/*}" && -f "`readlink ${GSE_DIR_NORMALIZED}/static/${FILE#/*}`" ]] && cp "`readlink ${GSE_DIR_NORMALIZED}/static/${FILE#/*}`" "${FILE}"
 		fi
 		echo -e "\n\n***    ------------------------------------------------------------------"
 		echo -e "***     File '${FILE}'"
@@ -419,7 +421,8 @@ if [ "${MODE}" == "recover" ]; then
 			ln -s "${GSE_DIR_NORMALIZED}/static/${CURRENT_PATH#/*}/${FILE}" "${CURRENT_PATH}/${FILE}"
 		else
 			# vfat does not support symlinks so we just create a copy
-			cp "${GSE_DIR_NORMALIZED}/static/${CURRENT_PATH#/*}/${FILE}" "${CURRENT_PATH}/${FILE}"
+			[ -f "${GSE_DIR_NORMALIZED}/static/${CURRENT_PATH#/*}/${FILE}" ] && cp "${GSE_DIR_NORMALIZED}/static/${CURRENT_PATH#/*}/${FILE}" "${CURRENT_PATH}/${FILE}"
+			[[ -L "${GSE_DIR_NORMALIZED}/static/${CURRENT_PATH#/*}/${FILE}" && -f "`readlink ${GSE_DIR_NORMALIZED}/static/${CURRENT_PATH#/*}/${FILE}`" ]] && cp "`readlink ${GSE_DIR_NORMALIZED}/static/${CURRENT_PATH#/*}/${FILE}`" "${CURRENT_PATH}/${FILE}"
 		fi
 		echo -e "\n\n***    ------------------------------------------------------------------"
 		echo -e "***     File '${CURRENT_PATH}/${FILE}'"
