@@ -190,6 +190,7 @@ password ${GSE_GIT_PASSWORD}
 
 		# Display available updates for system add-ons
 		#
+		cd ~
 		"${GSE_DIR_NORMALIZED}/bin/gs-addon.sh" update-check scriptmode
 
 		exit 0
@@ -209,6 +210,7 @@ password ${GSE_GIT_PASSWORD}
 
 		# Display available updates for system add-ons
 		#
+		cd ~
 		"${GSE_DIR_NORMALIZED}/bin/gs-addon.sh" update-check scriptmode
 
 		exit 1
@@ -487,5 +489,6 @@ if [[ "${MODE}" == "self-update" || "${MODE}" == "factory-reset" ]]; then
 	
 	# Display available updates for system add-ons
 	#
+	cd ~
 	"${GSE_DIR_NORMALIZED}/bin/gs-addon.sh" update-check scriptmode
 fi
