@@ -187,7 +187,7 @@ chmod -v 0770 /var/spool/gemeinschaft
 chmod -v g+ws /var/spool/gemeinschaft
 
 # Platform specific link for libs
-if [ "${PLATFORM}" == "rpi"]; then
+if [ "${PLATFORM}" == "rpi" ]; then
 	ln -sfv arm-linux-gnueabihf /usr/lib/local-platform
 else
 	ln -sfv i386-linux-gnu /usr/lib/local-platform
