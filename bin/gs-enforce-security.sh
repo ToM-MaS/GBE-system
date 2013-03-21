@@ -27,7 +27,16 @@ fi
 [[ x`cat /proc/cmdline | grep boot=live` != x"" ]] && LIVE=true || LIVE=false
 
 # Check for chroot status
+#
 [ "$(stat -c %d:%i /)" != "$(stat -c %d:%i /proc/1/root/.)" ] && CHROOTED=true || CHROOTED=false
+
+# Check platform
+#
+if [ -e "/etc/pi-issue" ]; then
+	PLATFORM="rpi"
+else
+	PLATFORM="x86"
+fi
 
 # network packet capturing
 if [ x"`cat /etc/group | grep ^pcap`" == x"" ]; then
@@ -176,6 +185,14 @@ chmod -v g+ws /var/spool/freeswitch
 chown -vR ${GSE_USER}.${GSE_GROUP} /var/spool/gemeinschaft
 chmod -v 0770 /var/spool/gemeinschaft
 chmod -v g+ws /var/spool/gemeinschaft
+
+# Platform specific link for libs
+if [ "${PLATFORM}" == "rpi"]; then
+	ln -sfv arm-linux-gnueabihf /usr/lib/local-platform
+else
+	ln -sfv i386-linux-gnu /usr/lib/local-platform
+fi
+
 
 # Setup some system commands via sudo
 [ ! -d  /etc/sudoers.d ] && mkdir -p /etc/sudoers.d
