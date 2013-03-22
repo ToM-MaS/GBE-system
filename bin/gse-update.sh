@@ -187,6 +187,12 @@ password ${GSE_GIT_PASSWORD}
 		echo -e "\n\n***    ------------------------------------------------------------------"
 		echo -e "***     System Environment is already up-to-date, no update needed."
 		echo -e "***    ------------------------------------------------------------------\n\n"
+
+		# Display available updates for system add-ons
+		#
+		cd ~
+		"${GSE_DIR_NORMALIZED}/bin/gs-addon.sh" update-check scriptmode
+
 		exit 0
 	elif [[ "${GSE_GIT_VERSION:0:3}" == "${GSE_VERSION:0:3}" || x"${GSE_GIT_VERSION}" == x"" ]]; then
 		[ "${GSE_BRANCH}" != "master" ] && GSE_GIT_VERSION="from ${GSE_BRANCH} branch"
@@ -197,8 +203,16 @@ password ${GSE_GIT_PASSWORD}
 	else
 		rm -rf "${GSE_UPDATE_DIR}"*
 		echo -e "\n\n***    ------------------------------------------------------------------"
-		echo -e "***     Updating GSE to the next major version ${GSE_GIT_VERSION} is not supported\n***     via this script.\n***     Please use backup & restore via web interface."
+		echo -e "***     Updating GSE to the next major version ${GSE_GIT_VERSION} is not supported"
+		echo -e "***     via this script."
+		echo -e "***     Please use backup & restore via web interface."
 		echo -e "***    ------------------------------------------------------------------\n\n"
+
+		# Display available updates for system add-ons
+		#
+		cd ~
+		"${GSE_DIR_NORMALIZED}/bin/gs-addon.sh" update-check scriptmode
+
 		exit 1
 	fi
 
@@ -277,6 +291,12 @@ fi
 # Run essential init and update commands
 #
 if [[ "${MODE}" == "init" || "${MODE}" == "self-update" || "${MODE}" == "factory-reset" ]]; then
+	# Fix mtab
+	if [[ ! -s /etc/mtab && ! -L /etc/mtab ]]; then
+		rm -f /etc/mtab
+		ln -s /proc/mounts /etc/mtab
+	fi
+
 	# Symlink public commands
 	ln -sf "${GSE_DIR_NORMALIZED}/bin/gs-update.sh" /usr/bin/gs-update
 	ln -sf "${GSE_DIR_NORMALIZED}/bin/gse-update.sh" /usr/bin/gse-update
@@ -306,8 +326,17 @@ if [[ "${MODE}" == "init" || "${MODE}" == "self-update" || "${MODE}" == "factory
 		if [[ "${MODE}" == "init" || "${MODE}" == "factory-reset" ]]; then
 			echo -e "** Force symlinking file '${GSE_FILE_SYSTEMPATH}'"
 		fi
+
 		rm -f "${GSE_FILE_SYSTEMPATH}"
-		ln -s "${GSE_DIR_NORMALIZED}/${_FILE}" "${GSE_FILE_SYSTEMPATH}"
+		DEST_FS_TYPE="`df -T "${GSE_FILE_SYSTEMPATH%/*}" | awk '{print $2}' | tail -n1`"
+
+		if [[ "${DEST_FS_TYPE}" != "vfat" && "${DEST_FS_TYPE}" != "-" ]]; then
+			ln -s "${GSE_DIR_NORMALIZED}/${_FILE}" "${GSE_FILE_SYSTEMPATH}"
+		else
+			# vfat does not support symlinks so we just create a copy
+			[ -f "${GSE_DIR_NORMALIZED}/${_FILE}" ] && cp "${GSE_DIR_NORMALIZED}/${_FILE}" "${GSE_FILE_SYSTEMPATH}"
+			[[ -L "${GSE_DIR_NORMALIZED}/${_FILE}" && -f "`readlink ${GSE_DIR_NORMALIZED}/${_FILE}`" ]] && cp "`readlink ${GSE_DIR_NORMALIZED}/${_FILE}`" "${GSE_FILE_SYSTEMPATH}"
+		fi
 	done
 
 	# Copy dynamic configuration files users may change
@@ -374,7 +403,15 @@ if [ "${MODE}" == "recover" ]; then
 	if [ -e "${GSE_DIR_NORMALIZED}/static/${FILE#/*}" ]; then
 		mkdir -p "${FILE%/*}"
 		rm -f "${FILE}"
-		ln -s "${GSE_DIR_NORMALIZED}/static/${FILE#/*}" "${FILE}"
+		DEST_FS_TYPE="`df -T "${FILE%/*}" | awk '{print $2}' | tail -n1`"
+
+		if [[ "${DEST_FS_TYPE}" != "vfat" && "${DEST_FS_TYPE}" != "-" ]]; then
+			ln -s "${GSE_DIR_NORMALIZED}/static/${FILE#/*}" "${FILE}"
+		else
+			# vfat does not support symlinks so we just create a copy
+			[ -f "${GSE_DIR_NORMALIZED}/static/${FILE#/*}" ] && cp "${GSE_DIR_NORMALIZED}/static/${FILE#/*}" "${FILE}"
+			[[ -L "${GSE_DIR_NORMALIZED}/static/${FILE#/*}" && -f "`readlink ${GSE_DIR_NORMALIZED}/static/${FILE#/*}`" ]] && cp "`readlink ${GSE_DIR_NORMALIZED}/static/${FILE#/*}`" "${FILE}"
+		fi
 		echo -e "\n\n***    ------------------------------------------------------------------"
 		echo -e "***     File '${FILE}'"
 		echo -e "***     has been recovered from static GSE data store."
@@ -384,7 +421,15 @@ if [ "${MODE}" == "recover" ]; then
 	elif [ -e "${GSE_DIR_NORMALIZED}/static/${CURRENT_PATH#/*}/${FILE}" ]; then
 		[[ ${FILE} =~ "/" ]] && mkdir -p "${CURRENT_PATH}/${FILE%/*}"
 		rm -f "${CURRENT_PATH}/${FILE}"
-		ln -s "${GSE_DIR_NORMALIZED}/static/${CURRENT_PATH#/*}/${FILE}" "${CURRENT_PATH}/${FILE}"
+		DEST_FS_TYPE="`df -T "${CURRENT_PATH}" | awk '{print $2}' | tail -n1`"
+
+		if [[ "${DEST_FS_TYPE}" != "vfat" && "${DEST_FS_TYPE}" != "-" ]]; then
+			ln -s "${GSE_DIR_NORMALIZED}/static/${CURRENT_PATH#/*}/${FILE}" "${CURRENT_PATH}/${FILE}"
+		else
+			# vfat does not support symlinks so we just create a copy
+			[ -f "${GSE_DIR_NORMALIZED}/static/${CURRENT_PATH#/*}/${FILE}" ] && cp "${GSE_DIR_NORMALIZED}/static/${CURRENT_PATH#/*}/${FILE}" "${CURRENT_PATH}/${FILE}"
+			[[ -L "${GSE_DIR_NORMALIZED}/static/${CURRENT_PATH#/*}/${FILE}" && -f "`readlink ${GSE_DIR_NORMALIZED}/static/${CURRENT_PATH#/*}/${FILE}`" ]] && cp "`readlink ${GSE_DIR_NORMALIZED}/static/${CURRENT_PATH#/*}/${FILE}`" "${CURRENT_PATH}/${FILE}"
+		fi
 		echo -e "\n\n***    ------------------------------------------------------------------"
 		echo -e "***     File '${CURRENT_PATH}/${FILE}'"
 		echo -e "***     has been recovered from static GSE data store."
@@ -418,17 +463,15 @@ if [ "${MODE}" == "recover" ]; then
 	fi
 fi
 
-# Enforce correct file permissions
-#
-if [[ "${MODE}" == "self-update" || "${MODE}" == "factory-reset" ]]; then
-	set +e
-	"${GSE_DIR_NORMALIZED}/bin/gs-enforce-security.sh" | grep -Ev retained | grep -Ev "no changes" | grep -Ev "nor referent has been changed"
-	set -e
-fi
-
 # Finalize update or factory reset
 #
 if [[ "${MODE}" == "self-update" || "${MODE}" == "factory-reset" ]]; then
+	# Enforce correct file permissions
+	#
+	set +e
+	"${GSE_DIR_NORMALIZED}/bin/gs-enforce-security.sh" | grep -Ev retained | grep -Ev "no changes" | grep -Ev "nor referent has been changed"
+	set -e
+
 	# Read GSE version from Git repo
 	#
 	cd "${GSE_DIR_NORMALIZED}"
@@ -452,4 +495,9 @@ if [[ "${MODE}" == "self-update" || "${MODE}" == "factory-reset" ]]; then
 		egrep -Ev "^GSE_VERSION=" /etc/gemeinschaft/system.conf.bak > /etc/gemeinschaft/system.conf
 		echo "GSE_VERSION=\"${GSE_VERSION}\"" >> /etc/gemeinschaft/system.conf
 	fi
+	
+	# Display available updates for system add-ons
+	#
+	cd ~
+	"${GSE_DIR_NORMALIZED}/bin/gs-addon.sh" update-check scriptmode
 fi

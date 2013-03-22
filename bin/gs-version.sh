@@ -13,7 +13,13 @@
 # General functions
 [ -e "${GSE_DIR_NORMALIZED}/lib/gse-functions.sh" ] && source "${GSE_DIR_NORMALIZED}/lib/gse-functions.sh" || exit 1
 
+OS_DISTRIBUTION="`lsb_release -i -s`"
+OS_CODENAME="`lsb_release -c -s`"
+OS_VERSION="`lsb_release -r -s`"
+OS_ARCH="`uname -m`"
 
 echo -e "GS version: ${GS_VERSION}
 GSE version: ${GSE_VERSION}
-Base System Build: #${GS_BUILDNAME}"
+Base System Build: #${GS_BUILDNAME}
+Base Distribution: ${OS_DISTRIBUTION} ${OS_VERSION} (${OS_CODENAME})
+System Architecture: ${OS_ARCH}"

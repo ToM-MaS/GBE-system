@@ -6,31 +6,53 @@
    MaxRequestsPerChild   0
 </IfModule>
 
-
 HostnameLookups Off
 KeepAlive On
 MaxKeepAliveRequests 40
 KeepAliveTimeout 60
 Timeout 100
 
-<VirtualHost *:80>
+LogFormat "%h %l %u %t \"%r\" %>s %b \"%{Referer}i\" \"%{User-Agent}i\"" combined
+LogFormat "%{X-Forwarded-For}i %l %u %t \"%r\" %>s %b \"%{Referer}i\" \"%{User-Agent}i\"" proxy
+SetEnvIf X-Forwarded-For "^.*\..*\..*\..*" forwarded
+SetEnvIf X-Forwarded-For "^.*:.*:.*" forwarded
+
+<IfModule mod_passenger.c>
+	PassengerRuby /var/lib/gemeinschaft/.rvm/wrappers/default/ruby
+	PassengerMaxPoolSize 4
+	PassengerMaxInstancesPerApp 3
+	PassengerPoolIdleTime 200
+	PassengerMaxRequests 10000
+	PassengerLogLevel 0
+	RailsFrameworkSpawnerIdleTime 0
+	RailsAppSpawnerIdleTime 0
+	PassengerUserSwitching on
+	PassengerDefaultUser nobody
+	PassengerFriendlyErrorPages off
+	PassengerSpawnMethod smart-lv2
+</IfModule>
+
+<VirtualHost *:8080>
 	ErrorLog ${APACHE_LOG_DIR}/error.log
-	CustomLog ${APACHE_LOG_DIR}/access.log combined
+	CustomLog ${APACHE_LOG_DIR}/access.log combined env=!forwarded
+	CustomLog ${APACHE_LOG_DIR}/access.log proxy env=forwarded
 	LogLevel error
 
 	DocumentRoot /opt/gemeinschaft/public
 
-	PassengerEnabled on
-	PassengerAppRoot /opt/gemeinschaft
-	PassengerMinInstances 1
-	PassengerStatThrottleRate 10
-	PassengerSpawnMethod smart-lv2
-	PassengerUseGlobalQueue on
-	PassengerUser  gs5
-	PassengerGroup gemeinschaft
+	<IfModule mod_passenger.c>
+		PassengerEnabled on
+		PassengerAppRoot /opt/gemeinschaft
+		PassengerMinInstances 1
+		PassengerStatThrottleRate 10
+		PassengerSpawnMethod smart-lv2
+		PassengerUseGlobalQueue on
+		PassengerUser  gs5
+		PassengerGroup gemeinschaft
 
-	RailsBaseURI /
-	RailsEnv development
+		RailsBaseURI /
+		RailsEnv development
+	</IfModule>
 
 	<Directory /opt/gemeinschaft/public>
 		AllowOverride all
@@ -53,52 +75,3 @@ Timeout 100
 		</IfModule>
 	</Directory>
 </VirtualHost>
-
-
-<VirtualHost *:443>
-	ErrorLog ${APACHE_LOG_DIR}/error.log
-	CustomLog ${APACHE_LOG_DIR}/access.log combined
-	LogLevel error
-
-	DocumentRoot /opt/gemeinschaft/public
-
-	PassengerEnabled on
-	PassengerAppRoot /opt/gemeinschaft
-	PassengerMinInstances 1
-	PassengerStatThrottleRate 10
-	PassengerSpawnMethod smart-lv2
-	PassengerUseGlobalQueue on
-	PassengerUser  gs5
-	PassengerGroup gemeinschaft
-
-	RailsBaseURI /
-	RailsEnv development
-
-	<Directory /opt/gemeinschaft/public>
-		AllowOverride all
-		Options -MultiViews
-		Options FollowSymLinks
-
-		<IfModule mod_auth_ntlm_winbind.c>
-	        AuthName "NTLM Authentication"
-	        NTLMAuth on
-	        NTLMAuthHelper "/usr/bin/ntlm_auth --helper-protocol=squid-2.5-ntlmssp"
-	        NTLMBasicAuthoritative on
-	        AuthType NTLM
-	        require valid-user
-
-	        Order Allow,Deny
-	        Allow from 10.0.0.0/8     #phones do not do ntlm auth
-	        Deny from 172.16.0.0/16   #workstations do ntlm auth
-	        Allow from All
-	        Satisfy any
-		</IfModule>
-	</Directory>
-
-	SSLEngine on
-	SSLCertificateFile    /etc/ssl/gemeinschaft.crt
-	SSLCertificateKeyFile /etc/ssl/gemeinschaft.key
-</VirtualHost>
-
-PassengerPreStart http://127.0.0.1:80/
-PassengerPreStart https://127.0.0.1:443/

@@ -26,6 +26,18 @@ fi
 #
 [[ x`cat /proc/cmdline | grep boot=live` != x"" ]] && LIVE=true || LIVE=false
 
+# Check for chroot status
+#
+[ "$(stat -c %d:%i /)" != "$(stat -c %d:%i /proc/1/root/.)" ] && CHROOTED=true || CHROOTED=false
+
+# Check platform
+#
+if [ -e "/etc/pi-issue" ]; then
+	PLATFORM="rpi"
+else
+	PLATFORM="x86"
+fi
+
 # network packet capturing
 if [ x"`cat /etc/group | grep ^pcap`" == x"" ]; then
 	groupadd -r -f pcap 2>&1 >/dev/null
@@ -33,42 +45,42 @@ fi
 if [ -e /usr/sbin/tcpdump ]; then
 	chgrp -v pcap /usr/sbin/tcpdump
 	chmod -v 754 /usr/sbin/tcpdump
-	[ "${LIVE}" == "false" ] && setcap cap_net_raw,cap_net_admin=eip /usr/sbin/tcpdump
+	[[ "${LIVE}" == "false" && "${CHROOTED}" == "false" ]] && setcap cap_net_raw,cap_net_admin=eip /usr/sbin/tcpdump
 	ln -sf /usr/sbin/tcpdump /usr/local/bin/tcpdump
 fi
 if [ -e /usr/sbin/ssldump ]; then
 	chgrp -v pcap /usr/sbin/ssldump
 	chmod -v 754 /usr/sbin/ssldump
-	setcap cap_net_raw,cap_net_admin=eip /usr/sbin/ssldump
+	[[ "${LIVE}" == "false" && "${CHROOTED}" == "false" ]] && setcap cap_net_raw,cap_net_admin=eip /usr/sbin/ssldump
 	ln -sf /usr/sbin/ssldump /usr/local/bin/ssldump
 fi
 if [ -e /usr/sbin/pcapsipdump ]; then
 	chgrp -v pcap /usr/sbin/pcapsipdump
 	chmod -v 754 /usr/sbin/pcapsipdump
-	[ "${LIVE}" == "false" ] && setcap cap_net_raw,cap_net_admin=eip /usr/sbin/pcapsipdump
+	[[ "${LIVE}" == "false" && "${CHROOTED}" == "false" ]] && setcap cap_net_raw,cap_net_admin=eip /usr/sbin/pcapsipdump
 	ln -sf /usr/sbin/pcapsipdump /usr/local/bin/pcapsipdump
 fi
 if [ -e /usr/sbin/iftop ]; then
 	chgrp -v pcap /usr/sbin/iftop
 	chmod -v 754 /usr/sbin/iftop
-	[ "${LIVE}" == "false" ] && setcap cap_net_raw,cap_net_admin=eip /usr/sbin/iftop
+	[[ "${LIVE}" == "false" && "${CHROOTED}" == "false" ]] && setcap cap_net_raw,cap_net_admin=eip /usr/sbin/iftop
 	ln -sf /usr/sbin/iftop /usr/local/bin/iftop
 fi
 if [ -e /usr/sbin/iotop ]; then
 	chgrp -v pcap /usr/sbin/iotop
 	chmod -v 754 /usr/sbin/iotop
-	[ "${LIVE}" == "false" ] && setcap cap_net_admin=eip /usr/sbin/iotop
+	[[ "${LIVE}" == "false" && "${CHROOTED}" == "false" ]] && setcap cap_net_admin=eip /usr/sbin/iotop
 	ln -sf /usr/sbin/iotop /usr/local/bin/iotop
 fi
 if [ -e /usr/bin/dumpcap ]; then
 	chgrp -v pcap /usr/bin/dumpcap
 	chmod -v 754 /usr/bin/dumpcap
-	[ "${LIVE}" == "false" ] && setcap cap_net_raw,cap_net_admin+eip /usr/bin/dumpcap
+	[[ "${LIVE}" == "false" && "${CHROOTED}" == "false" ]] && setcap cap_net_raw,cap_net_admin+eip /usr/bin/dumpcap
 fi
 if [ -e /usr/bin/ngrep ]; then
 	chgrp -v pcap /usr/bin/ngrep
 	chmod -v 754 /usr/bin/ngrep
-	[ "${LIVE}" == "false" ] && setcap cap_net_raw,cap_net_admin+eip /usr/bin/ngrep
+	[[ "${LIVE}" == "false" && "${CHROOTED}" == "false" ]] && setcap cap_net_raw,cap_net_admin+eip /usr/bin/ngrep
 fi
 
 # Group memberships for GSE_USER
@@ -82,6 +94,7 @@ fi
 # Group memberships for user gsmaster
 if id -u gsmaster >/dev/null 2>&1; then
 	usermod -g ${GSE_GROUP} gsmaster 2>&1 >/dev/null
+	usermod -a -G sudo gsmaster 2>&1 >/dev/null
 	usermod -a -G freeswitch gsmaster 2>&1 >/dev/null
 	usermod -a -G mon_ami gsmaster 2>&1 >/dev/null
 	usermod -a -G adm gsmaster 2>&1 >/dev/null
@@ -174,6 +187,14 @@ chown -vR ${GSE_USER}.${GSE_GROUP} /var/spool/gemeinschaft
 chmod -v 0770 /var/spool/gemeinschaft
 chmod -v g+ws /var/spool/gemeinschaft
 
+# Platform specific link for libs
+if [ "${PLATFORM}" == "rpi" ]; then
+	ln -sfv arm-linux-gnueabihf /usr/lib/local-platform
+else
+	ln -sfv i386-linux-gnu /usr/lib/local-platform
+fi
+
+
 # Setup some system commands via sudo
 [ ! -d  /etc/sudoers.d ] && mkdir -p /etc/sudoers.d
 echo "Cmnd_Alias UPDATE = /usr/bin/gs-update --force-update-init" > /etc/sudoers.d/gemeinschaft
@@ -198,5 +219,5 @@ echo "${GSE_USER} ALL = (ALL) NOPASSWD: UPDATE, UPDATE_CANCEL, SHUTDOWN, REBOOT,
 # Allow FreeSwitch some system commands via sudo
 echo "freeswitch ALL = (ALL) NOPASSWD: FW, FW6" >> /etc/sudoers.d/gemeinschaft
 
-chown -v root.root /etc/sudoers.d/*
-chmod -v 0440 /etc/sudoers.d/*
+chown -v root.root /etc/sudoers.d/gemeinschaft
+chmod -v 0440 /etc/sudoers.d/gemeinschaft

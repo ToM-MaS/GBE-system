@@ -25,6 +25,15 @@ GS_UPDATE_DIR="${GS_DIR}.update"
 [ -e "${GSE_DIR_NORMALIZED}/lib/gse-functions.sh" ] && source "${GSE_DIR_NORMALIZED}/lib/gse-functions.sh" || exit 1
 
 
+# Set live status
+#
+if [[ x`cat /proc/cmdline | grep boot=live` != x"" ]]; then
+	LIVE=true
+else
+	LIVE=false
+fi
+
+
 # check each command return codes for errors
 #
 set -e
@@ -132,8 +141,7 @@ case "$1" in
 
 	# Check for live status
 	#
-	if [[ x`cat /proc/cmdline | grep boot=live` != x"" ]]
-		then
+	if [[ x"${LIVE}" == x"true" ]]; then
 		echo "LIVE mode detected. Aborting ..."
 		exit 1
 	fi
@@ -274,7 +282,7 @@ password ${GS_GIT_PASSWORD}
 		[ "${GS_BRANCH}" != "master" ] && GS_GIT_VERSION="from ${GS_BRANCH} branch"
 		mv "${GS_UPDATE_DIR}.tmp" "${GS_UPDATE_DIR}"
 		echo -e "\n\n***    ------------------------------------------------------------------"
-		echo -e "***     Scheduled update to new version ${GS_GIT_VERSION}.\n***     Please reboot the system to start the update process."
+		echo -e "***     Scheduled update to new Gemeinschaft version ${GS_GIT_VERSION}.\n***     Please reboot the system to start the update process."
 		echo -e "***    ------------------------------------------------------------------\n\n"
 	else
 		rm -rf "${GS_UPDATE_DIR}"*
@@ -340,11 +348,13 @@ if [[ "${MODE}" == "init" || "${MODE}" == "update" ]]; then
 	"${GSE_DIR_NORMALIZED}/bin/gs-change-state.sh"
 	set -e
 
-	# Enforce 
-	echo "** Enforcing file permissions and security settings ..."
-	set +e
-	"${GSE_DIR_NORMALIZED}/bin/gs-enforce-security.sh" | grep -Ev retained | grep -Ev "no changes" | grep -Ev "nor referent has been changed"
-	set -e
+	# Enforce
+	if [[ x"${LIVE}" == x"false" ]]; then
+		echo "** Enforcing file permissions and security settings ..."
+		set +e
+		"${GSE_DIR_NORMALIZED}/bin/gs-enforce-security.sh" | grep -Ev retained | grep -Ev "no changes" | grep -Ev "nor referent has been changed"
+		set -e
+	fi
 
 	# Special tasks for update only
 	#
@@ -367,6 +377,11 @@ if [[ "${MODE}" == "init" || "${MODE}" == "update" ]]; then
 	#
 	echo "** Creating crontab file"
 	su - ${GSE_USER} -c "cd \"${GS_DIR_NORMALIZED}\"; whenever --update-crontab"
+
+	# Generate secret token for push server
+	#
+	PUSH_SECRET_TOKEN="`apg -m64 -a0 -n 1 -M NCL`"
+	sed -i "s/secret_token:.*\$/secret_token: \"${PUSH_SECRET_TOKEN}\"/" /opt/gemeinschaft/config/private_pub.yml
 fi
 
 # Finalize update

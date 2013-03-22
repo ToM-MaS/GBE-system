@@ -3,7 +3,7 @@
 # Provides:          gemeinschaft-runtime-init
 # Required-Start:    hostname haveged
 # Required-Stop:     
-# X-Start-Before:    apache2 freeswitch mysql
+# X-Start-Before:    apache2 haproxy freeswitch mysql
 # Default-Start:     2 3 4 5
 # Default-Stop:      0 1 6
 # Short-Description: Updates certain configurations after reboot
@@ -28,19 +28,22 @@ start)
 
 	# Create SSL certificate for current Full Qualified Domain Name
 	if [[
+		! -e /etc/ssl/private/${FQDN}.pem ||
 		! -e /etc/ssl/private/${FQDN}.key ||
 		! -e /etc/ssl/certs/${FQDN}.crt
 		]]; then
 
 		# Make sure both files are not existing
-		rm -rf /etc/ssl/private/${FQDN}.key /etc/ssl/certs/${FQDN}.crt
+		rm -rf /etc/ssl/private/${FQDN}.key /etc/ssl/certs/${FQDN}.crt /etc/ssl/certs/${FQDN}.pem
 
 		echo "Generating SSL certificate for ${FQDN} ..."
 		openssl req -newkey rsa:2048 -x509 -days 3650 -nodes -out /etc/ssl/certs/${FQDN}.crt -keyout /etc/ssl/private/${FQDN}.key -subj "/C=DE/ST=Rhineland-Palatinate/L=Neuwied/O=AMOOMA GmbH/OU=Self-generated certificate for Gemeinschaft/CN=${FQDN}"
 		update-ca-certificates
+		cat /etc/ssl/private/${FQDN}.key /etc/ssl/certs/${FQDN}.crt > /etc/ssl/private/${FQDN}.pem
 
-		ln -sf /etc/ssl/private/${FQDN}.key /etc/ssl/gemeinschaft.key
-		ln -sf /etc/ssl/certs/${FQDN}.crt /etc/ssl/gemeinschaft.crt
+		ln -sf private/${FQDN}.pem /etc/ssl/gemeinschaft.pem
+		ln -sf private/${FQDN}.key /etc/ssl/gemeinschaft.key
+		ln -sf certs/${FQDN}.crt /etc/ssl/gemeinschaft.crt
 	fi
 
 	# Check for available system update

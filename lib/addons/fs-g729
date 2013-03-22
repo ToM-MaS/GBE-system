@@ -49,7 +49,7 @@ case "$1" in
 			echo "Your license archive file in `pwd`/licences.zip could not be extracted, it might be corrupted."
 			exit 1
 		else
-			echo "Your license archive file has been saved to `pwd`/licenses.zip, you may want to backup it!"
+			echo "Your license archive file has been saved to `pwd`/licences.zip, you may want to backup it!"
 		fi
 
 		"${GSE_DIR_NORMALIZED}/bin/gs-enforce-security.sh" | grep -Ev retained | grep -Ev "no changes" | grep -Ev "nor referent has been changed"

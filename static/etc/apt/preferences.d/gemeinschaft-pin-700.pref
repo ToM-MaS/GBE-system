@@ -1,0 +1,3 @@
+Package: *
+Pin: release o=repo.amooma.de
+Pin-Priority: 700
