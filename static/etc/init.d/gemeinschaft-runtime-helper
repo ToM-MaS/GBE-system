@@ -64,12 +64,6 @@ start)
 		echo "GSE_VERSION=\"${GSE_VERSION}\"" >> /etc/gemeinschaft/system.conf
 		echo "GS_VERSION=\"${GS_VERSION}\"" >> /etc/gemeinschaft/system.conf
 	fi
-
-	# Heat up the cache
-	#
-	echo "Preparing Gemeinschaft Caching ..."
-	su - ${GSE_USER} -c "cd ${GS_DIR_NORMALIZED}; RAILS_ENV=$RAILS_ENV rake heater:preheat"
-
 	;;
 *)
 	# nothing to do
