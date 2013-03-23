@@ -2,7 +2,7 @@ HostnameLookups Off
 KeepAlive On
 MaxKeepAliveRequests 1000
 KeepAliveTimeout 60
-Timeout 90
+Timeout 120
 
 LogFormat "%h %l %u %t \"%r\" %>s %b \"%{Referer}i\" \"%{User-Agent}i\"" combined
 LogFormat "%{X-Forwarded-For}i %l %u %t \"%r\" %>s %b \"%{Referer}i\" \"%{User-Agent}i\"" proxy
