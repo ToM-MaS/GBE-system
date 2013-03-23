@@ -14,10 +14,10 @@ SetEnvIf X-Forwarded-For "^.*:.*:.*" forwarded
 	PassengerMaxPoolSize 2
 	PassengerPoolIdleTime 0
 	PassengerStatThrottleRate 30
-	PassengerLogLevel 0
+	PassengerLogLevel 1
 	RailsFrameworkSpawnerIdleTime 0
 	RailsAppSpawnerIdleTime 0
-	PassengerUserSwitching on
+	PassengerUserSwitching off
 	PassengerFriendlyErrorPages off
 	PassengerSpawnMethod smart-lv2
 </IfModule>
@@ -36,7 +36,7 @@ SetEnvIf X-Forwarded-For "^.*:.*:.*" forwarded
 		PassengerMinInstances 1
 
 		RailsBaseURI /
-		RailsEnv production
+		RailsEnv development
 
 		<IfModule !mod_auth_ntlm_winbind.c>
 			PassengerHighPerformance on
