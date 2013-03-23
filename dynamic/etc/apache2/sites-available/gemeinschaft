@@ -1,16 +1,8 @@
-<IfModule mpm_prefork_module>
-   StartServers          2
-   MinSpareServers       1
-   MaxSpareServers       4
-   MaxClients           50
-   MaxRequestsPerChild   0
-</IfModule>
-
 HostnameLookups Off
 KeepAlive On
-MaxKeepAliveRequests 40
+MaxKeepAliveRequests 1000
 KeepAliveTimeout 60
-Timeout 100
+Timeout 90
 
 LogFormat "%h %l %u %t \"%r\" %>s %b \"%{Referer}i\" \"%{User-Agent}i\"" combined
 LogFormat "%{X-Forwarded-For}i %l %u %t \"%r\" %>s %b \"%{Referer}i\" \"%{User-Agent}i\"" proxy
@@ -19,15 +11,13 @@ SetEnvIf X-Forwarded-For "^.*:.*:.*" forwarded
 
 <IfModule mod_passenger.c>
 	PassengerRuby /var/lib/gemeinschaft/.rvm/wrappers/default/ruby
-	PassengerMaxPoolSize 4
-	PassengerMaxInstancesPerApp 3
-	PassengerPoolIdleTime 200
-	PassengerMaxRequests 10000
+	PassengerMaxPoolSize 2
+	PassengerPoolIdleTime 0
+	PassengerStatThrottleRate 30
 	PassengerLogLevel 0
 	RailsFrameworkSpawnerIdleTime 0
 	RailsAppSpawnerIdleTime 0
 	PassengerUserSwitching on
-	PassengerDefaultUser nobody
 	PassengerFriendlyErrorPages off
 	PassengerSpawnMethod smart-lv2
 </IfModule>
@@ -44,14 +34,13 @@ SetEnvIf X-Forwarded-For "^.*:.*:.*" forwarded
 		PassengerEnabled on
 		PassengerAppRoot /opt/gemeinschaft
 		PassengerMinInstances 1
-		PassengerStatThrottleRate 10
-		PassengerSpawnMethod smart-lv2
-		PassengerUseGlobalQueue on
-		PassengerUser  gs5
-		PassengerGroup gemeinschaft
 
 		RailsBaseURI /
 		RailsEnv development
+
+		<IfModule !mod_auth_ntlm_winbind.c>
+			PassengerHighPerformance on
+		</IfModule>
 	</IfModule>
 
 	<Directory /opt/gemeinschaft/public>
@@ -75,3 +64,5 @@ SetEnvIf X-Forwarded-For "^.*:.*:.*" forwarded
 		</IfModule>
 	</Directory>
 </VirtualHost>
+
+PassengerPreStart http://localhost:8080/
