@@ -37,7 +37,8 @@ case "${GSE_ENV}" in
 
 		if [ -e "/etc/apache2/sites-available/gemeinschaft" ]; then
 			echo "** Updating Apache Passenger environment to production level"
-			sed -i "s/RailsEnv development/RailsEnv production/" "/etc/apache2/sites-available/gemeinschaft"
+			a2ensite gemeinschaft
+			[ -L /etc/apache2/sites-enabled/gemeinschaft-debug ] && a2dissite gemeinschaft-debug
 		fi
 
 		;;
@@ -51,7 +52,8 @@ case "${GSE_ENV}" in
 
 		if [ -e "/etc/apache2/sites-available/gemeinschaft" ]; then
 			echo "** Updating Apache Passenger environment to development level"
-			sed -i "s/RailsEnv production/RailsEnv development/" "/etc/apache2/sites-available/gemeinschaft"
+			a2ensite gemeinschaft-debug
+			[ -L /etc/apache2/sites-enabled/gemeinschaft ] && a2dissite gemeinschaft
 		fi
 
 		;;
