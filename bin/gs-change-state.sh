@@ -35,12 +35,11 @@ case "${GSE_ENV}" in
 			sed -i "s/<map name=\"all\" value=\"debug,info,notice,warning,err,crit,alert\"\/>/<map name=\"all\" value=\"info,notice,warning,err,crit,alert\"\/>/" "${GS_DIR_NORMALIZED_LOCAL}/freeswitch/conf/freeswitch.xml"
 		fi
 
-		if [ -e "/etc/apache2/sites-available/gemeinschaft" ]; then
-			echo "** Updating Apache Passenger environment to production level"
+		if [ ! -L /etc/apache2/sites-enabled/gemeinschaft ]; then
+			echo "** Updating Apache configuration to production level"
 			a2ensite gemeinschaft
-			[ -L /etc/apache2/sites-enabled/gemeinschaft-debug ] && a2dissite gemeinschaft-debug
 		fi
-
+		[ -L /etc/apache2/sites-enabled/gemeinschaft-development ] && a2dissite gemeinschaft-development
 		;;
 
 	# Higher debug levels for development installations
@@ -50,12 +49,11 @@ case "${GSE_ENV}" in
 			sed -i "s/<map name=\"all\" value=\"info,notice,warning,err,crit,alert\"\/>/<map name=\"all\" value=\"debug,info,notice,warning,err,crit,alert\"\/>/" "${GS_DIR_NORMALIZED_LOCAL}/freeswitch/conf/freeswitch.xml"
 		fi
 
-		if [ -e "/etc/apache2/sites-available/gemeinschaft" ]; then
-			echo "** Updating Apache Passenger environment to development level"
-			a2ensite gemeinschaft-debug
-			[ -L /etc/apache2/sites-enabled/gemeinschaft ] && a2dissite gemeinschaft
+		if [ ! -L /etc/apache2/sites-enabled/gemeinschaft-development ]; then
+			echo "** Updating Apache configuration to development level"
+			a2ensite gemeinschaft-development
 		fi
-
+		[ -L /etc/apache2/sites-enabled/gemeinschaft ] && a2dissite gemeinschaft
 		;;
 	*)
 		echo "Incorrect setting for GSE_ENV in /etc/gemeinschaft/system.conf"
