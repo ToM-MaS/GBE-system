@@ -32,7 +32,7 @@ fi
 
 # Check platform
 #
-if [ -e "/etc/pi-issue" ]; then
+if [ -e "/etc/rpi-issue" ]; then
 	PLATFORM="rpi"
 else
 	PLATFORM="x86"
