@@ -121,14 +121,12 @@ chown -vR "${GSE_USER}"."${GSE_GROUP}" "${GS_DIR}"
 # FreeSwitch configurations
 [ ! -d  "${GS_DIR_LOCAL}/freeswitch/conf" ] && mkdir -p "${GS_DIR_LOCAL}/freeswitch/conf"
 ln -sf `basename "${GS_DIR_LOCAL}"` "${GS_DIR_NORMALIZED_LOCAL}"
-chown -vR ${GSE_USER}.freeswitch "${GS_DIR_LOCAL}/freeswitch/conf"
 chmod -v 0770 "${GS_DIR_LOCAL}/freeswitch/conf"
 chmod -v g+s "${GS_DIR_LOCAL}/freeswitch/conf"
 if [ -e /var/lib/freeswitch/.odbc.ini ]; then
 	chown -v freeswitch.freeswitch /var/lib/freeswitch/.odbc.ini
 	chmod -v 0640 /var/lib/freeswitch/.odbc.ini
 fi
-[ -e "${GS_DIR_LOCAL}/freeswitch/conf/freeswitch.serial" ] && chmod -v 0640 "${GS_DIR_LOCAL}/freeswitch/conf/freeswitch.serial"
 [ -d /etc/freeswitch ] && rm -rf /etc/freeswitch
 ln -sf "${GS_DIR_NORMALIZED_LOCAL}/freeswitch/conf" /etc/freeswitch
 [ -d /usr/share/freeswitch/scripts ] && rm -rf /usr/share/freeswitch/scripts
