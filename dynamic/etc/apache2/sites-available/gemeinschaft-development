@@ -17,8 +17,8 @@ SetEnvIf X-Forwarded-For "^.*:.*:.*" forwarded
 	PassengerLogLevel 1
 	RailsFrameworkSpawnerIdleTime 0
 	RailsAppSpawnerIdleTime 0
-	PassengerUserSwitching off
-	PassengerFriendlyErrorPages off
+	PassengerUserSwitching on
+	PassengerFriendlyErrorPages on
 	PassengerSpawnMethod smart-lv2
 </IfModule>
 
