@@ -87,23 +87,29 @@ start)
 	fi
 
 	# Delayed Worker
-	echo "Starting Gemeinschaft daemon for delayed jobs ..."
-	su - ${GSE_USER} -c "cd ${GS_DIR_NORMALIZED}; RAILS_ENV=${RAILS_ENV} script/delayed_job start"
+	if [ -e "${GS_DIR_NORMALIZED}/script/delayed_job" ]; then
+		echo "Starting Gemeinschaft daemon for delayed jobs ..."
+		su - ${GSE_USER} -c "cd ${GS_DIR_NORMALIZED}; RAILS_ENV=${RAILS_ENV} script/delayed_job start"
+	fi
 
 	# Push server
 	#
 	# starting in production mode is essential:
 	# https://github.com/ryanb/private_pub/issues/30
 	# https://github.com/faye/faye/issues/25
-	echo "Starting Gemeinschaft daemon for push messages ..."
-	su - ${GSE_USER} -c "cd ${GS_DIR_NORMALIZED}; RAILS_ENV=production bundle exec rackup private_pub.ru -s thin -p 9292 -E production -D"
+	if [ -e "${GS_DIR_NORMALIZED}/private_pub.ru" ]; then
+		echo "Starting Gemeinschaft daemon for push messages ..."
+		su - ${GSE_USER} -c "cd ${GS_DIR_NORMALIZED}; RAILS_ENV=production bundle exec rackup private_pub.ru -s thin -p 9292 -E production -D"
+	fi
 	;;
 
 stop)
 
 	# Delayed Worker
-	echo "Stopping Gemeinschaft daemon for delayed jobs ..."
-	su - ${GSE_USER} -c "cd ${GS_DIR_NORMALIZED}; RAILS_ENV=production script/delayed_job stop"
+	if [ -e "${GS_DIR_NORMALIZED}/script/delayed_job" ]; then
+		echo "Stopping Gemeinschaft daemon for delayed jobs ..."
+		su - ${GSE_USER} -c "cd ${GS_DIR_NORMALIZED}; RAILS_ENV=production script/delayed_job stop"
+	fi
 	;;
 
 *)
