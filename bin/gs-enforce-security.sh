@@ -121,6 +121,7 @@ chown -vR "${GSE_USER}"."${GSE_GROUP}" "${GS_DIR}"
 # FreeSwitch configurations
 [ ! -d  "${GS_DIR_LOCAL}/freeswitch/conf" ] && mkdir -p "${GS_DIR_LOCAL}/freeswitch/conf"
 ln -sf `basename "${GS_DIR_LOCAL}"` "${GS_DIR_NORMALIZED_LOCAL}"
+chown -vR freeswitch.freeswitch "${GS_DIR_LOCAL}/freeswitch/conf"
 chmod -v 0770 "${GS_DIR_LOCAL}/freeswitch/conf"
 chmod -v g+s "${GS_DIR_LOCAL}/freeswitch/conf"
 if [ -e /var/lib/freeswitch/.odbc.ini ]; then
@@ -188,8 +189,10 @@ chmod -v g+ws /var/spool/gemeinschaft
 # Platform specific link for libs
 if [ "${PLATFORM}" == "rpi" ]; then
 	ln -sf arm-linux-gnueabihf /usr/lib/local-platform
+	ln -sf arm-linux-gnueabihf /lib/local-platform
 else
 	ln -sf i386-linux-gnu /usr/lib/local-platform
+	ln -sf i386-linux-gnu /lib/local-platform
 fi
 
 

@@ -3,7 +3,7 @@
 # Provides:          gemeinschaft-runtime-helper
 # Required-Start:    mysql apache2 gemeinschaft-runtime-init
 # Required-Stop:     
-# X-Start-Before:    freeswitch gemeinschaft-runtime-init-post
+# X-Start-Before:    freeswitch gemeinschaft-runtime-init-post haproxy
 # Default-Start:     2 3 4 5
 # Default-Stop:      0 1 6
 # Short-Description: Do some preparations before FreeSwitch
