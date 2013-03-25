@@ -3,6 +3,9 @@
 # MySQL configuration for low-memory consumption
 #
 
+[mysqld_safe]
+nice = -10
+
 [mysql]
 no-auto-rehash
 
