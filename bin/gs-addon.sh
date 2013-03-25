@@ -167,6 +167,7 @@ case "${GSE_ADDON_ACTION}" in
 						echo -e "\n\n***    ------------------------------------------------------------------"
 						echo -e "***     Add-on '${GSE_ADDON_NAME}' is currently not installed."
 						echo -e "***    ------------------------------------------------------------------\n\n"
+						exit 1
 					fi
 
 				# This should actually not happen
@@ -302,7 +303,12 @@ case "${GSE_ADDON_ACTION}" in
 			[ x"${LIST}" != x"" ] && echo -e "\nThe following add-ons are currently installed:\n${LIST}\n" || echo -e "\nCurrently there are no add-ons installed.\n"
 		else
 			[ -e "${GSE_ADDON_STATUSFILE}" ] && GSE_ADDON_STATUS="`sed -n "/^${GSE_ADDON_NAME} .*$/p" "${GSE_ADDON_STATUSFILE}"`" || GSE_ADDON_STATUS=""
-			[ x"${GSE_ADDON_STATUS}" != x"" ] && echo -e "\nThe system add-on '${GSE_ADDON_NAME}' was installed on ${GSE_ADDON_STATUS#* }.\n" || echo -e "\nThe system add-on '${GSE_ADDON_NAME}' is currently not installed.\n"
+			if [ x"${GSE_ADDON_STATUS}" != x"" ];
+				echo -e "\nThe system add-on '${GSE_ADDON_NAME}' was installed on ${GSE_ADDON_STATUS#* }.\n"
+			else
+				echo -e "\nThe system add-on '${GSE_ADDON_NAME}' is currently not installed.\n"
+				exit 1
+			fi
 		fi
 		;;
 
@@ -321,6 +327,7 @@ case "${GSE_ADDON_ACTION}" in
 		elif [ x"${GSE_ADDON_NAME}" != x"" ]; then
 			echo -e "\nADD-ONS FOR ${OS_DISTRIBUTION^^} ${OS_CODENAME^^}"
 			echo "  No matching add-ons found."
+			exit 1
 		fi
 
 		[ -d "${GSE_ADDON_DIR}" ] && LIST="`find "${GSE_ADDON_DIR}" -maxdepth 1 -type f -name "${SEARCHSTRING}" ! -iname ".*" | sort`"
@@ -334,6 +341,7 @@ case "${GSE_ADDON_ACTION}" in
 			done
 		else
 			echo "  No matching add-ons found."
+			exit 1
 		fi
 
 		echo -e "\n***    ------------------------------------------------------------------"
