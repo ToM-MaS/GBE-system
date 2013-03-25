@@ -303,7 +303,7 @@ case "${GSE_ADDON_ACTION}" in
 			[ x"${LIST}" != x"" ] && echo -e "\nThe following add-ons are currently installed:\n${LIST}\n" || echo -e "\nCurrently there are no add-ons installed.\n"
 		else
 			[ -e "${GSE_ADDON_STATUSFILE}" ] && GSE_ADDON_STATUS="`sed -n "/^${GSE_ADDON_NAME} .*$/p" "${GSE_ADDON_STATUSFILE}"`" || GSE_ADDON_STATUS=""
-			if [ x"${GSE_ADDON_STATUS}" != x"" ];
+			if [ x"${GSE_ADDON_STATUS}" != x"" ]; then
 				echo -e "\nThe system add-on '${GSE_ADDON_NAME}' was installed on ${GSE_ADDON_STATUS#* }.\n"
 			else
 				echo -e "\nThe system add-on '${GSE_ADDON_NAME}' is currently not installed.\n"
