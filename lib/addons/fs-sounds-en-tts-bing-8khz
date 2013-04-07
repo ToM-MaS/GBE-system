@@ -15,14 +15,14 @@ GSE_ADDON_NAME="`basename $0`"
 GSE_ADDON_DESCRIPTION="FreeSwitch sound files in english language (via Bing TTS)"
 VOICE="bing"
 FREQ="8000"
-LANG="en"
+TTS_LANGUAGE="en"
 GSE_ADDON_VERSION="1.0.4"
 
 case "$1" in
 	install)
 		cd /usr/local/src
-		curl --ipv4 --retry 5 --retry-delay 3 -O "http://repo.amooma.de/static/freeswitch/freeswitch-sounds-${LANG}-tts-${VOICE}-${FREQ}-${GSE_ADDON_VERSION}.tar.gz"
-		FILE_FORMAT="`file freeswitch-sounds-${LANG}-tts-${VOICE}-${FREQ}-${GSE_ADDON_VERSION}.tar.gz | grep "gzip compressed data"`"
+		curl --ipv4 --retry 5 --retry-delay 3 -O "http://repo.amooma.de/static/freeswitch/freeswitch-sounds-${TTS_LANGUAGE}-tts-${VOICE}-${FREQ}-${GSE_ADDON_VERSION}.tar.gz"
+		FILE_FORMAT="`file freeswitch-sounds-${TTS_LANGUAGE}-tts-${VOICE}-${FREQ}-${GSE_ADDON_VERSION}.tar.gz | grep "gzip compressed data"`"
 		[ x"${FILE_FORMAT}" == x"" ] && exit 1
 		mkdir -p /usr/share/freeswitch/sounds
 		find /usr/local/src -name 'freeswitch-*.tar.gz' -type f -exec tar xfz {} -C /usr/share/freeswitch/sounds \;
@@ -31,7 +31,7 @@ case "$1" in
 		;;
 
 	remove)
-		FILELIST="`find /usr/share/freeswitch/sounds/${LANG}/tts/${VOICE} -name '${FREQ}' -type d`"
+		FILELIST="`find /usr/share/freeswitch/sounds/${TTS_LANGUAGE}/tts/${VOICE} -name '${FREQ}' -type d`"
 		rm -rf ${FILELIST}
 		;;
 	
