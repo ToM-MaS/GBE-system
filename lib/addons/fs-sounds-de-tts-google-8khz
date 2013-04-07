@@ -16,7 +16,7 @@ GSE_ADDON_DESCRIPTION="FreeSwitch sound files in german language (via Google TTS
 VOICE="google"
 FREQ="8000"
 LANG="de"
-GSE_ADDON_VERSION="1.0.3"
+GSE_ADDON_VERSION="1.0.4"
 
 case "$1" in
 	install)
