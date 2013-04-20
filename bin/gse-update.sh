@@ -236,9 +236,10 @@ password ${GSE_GIT_PASSWORD}
 	#
 	for _PLATFORM in ${PLATFORM} any; do
 		# skip if directory for platform does not exist
-		[ ! -d "lib/cfg/${_PLATFORM}" ] && continue;
+		[ ! -d "lib/cfg/${_PLATFORM}" ] && continue
+		cd lib/cfg/${_PLATFORM}
 
-		GSE_FILES_STATIC="`cd lib/cfg/${_PLATFORM}; find stat/ -type f ! -name .gitignore; find stat/ -type l`"
+		GSE_FILES_STATIC="`find stat/ -type f ! -name .gitignore; find stat/ -type l`"
 		for _FILE in ${GSE_FILES_STATIC}; do
 			# strip prefix "stat/"
 			GSE_FILE_SYSTEMPATH="/${_FILE#*/}"
@@ -251,15 +252,18 @@ password ${GSE_GIT_PASSWORD}
 				mv -f "${GSE_FILE_SYSTEMPATH}.default-gse" "${GSE_FILE_SYSTEMPATH}"
 			fi
 		done
+
+		cd - 2>&1>/dev/null
 	done
 
 	# Remove dynamic configuration files
 	#
 	for _PLATFORM in ${PLATFORM} any; do
 		# skip if directory for platform does not exist
-		[ ! -d "lib/cfg/${_PLATFORM}" ] && continue;
+		[ ! -d "lib/cfg/${_PLATFORM}" ] && continue
+		cd lib/cfg/${_PLATFORM}
 
-		GSE_FILES_DYNAMIC="`cd lib/cfg/${_PLATFORM}; find dyn/ -type f ! -name .gitignore; find dyn/ -type l`"
+		GSE_FILES_DYNAMIC="`find dyn/ -type f ! -name .gitignore; find dyn/ -type l`"
 		for _FILE in ${GSE_FILES_DYNAMIC}; do
 			# strip prefix "dyn/"
 			GSE_FILE_SYSTEMPATH="/${_FILE#*/}"
@@ -283,6 +287,8 @@ password ${GSE_GIT_PASSWORD}
 				cp -df "${GSE_FILE_SYSTEMPATH}.default-gse" "${GSE_FILE_SYSTEMPATH}"
 			fi
 		done
+
+		cd - 2>&1>/dev/null
 	done
 
 	# Run self-update
@@ -327,9 +333,10 @@ if [[ "${MODE}" == "init" || "${MODE}" == "self-update" || "${MODE}" == "factory
 	#
 	for _PLATFORM in any ${PLATFORM}; do
 		# skip if directory for platform does not exist
-		[ ! -d "lib/cfg/${_PLATFORM}" ] && continue;
+		[ ! -d "lib/cfg/${_PLATFORM}" ] && continue
+		cd lib/cfg/${_PLATFORM}
 
-		GSE_FILES_STATIC="`cd lib/cfg/${_PLATFORM}; find stat/ -type f ! -name .gitignore; find stat/ -type l`"
+		GSE_FILES_STATIC="`find stat/ -type f ! -name .gitignore; find stat/ -type l`"
 		for _FILE in ${GSE_FILES_STATIC}; do
 			# strip prefix "stat/"
 			GSE_FILE_SYSTEMPATH="/${_FILE#*/}"
@@ -359,15 +366,18 @@ if [[ "${MODE}" == "init" || "${MODE}" == "self-update" || "${MODE}" == "factory
 				[[ -L "${GSE_DIR_NORMALIZED}/${_FILE}" && -f "`readlink ${GSE_DIR_NORMALIZED}/${_FILE}`" ]] && cp "`readlink ${GSE_DIR_NORMALIZED}/${_FILE}`" "${GSE_FILE_SYSTEMPATH}"
 			fi
 		done
+
+		cd - 2>&1>/dev/null
 	done
 
 	# Copy dynamic configuration files users may change
 	#
 	for _PLATFORM in any ${PLATFORM}; do
 		# skip if directory for platform does not exist
-		[ ! -d "lib/cfg/${_PLATFORM}" ] && continue;
+		[ ! -d "lib/cfg/${_PLATFORM}" ] && continue
+		cd lib/cfg/${_PLATFORM}
 
-		GSE_FILES_DYNAMIC="`cd lib/cfg/${_PLATFORM}; find dyn/ -type f ! -name .gitignore; find dyn/ -type l`"
+		GSE_FILES_DYNAMIC="`find dyn/ -type f ! -name .gitignore; find dyn/ -type l`"
 		for _FILE in ${GSE_FILES_DYNAMIC}; do
 			# strip prefix "dyn/"
 			GSE_FILE_SYSTEMPATH="/${_FILE#*/}"
@@ -399,6 +409,8 @@ if [[ "${MODE}" == "init" || "${MODE}" == "self-update" || "${MODE}" == "factory
 				cp -dn "${GSE_DIR_NORMALIZED}/${_FILE}" "${GSE_FILE_SYSTEMPATH}"
 			fi
 		done
+
+		cd - 2>&1>/dev/null
 	done
 
 	# Remove Git remote reference
