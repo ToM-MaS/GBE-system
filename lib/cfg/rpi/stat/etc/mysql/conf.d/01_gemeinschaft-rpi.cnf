@@ -1,0 +1,9 @@
+#
+# Gemeinschaft 5
+# MySQL configuration for RaspberryPi
+#
+# This will overwrite default settings and set platform-specific settings
+#
+
+[mysqld]
+innodb_flush_log_at_trx_commit=2

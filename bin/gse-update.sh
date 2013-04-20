@@ -23,6 +23,13 @@ GSE_UPDATE_DIR="${GSE_DIR}.update"
 # General functions
 [ -e "${GSE_DIR_NORMALIZED}/lib/gse-functions.sh" ] && source "${GSE_DIR_NORMALIZED}/lib/gse-functions.sh" || exit 1
 
+# Check platform
+#
+if [ -e "/etc/rpi-issue" ]; then
+	PLATFORM="rpi"
+else
+	PLATFORM="x86"
+fi
 
 # check each command return codes for errors
 #
@@ -227,45 +234,55 @@ password ${GSE_GIT_PASSWORD}
 	
 	# Revert symlinks for static system files
 	#
-	GSE_FILES_STATIC="`find static/ -type f; find static/ -type l`"
-	for _FILE in ${GSE_FILES_STATIC}; do
-		# strip prefix "static/"
-		GSE_FILE_SYSTEMPATH="/${_FILE#*/}"
+	for _PLATFORM in "${PLATFORM} any"; do
+		# skip if directory for platform does not exist
+		[ ! -d "lib/cfg/${_PLATFORM}" ] && continue;
 
-		# Delete file
-		rm -f "${GSE_FILE_SYSTEMPATH}"
+		GSE_FILES_STATIC="`cd lib/cfg/${_PLATFORM}; find stat/ -type f ! -name .gitignore; find stat/ -type l`"
+		for _FILE in ${GSE_FILES_STATIC}; do
+			# strip prefix "stat/"
+			GSE_FILE_SYSTEMPATH="/${_FILE#*/}"
 
-		# Restore original file if existing
-		if [ -e "${GSE_FILE_SYSTEMPATH}.default-gse" ]; then
-			mv -f "${GSE_FILE_SYSTEMPATH}.default-gse" "${GSE_FILE_SYSTEMPATH}"
-		fi
+			# Delete file
+			rm -f "${GSE_FILE_SYSTEMPATH}"
+
+			# Restore original file if existing
+			if [ -e "${GSE_FILE_SYSTEMPATH}.default-gse" ]; then
+				mv -f "${GSE_FILE_SYSTEMPATH}.default-gse" "${GSE_FILE_SYSTEMPATH}"
+			fi
+		done
 	done
 
 	# Remove dynamic configuration files
 	#
-	GSE_FILES_DYNAMIC="`find dynamic/ -type f; find dynamic/ -type l`"
-	for _FILE in ${GSE_FILES_DYNAMIC}; do
-		# strip prefix "dynamic/"
-		GSE_FILE_SYSTEMPATH="/${_FILE#*/}"
+	for _PLATFORM in "${PLATFORM} any"; do
+		# skip if directory for platform does not exist
+		[ ! -d "lib/cfg/${_PLATFORM}" ] && continue;
 
-		if [ -e "${GSE_FILE_SYSTEMPATH}" ]; then
-			set +e
-			diff -q "${_FILE}" "${GSE_FILE_SYSTEMPATH}" >/dev/null
-			FILE_CHANGE_STATUS="$?"
-			set -e
+		GSE_FILES_DYNAMIC="`cd lib/cfg/${_PLATFORM}; find dyn/ -type f ! -name .gitignore; find dyn/ -type l`"
+		for _FILE in ${GSE_FILES_DYNAMIC}; do
+			# strip prefix "dyn/"
+			GSE_FILE_SYSTEMPATH="/${_FILE#*/}"
 
-			# Delete file if it hasn't been changed by the user
-			if [ "${FILE_CHANGE_STATUS}" == "0" ]; then
-				rm -f "${GSE_FILE_SYSTEMPATH}"
-			else
-				echo -e "** Keeping user modified file '${GSE_FILE_SYSTEMPATH}' and leaving it untouched"
+			if [ -e "${GSE_FILE_SYSTEMPATH}" ]; then
+				set +e
+				diff -q "${_FILE}" "${GSE_FILE_SYSTEMPATH}" >/dev/null
+				FILE_CHANGE_STATUS="$?"
+				set -e
+
+				# Delete file if it hasn't been changed by the user
+				if [ "${FILE_CHANGE_STATUS}" == "0" ]; then
+					rm -f "${GSE_FILE_SYSTEMPATH}"
+				else
+					echo -e "** Keeping user modified file '${GSE_FILE_SYSTEMPATH}' and leaving it untouched"
+				fi
 			fi
-		fi
 
-		# Restore original file if it was existing before and we didn't keep the users file
-		if [[ -e "${GSE_FILE_SYSTEMPATH}.default-gse" && ! -e "${GSE_FILE_SYSTEMPATH}" ]]; then
-			cp -df "${GSE_FILE_SYSTEMPATH}.default-gse" "${GSE_FILE_SYSTEMPATH}"
-		fi
+			# Restore original file if it was existing before and we didn't keep the users file
+			if [[ -e "${GSE_FILE_SYSTEMPATH}.default-gse" && ! -e "${GSE_FILE_SYSTEMPATH}" ]]; then
+				cp -df "${GSE_FILE_SYSTEMPATH}.default-gse" "${GSE_FILE_SYSTEMPATH}"
+			fi
+		done
 	done
 
 	# Run self-update
@@ -308,70 +325,80 @@ if [[ "${MODE}" == "init" || "${MODE}" == "self-update" || "${MODE}" == "factory
 
 	# Symlink static system files users should not need to change
 	#
-	GSE_FILES_STATIC="`find static/ -type f; find static/ -type l`"
-	for _FILE in ${GSE_FILES_STATIC}; do
-		# strip prefix "static/"
-		GSE_FILE_SYSTEMPATH="/${_FILE#*/}"
+	for _PLATFORM in "any ${PLATFORM}"; do
+		# skip if directory for platform does not exist
+		[ ! -d "lib/cfg/${_PLATFORM}" ] && continue;
 
-		# make sure destination path exists
-		mkdir -p "${GSE_FILE_SYSTEMPATH%/*}"
+		GSE_FILES_STATIC="`cd lib/cfg/${_PLATFORM}; find stat/ -type f ! -name .gitignore; find stat/ -type l`"
+		for _FILE in ${GSE_FILES_STATIC}; do
+			# strip prefix "stat/"
+			GSE_FILE_SYSTEMPATH="/${_FILE#*/}"
 
-		# Backup any existing file
-		if [[ "${MODE}" == "init" && -e "${GSE_FILE_SYSTEMPATH}" && ! -e "${GSE_FILE_SYSTEMPATH}.default-gse" ]]; then
-			echo -e "** Creating backup of original file '${GSE_FILE_SYSTEMPATH}'"
-			mv -f "${GSE_FILE_SYSTEMPATH}" "${GSE_FILE_SYSTEMPATH}.default-gse"
-		fi
+			# make sure destination path exists
+			mkdir -p "${GSE_FILE_SYSTEMPATH%/*}"
 
-		# Symlink file
-		if [[ "${MODE}" == "init" || "${MODE}" == "factory-reset" ]]; then
-			echo -e "** Force symlinking file '${GSE_FILE_SYSTEMPATH}'"
-		fi
+			# Backup any existing file
+			if [[ "${MODE}" == "init" && -e "${GSE_FILE_SYSTEMPATH}" && ! -e "${GSE_FILE_SYSTEMPATH}.default-gse" ]]; then
+				echo -e "** Creating backup of original file '${GSE_FILE_SYSTEMPATH}'"
+				mv -f "${GSE_FILE_SYSTEMPATH}" "${GSE_FILE_SYSTEMPATH}.default-gse"
+			fi
 
-		rm -f "${GSE_FILE_SYSTEMPATH}"
-		DEST_FS_TYPE="`df -T "${GSE_FILE_SYSTEMPATH%/*}" | awk '{print $2}' | tail -n1`"
+			# Symlink file
+			if [[ "${MODE}" == "init" || "${MODE}" == "factory-reset" ]]; then
+				echo -e "** Force symlinking file '${GSE_FILE_SYSTEMPATH}'"
+			fi
 
-		if [[ "${DEST_FS_TYPE}" != "vfat" && "${DEST_FS_TYPE}" != "-" ]]; then
-			ln -s "${GSE_DIR_NORMALIZED}/${_FILE}" "${GSE_FILE_SYSTEMPATH}"
-		else
-			# vfat does not support symlinks so we just create a copy
-			[ -f "${GSE_DIR_NORMALIZED}/${_FILE}" ] && cp "${GSE_DIR_NORMALIZED}/${_FILE}" "${GSE_FILE_SYSTEMPATH}"
-			[[ -L "${GSE_DIR_NORMALIZED}/${_FILE}" && -f "`readlink ${GSE_DIR_NORMALIZED}/${_FILE}`" ]] && cp "`readlink ${GSE_DIR_NORMALIZED}/${_FILE}`" "${GSE_FILE_SYSTEMPATH}"
-		fi
+			rm -f "${GSE_FILE_SYSTEMPATH}"
+			DEST_FS_TYPE="`df -T "${GSE_FILE_SYSTEMPATH%/*}" | awk '{print $2}' | tail -n1`"
+
+			if [[ "${DEST_FS_TYPE}" != "vfat" && "${DEST_FS_TYPE}" != "-" ]]; then
+				ln -s "${GSE_DIR_NORMALIZED}/${_FILE}" "${GSE_FILE_SYSTEMPATH}"
+			else
+				# vfat does not support symlinks so we just create a copy
+				[ -f "${GSE_DIR_NORMALIZED}/${_FILE}" ] && cp "${GSE_DIR_NORMALIZED}/${_FILE}" "${GSE_FILE_SYSTEMPATH}"
+				[[ -L "${GSE_DIR_NORMALIZED}/${_FILE}" && -f "`readlink ${GSE_DIR_NORMALIZED}/${_FILE}`" ]] && cp "`readlink ${GSE_DIR_NORMALIZED}/${_FILE}`" "${GSE_FILE_SYSTEMPATH}"
+			fi
+		done
 	done
 
 	# Copy dynamic configuration files users may change
 	#
-	GSE_FILES_DYNAMIC="`find dynamic/ -type f; find dynamic/ -type l`"
-	for _FILE in ${GSE_FILES_DYNAMIC}; do
-		# strip prefix "dynamic/"
-		GSE_FILE_SYSTEMPATH="/${_FILE#*/}"
+	for _PLATFORM in "any ${PLATFORM}"; do
+		# skip if directory for platform does not exist
+		[ ! -d "lib/cfg/${_PLATFORM}" ] && continue;
 
-		# make sure destination path exists
-		mkdir -p "${GSE_FILE_SYSTEMPATH%/*}"
+		GSE_FILES_DYNAMIC="`cd lib/cfg/${_PLATFORM}; find dyn/ -type f ! -name .gitignore; find dyn/ -type l`"
+		for _FILE in ${GSE_FILES_DYNAMIC}; do
+			# strip prefix "dyn/"
+			GSE_FILE_SYSTEMPATH="/${_FILE#*/}"
 
-		# Backup any existing file
-		if [[ "${MODE}" == "init" && -e "${GSE_FILE_SYSTEMPATH}" && ! -e "${GSE_FILE_SYSTEMPATH}.default-gse" ]]; then
-			echo -e "** Creating backup of original file '${GSE_FILE_SYSTEMPATH}'"
-			mv -f "${GSE_FILE_SYSTEMPATH}" "${GSE_FILE_SYSTEMPATH}.default-gse"
-		fi
+			# make sure destination path exists
+			mkdir -p "${GSE_FILE_SYSTEMPATH%/*}"
 
-		# Check for equality of backup and original file
-		if [[ -e "${GSE_FILE_SYSTEMPATH}" && -e "${GSE_FILE_SYSTEMPATH}.default-gse" ]]; then
-			set +e
-			diff -q "${GSE_FILE_SYSTEMPATH}" "${GSE_FILE_SYSTEMPATH}.default-gse" >/dev/null
-			FILE_CHANGE_STATUS="$?"
-			set -e
-		fi
+			# Backup any existing file
+			if [[ "${MODE}" == "init" && -e "${GSE_FILE_SYSTEMPATH}" && ! -e "${GSE_FILE_SYSTEMPATH}.default-gse" ]]; then
+				echo -e "** Creating backup of original file '${GSE_FILE_SYSTEMPATH}'"
+				mv -f "${GSE_FILE_SYSTEMPATH}" "${GSE_FILE_SYSTEMPATH}.default-gse"
+			fi
 
-		# Copy file
-		if [[ "${MODE}" == "init" || "${MODE}" == "factory-reset" ]]; then
-			echo -e "** Force installing file '${GSE_FILE_SYSTEMPATH}'"
-			cp -df "${GSE_DIR_NORMALIZED}/${_FILE}" "${GSE_FILE_SYSTEMPATH}"
-		elif [[ -e "${GSE_FILE_SYSTEMPATH}" && -e "${GSE_FILE_SYSTEMPATH}.default-gse" && "${FILE_CHANGE_STATUS}" == "0" ]]; then
-			cp -df "${GSE_DIR_NORMALIZED}/${_FILE}" "${GSE_FILE_SYSTEMPATH}"			
-		elif [ ! -e "${GSE_FILE_SYSTEMPATH}" ]; then
-			cp -dn "${GSE_DIR_NORMALIZED}/${_FILE}" "${GSE_FILE_SYSTEMPATH}"
-		fi
+			# Check for equality of backup and original file
+			if [[ -e "${GSE_FILE_SYSTEMPATH}" && -e "${GSE_FILE_SYSTEMPATH}.default-gse" ]]; then
+				set +e
+				diff -q "${GSE_FILE_SYSTEMPATH}" "${GSE_FILE_SYSTEMPATH}.default-gse" >/dev/null
+				FILE_CHANGE_STATUS="$?"
+				set -e
+			fi
+
+			# Copy file
+			if [[ "${MODE}" == "init" || "${MODE}" == "factory-reset" ]]; then
+				echo -e "** Force installing file '${GSE_FILE_SYSTEMPATH}'"
+				cp -df "${GSE_DIR_NORMALIZED}/${_FILE}" "${GSE_FILE_SYSTEMPATH}"
+			elif [[ -e "${GSE_FILE_SYSTEMPATH}" && -e "${GSE_FILE_SYSTEMPATH}.default-gse" && "${FILE_CHANGE_STATUS}" == "0" ]]; then
+				cp -df "${GSE_DIR_NORMALIZED}/${_FILE}" "${GSE_FILE_SYSTEMPATH}"			
+			elif [ ! -e "${GSE_FILE_SYSTEMPATH}" ]; then
+				cp -dn "${GSE_DIR_NORMALIZED}/${_FILE}" "${GSE_FILE_SYSTEMPATH}"
+			fi
+		done
 	done
 
 	# Remove Git remote reference
@@ -400,17 +427,17 @@ if [ "${MODE}" == "recover" ]; then
 	CURRENT_PATH="`pwd`"
 
 	# find static file via full-qualified path
-	if [ -e "${GSE_DIR_NORMALIZED}/static/${FILE#/*}" ]; then
+	if [ -e "${GSE_DIR_NORMALIZED}/lib/cfg/any/stat/${FILE#/*}" ]; then
 		mkdir -p "${FILE%/*}"
 		rm -f "${FILE}"
 		DEST_FS_TYPE="`df -T "${FILE%/*}" | awk '{print $2}' | tail -n1`"
 
 		if [[ "${DEST_FS_TYPE}" != "vfat" && "${DEST_FS_TYPE}" != "-" ]]; then
-			ln -s "${GSE_DIR_NORMALIZED}/static/${FILE#/*}" "${FILE}"
+			ln -s "${GSE_DIR_NORMALIZED}/lib/cfg/any/stat/${FILE#/*}" "${FILE}"
 		else
 			# vfat does not support symlinks so we just create a copy
-			[ -f "${GSE_DIR_NORMALIZED}/static/${FILE#/*}" ] && cp "${GSE_DIR_NORMALIZED}/static/${FILE#/*}" "${FILE}"
-			[[ -L "${GSE_DIR_NORMALIZED}/static/${FILE#/*}" && -f "`readlink ${GSE_DIR_NORMALIZED}/static/${FILE#/*}`" ]] && cp "`readlink ${GSE_DIR_NORMALIZED}/static/${FILE#/*}`" "${FILE}"
+			[ -f "${GSE_DIR_NORMALIZED}/lib/cfg/any/stat/${FILE#/*}" ] && cp "${GSE_DIR_NORMALIZED}/lib/cfg/any/stat/${FILE#/*}" "${FILE}"
+			[[ -L "${GSE_DIR_NORMALIZED}/lib/cfg/any/stat/${FILE#/*}" && -f "`readlink ${GSE_DIR_NORMALIZED}/lib/cfg/any/stat/${FILE#/*}`" ]] && cp "`readlink ${GSE_DIR_NORMALIZED}/lib/cfg/any/stat/${FILE#/*}`" "${FILE}"
 		fi
 		echo -e "\n\n***    ------------------------------------------------------------------"
 		echo -e "***     File '${FILE}'"
@@ -418,17 +445,17 @@ if [ "${MODE}" == "recover" ]; then
 		echo -e "***    ------------------------------------------------------------------\n\n"
 
 	# find static file via current working directory
-	elif [ -e "${GSE_DIR_NORMALIZED}/static/${CURRENT_PATH#/*}/${FILE}" ]; then
+	elif [ -e "${GSE_DIR_NORMALIZED}/lib/cfg/any/stat/${CURRENT_PATH#/*}/${FILE}" ]; then
 		[[ ${FILE} =~ "/" ]] && mkdir -p "${CURRENT_PATH}/${FILE%/*}"
 		rm -f "${CURRENT_PATH}/${FILE}"
 		DEST_FS_TYPE="`df -T "${CURRENT_PATH}" | awk '{print $2}' | tail -n1`"
 
 		if [[ "${DEST_FS_TYPE}" != "vfat" && "${DEST_FS_TYPE}" != "-" ]]; then
-			ln -s "${GSE_DIR_NORMALIZED}/static/${CURRENT_PATH#/*}/${FILE}" "${CURRENT_PATH}/${FILE}"
+			ln -s "${GSE_DIR_NORMALIZED}/lib/cfg/any/stat/${CURRENT_PATH#/*}/${FILE}" "${CURRENT_PATH}/${FILE}"
 		else
 			# vfat does not support symlinks so we just create a copy
-			[ -f "${GSE_DIR_NORMALIZED}/static/${CURRENT_PATH#/*}/${FILE}" ] && cp "${GSE_DIR_NORMALIZED}/static/${CURRENT_PATH#/*}/${FILE}" "${CURRENT_PATH}/${FILE}"
-			[[ -L "${GSE_DIR_NORMALIZED}/static/${CURRENT_PATH#/*}/${FILE}" && -f "`readlink ${GSE_DIR_NORMALIZED}/static/${CURRENT_PATH#/*}/${FILE}`" ]] && cp "`readlink ${GSE_DIR_NORMALIZED}/static/${CURRENT_PATH#/*}/${FILE}`" "${CURRENT_PATH}/${FILE}"
+			[ -f "${GSE_DIR_NORMALIZED}/lib/cfg/any/stat/${CURRENT_PATH#/*}/${FILE}" ] && cp "${GSE_DIR_NORMALIZED}/lib/cfg/any/stat/${CURRENT_PATH#/*}/${FILE}" "${CURRENT_PATH}/${FILE}"
+			[[ -L "${GSE_DIR_NORMALIZED}/lib/cfg/any/stat/${CURRENT_PATH#/*}/${FILE}" && -f "`readlink ${GSE_DIR_NORMALIZED}/lib/cfg/any/stat/${CURRENT_PATH#/*}/${FILE}`" ]] && cp "`readlink ${GSE_DIR_NORMALIZED}/lib/cfg/any/stat/${CURRENT_PATH#/*}/${FILE}`" "${CURRENT_PATH}/${FILE}"
 		fi
 		echo -e "\n\n***    ------------------------------------------------------------------"
 		echo -e "***     File '${CURRENT_PATH}/${FILE}'"
@@ -436,18 +463,18 @@ if [ "${MODE}" == "recover" ]; then
 		echo -e "***    ------------------------------------------------------------------\n\n"
 
 	# find dynamic file via full-qualified path
-	elif [ -e "${GSE_DIR_NORMALIZED}/dynamic/${FILE#/*}" ]; then
+	elif [ -e "${GSE_DIR_NORMALIZED}/lib/cfg/any/dyn/${FILE#/*}" ]; then
 		mkdir -p "${FILE%/*}"
-		cp -df "${GSE_DIR_NORMALIZED}/dynamic/${FILE#/*}" "${FILE}"
+		cp -df "${GSE_DIR_NORMALIZED}/lib/cfg/any/dyn/${FILE#/*}" "${FILE}"
 		echo -e "\n\n***    ------------------------------------------------------------------"
 		echo -e "***     File '${FILE}'"
 		echo -e "***     has been recovered from dynamic GSE data store."
 		echo -e "***    ------------------------------------------------------------------\n\n"
 
 	# find dynamic file via current working directory
-	elif [ -e "${GSE_DIR_NORMALIZED}/dynamic/${CURRENT_PATH#/*}/${FILE}" ]; then
+	elif [ -e "${GSE_DIR_NORMALIZED}/lib/cfg/any/dyn/${CURRENT_PATH#/*}/${FILE}" ]; then
 		[[ ${FILE} =~ "/" ]] && mkdir -p "${CURRENT_PATH}/${FILE%/*}"
-		cp -df "${GSE_DIR_NORMALIZED}/dynamic/${CURRENT_PATH#/*}/${FILE}" "${CURRENT_PATH}/${FILE}"
+		cp -df "${GSE_DIR_NORMALIZED}/lib/cfg/any/dyn/${CURRENT_PATH#/*}/${FILE}" "${CURRENT_PATH}/${FILE}"
 		echo -e "\n\n***    ------------------------------------------------------------------"
 		echo -e "***     File '${CURRENT_PATH}/${FILE}'"
 		echo -e "***     has been recovered from dynamic GSE data store."
