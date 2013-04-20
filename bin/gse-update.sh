@@ -234,7 +234,7 @@ password ${GSE_GIT_PASSWORD}
 	
 	# Revert symlinks for static system files
 	#
-	for _PLATFORM in "${PLATFORM} any"; do
+	for _PLATFORM in ${PLATFORM} any; do
 		# skip if directory for platform does not exist
 		[ ! -d "lib/cfg/${_PLATFORM}" ] && continue;
 
@@ -255,7 +255,7 @@ password ${GSE_GIT_PASSWORD}
 
 	# Remove dynamic configuration files
 	#
-	for _PLATFORM in "${PLATFORM} any"; do
+	for _PLATFORM in ${PLATFORM} any; do
 		# skip if directory for platform does not exist
 		[ ! -d "lib/cfg/${_PLATFORM}" ] && continue;
 
@@ -325,7 +325,7 @@ if [[ "${MODE}" == "init" || "${MODE}" == "self-update" || "${MODE}" == "factory
 
 	# Symlink static system files users should not need to change
 	#
-	for _PLATFORM in "any ${PLATFORM}"; do
+	for _PLATFORM in any ${PLATFORM}; do
 		# skip if directory for platform does not exist
 		[ ! -d "lib/cfg/${_PLATFORM}" ] && continue;
 
@@ -363,7 +363,7 @@ if [[ "${MODE}" == "init" || "${MODE}" == "self-update" || "${MODE}" == "factory
 
 	# Copy dynamic configuration files users may change
 	#
-	for _PLATFORM in "any ${PLATFORM}"; do
+	for _PLATFORM in any ${PLATFORM}; do
 		# skip if directory for platform does not exist
 		[ ! -d "lib/cfg/${_PLATFORM}" ] && continue;
 
