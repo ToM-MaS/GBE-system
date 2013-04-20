@@ -359,11 +359,11 @@ if [[ "${MODE}" == "init" || "${MODE}" == "self-update" || "${MODE}" == "factory
 			DEST_FS_TYPE="`df -T "${GSE_FILE_SYSTEMPATH%/*}" | awk '{print $2}' | tail -n1`"
 
 			if [[ "${DEST_FS_TYPE}" != "vfat" && "${DEST_FS_TYPE}" != "-" ]]; then
-				ln -s "${GSE_DIR_NORMALIZED}/${_FILE}" "${GSE_FILE_SYSTEMPATH}"
+				ln -s "${GSE_DIR_NORMALIZED}/lib/cfg/${_PLATFORM}/${_FILE}" "${GSE_FILE_SYSTEMPATH}"
 			else
 				# vfat does not support symlinks so we just create a copy
-				[ -f "${GSE_DIR_NORMALIZED}/${_FILE}" ] && cp "${GSE_DIR_NORMALIZED}/${_FILE}" "${GSE_FILE_SYSTEMPATH}"
-				[[ -L "${GSE_DIR_NORMALIZED}/${_FILE}" && -f "`readlink ${GSE_DIR_NORMALIZED}/${_FILE}`" ]] && cp "`readlink ${GSE_DIR_NORMALIZED}/${_FILE}`" "${GSE_FILE_SYSTEMPATH}"
+				[ -f "${_FILE}" ] && cp "${_FILE}" "${GSE_FILE_SYSTEMPATH}"
+				[[ -L "${_FILE}" && -f "`readlink ${_FILE}`" ]] && cp "`readlink ${_FILE}`" "${GSE_FILE_SYSTEMPATH}"
 			fi
 		done
 
@@ -402,11 +402,11 @@ if [[ "${MODE}" == "init" || "${MODE}" == "self-update" || "${MODE}" == "factory
 			# Copy file
 			if [[ "${MODE}" == "init" || "${MODE}" == "factory-reset" ]]; then
 				echo -e "** Force installing file '${GSE_FILE_SYSTEMPATH}'"
-				cp -df "${GSE_DIR_NORMALIZED}/${_FILE}" "${GSE_FILE_SYSTEMPATH}"
+				cp -df "${_FILE}" "${GSE_FILE_SYSTEMPATH}"
 			elif [[ -e "${GSE_FILE_SYSTEMPATH}" && -e "${GSE_FILE_SYSTEMPATH}.default-gse" && "${FILE_CHANGE_STATUS}" == "0" ]]; then
-				cp -df "${GSE_DIR_NORMALIZED}/${_FILE}" "${GSE_FILE_SYSTEMPATH}"			
+				cp -df "${_FILE}" "${GSE_FILE_SYSTEMPATH}"			
 			elif [ ! -e "${GSE_FILE_SYSTEMPATH}" ]; then
-				cp -dn "${GSE_DIR_NORMALIZED}/${_FILE}" "${GSE_FILE_SYSTEMPATH}"
+				cp -dn "${_FILE}" "${GSE_FILE_SYSTEMPATH}"
 			fi
 		done
 
