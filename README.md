@@ -19,7 +19,7 @@ Contains operational library files.
 Contains addon package files.
 
 
-#### /lib/cfg/any/lib/cfg/any/dyn
+#### /lib/cfg/any/dyn
 Contains dynamic system configuration files.
 These files will be copied once during initial installation and will not be updated afterwards by the self-update function.
 Users will be able to customize these files but might need to update them manually in case there are important changes.
@@ -32,7 +32,7 @@ These files won't be copied to their destination system folders but symlinked in
 Because of this users won't be able to do any permanent changes to these files (and should not need to do so).
 
 
-#### /lib/cfg/*
+#### /lib/cfg/<PLATFORM>
 For other platforms a file structure similar to the directory "any" can be created. It will be combined with files from any. Overlapping file names in more than one platform need to be avoided. Instead conf.d-like directory structures should be used where an additional configuration file overwrites settings from the prior one.
 
 
