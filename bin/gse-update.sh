@@ -439,67 +439,73 @@ if [ "${MODE}" == "recover" ]; then
 	CURRENT_PATH="`pwd`"
 
 	# find static file via full-qualified path
-	if [ -e "${GSE_DIR_NORMALIZED}/lib/cfg/any/stat/${FILE#/*}" ]; then
-		mkdir -p "${FILE%/*}"
-		rm -f "${FILE}"
-		DEST_FS_TYPE="`df -T "${FILE%/*}" | awk '{print $2}' | tail -n1`"
+	for _PLATFORM in ${PLATFORM} any; do
+		if [ -e "${GSE_DIR_NORMALIZED}/lib/cfg/${PLATFORM}/stat/${FILE#/*}" ]; then
+			mkdir -p "${FILE%/*}"
+			rm -f "${FILE}"
+			DEST_FS_TYPE="`df -T "${FILE%/*}" | awk '{print $2}' | tail -n1`"
 
-		if [[ "${DEST_FS_TYPE}" != "vfat" && "${DEST_FS_TYPE}" != "-" ]]; then
-			ln -s "${GSE_DIR_NORMALIZED}/lib/cfg/any/stat/${FILE#/*}" "${FILE}"
-		else
-			# vfat does not support symlinks so we just create a copy
-			[ -f "${GSE_DIR_NORMALIZED}/lib/cfg/any/stat/${FILE#/*}" ] && cp "${GSE_DIR_NORMALIZED}/lib/cfg/any/stat/${FILE#/*}" "${FILE}"
-			[[ -L "${GSE_DIR_NORMALIZED}/lib/cfg/any/stat/${FILE#/*}" && -f "`readlink ${GSE_DIR_NORMALIZED}/lib/cfg/any/stat/${FILE#/*}`" ]] && cp "`readlink ${GSE_DIR_NORMALIZED}/lib/cfg/any/stat/${FILE#/*}`" "${FILE}"
+			if [[ "${DEST_FS_TYPE}" != "vfat" && "${DEST_FS_TYPE}" != "-" ]]; then
+				ln -s "${GSE_DIR_NORMALIZED}/lib/cfg/${PLATFORM}/stat/${FILE#/*}" "${FILE}"
+			else
+				# vfat does not support symlinks so we just create a copy
+				[ -f "${GSE_DIR_NORMALIZED}/lib/cfg/${PLATFORM}/stat/${FILE#/*}" ] && cp "${GSE_DIR_NORMALIZED}/lib/cfg/${PLATFORM}/stat/${FILE#/*}" "${FILE}"
+				[[ -L "${GSE_DIR_NORMALIZED}/lib/cfg/${PLATFORM}/stat/${FILE#/*}" && -f "`readlink ${GSE_DIR_NORMALIZED}/lib/cfg/${PLATFORM}/stat/${FILE#/*}`" ]] && cp "`readlink ${GSE_DIR_NORMALIZED}/lib/cfg/${PLATFORM}/stat/${FILE#/*}`" "${FILE}"
+			fi
+			echo -e "\n\n***    ------------------------------------------------------------------"
+			echo -e "***     File '${FILE}'"
+			echo -e "***     has been recovered from static GSE data store."
+			echo -e "***    ------------------------------------------------------------------\n\n"
+			break
+
+		# find static file via current working directory
+		elif [ -e "${GSE_DIR_NORMALIZED}/lib/cfg/${PLATFORM}/stat/${CURRENT_PATH#/*}/${FILE}" ]; then
+			[[ ${FILE} =~ "/" ]] && mkdir -p "${CURRENT_PATH}/${FILE%/*}"
+			rm -f "${CURRENT_PATH}/${FILE}"
+			DEST_FS_TYPE="`df -T "${CURRENT_PATH}" | awk '{print $2}' | tail -n1`"
+
+			if [[ "${DEST_FS_TYPE}" != "vfat" && "${DEST_FS_TYPE}" != "-" ]]; then
+				ln -s "${GSE_DIR_NORMALIZED}/lib/cfg/${PLATFORM}/stat/${CURRENT_PATH#/*}/${FILE}" "${CURRENT_PATH}/${FILE}"
+			else
+				# vfat does not support symlinks so we just create a copy
+				[ -f "${GSE_DIR_NORMALIZED}/lib/cfg/${PLATFORM}/stat/${CURRENT_PATH#/*}/${FILE}" ] && cp "${GSE_DIR_NORMALIZED}/lib/cfg/${PLATFORM}/stat/${CURRENT_PATH#/*}/${FILE}" "${CURRENT_PATH}/${FILE}"
+				[[ -L "${GSE_DIR_NORMALIZED}/lib/cfg/${PLATFORM}/stat/${CURRENT_PATH#/*}/${FILE}" && -f "`readlink ${GSE_DIR_NORMALIZED}/lib/cfg/${PLATFORM}/stat/${CURRENT_PATH#/*}/${FILE}`" ]] && cp "`readlink ${GSE_DIR_NORMALIZED}/lib/cfg/${PLATFORM}/stat/${CURRENT_PATH#/*}/${FILE}`" "${CURRENT_PATH}/${FILE}"
+			fi
+			echo -e "\n\n***    ------------------------------------------------------------------"
+			echo -e "***     File '${CURRENT_PATH}/${FILE}'"
+			echo -e "***     has been recovered from static GSE data store."
+			echo -e "***    ------------------------------------------------------------------\n\n"
+			break
+
+		# find dynamic file via full-qualified path
+		elif [ -e "${GSE_DIR_NORMALIZED}/lib/cfg/${PLATFORM}/dyn/${FILE#/*}" ]; then
+			mkdir -p "${FILE%/*}"
+			cp -df "${GSE_DIR_NORMALIZED}/lib/cfg/${PLATFORM}/dyn/${FILE#/*}" "${FILE}"
+			echo -e "\n\n***    ------------------------------------------------------------------"
+			echo -e "***     File '${FILE}'"
+			echo -e "***     has been recovered from dynamic GSE data store."
+			echo -e "***    ------------------------------------------------------------------\n\n"
+			break
+
+		# find dynamic file via current working directory
+		elif [ -e "${GSE_DIR_NORMALIZED}/lib/cfg/${PLATFORM}/dyn/${CURRENT_PATH#/*}/${FILE}" ]; then
+			[[ ${FILE} =~ "/" ]] && mkdir -p "${CURRENT_PATH}/${FILE%/*}"
+			cp -df "${GSE_DIR_NORMALIZED}/lib/cfg/${PLATFORM}/dyn/${CURRENT_PATH#/*}/${FILE}" "${CURRENT_PATH}/${FILE}"
+			echo -e "\n\n***    ------------------------------------------------------------------"
+			echo -e "***     File '${CURRENT_PATH}/${FILE}'"
+			echo -e "***     has been recovered from dynamic GSE data store."
+			echo -e "***    ------------------------------------------------------------------\n\n"
+			break
+
+		# If we can't find the specified file in GSE lib
+		elif [ "${_PLATFORM}" == "any" ]; then
+			echo -e "\n\n***    ------------------------------------------------------------------"
+			echo -e "***     File '${FILE}'"
+			echo -e "***     is not present in the GSE data store and thus cannot be recovered."
+			echo -e "***    ------------------------------------------------------------------\n\n"
+			exit 1
 		fi
-		echo -e "\n\n***    ------------------------------------------------------------------"
-		echo -e "***     File '${FILE}'"
-		echo -e "***     has been recovered from static GSE data store."
-		echo -e "***    ------------------------------------------------------------------\n\n"
-
-	# find static file via current working directory
-	elif [ -e "${GSE_DIR_NORMALIZED}/lib/cfg/any/stat/${CURRENT_PATH#/*}/${FILE}" ]; then
-		[[ ${FILE} =~ "/" ]] && mkdir -p "${CURRENT_PATH}/${FILE%/*}"
-		rm -f "${CURRENT_PATH}/${FILE}"
-		DEST_FS_TYPE="`df -T "${CURRENT_PATH}" | awk '{print $2}' | tail -n1`"
-
-		if [[ "${DEST_FS_TYPE}" != "vfat" && "${DEST_FS_TYPE}" != "-" ]]; then
-			ln -s "${GSE_DIR_NORMALIZED}/lib/cfg/any/stat/${CURRENT_PATH#/*}/${FILE}" "${CURRENT_PATH}/${FILE}"
-		else
-			# vfat does not support symlinks so we just create a copy
-			[ -f "${GSE_DIR_NORMALIZED}/lib/cfg/any/stat/${CURRENT_PATH#/*}/${FILE}" ] && cp "${GSE_DIR_NORMALIZED}/lib/cfg/any/stat/${CURRENT_PATH#/*}/${FILE}" "${CURRENT_PATH}/${FILE}"
-			[[ -L "${GSE_DIR_NORMALIZED}/lib/cfg/any/stat/${CURRENT_PATH#/*}/${FILE}" && -f "`readlink ${GSE_DIR_NORMALIZED}/lib/cfg/any/stat/${CURRENT_PATH#/*}/${FILE}`" ]] && cp "`readlink ${GSE_DIR_NORMALIZED}/lib/cfg/any/stat/${CURRENT_PATH#/*}/${FILE}`" "${CURRENT_PATH}/${FILE}"
-		fi
-		echo -e "\n\n***    ------------------------------------------------------------------"
-		echo -e "***     File '${CURRENT_PATH}/${FILE}'"
-		echo -e "***     has been recovered from static GSE data store."
-		echo -e "***    ------------------------------------------------------------------\n\n"
-
-	# find dynamic file via full-qualified path
-	elif [ -e "${GSE_DIR_NORMALIZED}/lib/cfg/any/dyn/${FILE#/*}" ]; then
-		mkdir -p "${FILE%/*}"
-		cp -df "${GSE_DIR_NORMALIZED}/lib/cfg/any/dyn/${FILE#/*}" "${FILE}"
-		echo -e "\n\n***    ------------------------------------------------------------------"
-		echo -e "***     File '${FILE}'"
-		echo -e "***     has been recovered from dynamic GSE data store."
-		echo -e "***    ------------------------------------------------------------------\n\n"
-
-	# find dynamic file via current working directory
-	elif [ -e "${GSE_DIR_NORMALIZED}/lib/cfg/any/dyn/${CURRENT_PATH#/*}/${FILE}" ]; then
-		[[ ${FILE} =~ "/" ]] && mkdir -p "${CURRENT_PATH}/${FILE%/*}"
-		cp -df "${GSE_DIR_NORMALIZED}/lib/cfg/any/dyn/${CURRENT_PATH#/*}/${FILE}" "${CURRENT_PATH}/${FILE}"
-		echo -e "\n\n***    ------------------------------------------------------------------"
-		echo -e "***     File '${CURRENT_PATH}/${FILE}'"
-		echo -e "***     has been recovered from dynamic GSE data store."
-		echo -e "***    ------------------------------------------------------------------\n\n"
-
-	# If we can't find the specified file in GSE lib
-	else
-		echo -e "\n\n***    ------------------------------------------------------------------"
-		echo -e "***     File '${FILE}'"
-		echo -e "***     is not present in the GSE data store and thus cannot be recovered."
-		echo -e "***    ------------------------------------------------------------------\n\n"
-		exit 1
-	fi
+	done
 fi
 
 # Finalize update or factory reset
