@@ -30,11 +30,6 @@ case "${GSE_ENV}" in
 
 	# Lower debug levels for productive installations
 	production)
-		if [ -e "${GS_DIR_NORMALIZED_LOCAL}/freeswitch/conf/freeswitch.xml" ]; then
-			echo "** Updating FreeSwitch debugging to production level"
-			sed -i "s/<map name=\"all\" value=\"debug,info,notice,warning,err,crit,alert\"\/>/<map name=\"all\" value=\"info,notice,warning,err,crit,alert\"\/>/" "${GS_DIR_NORMALIZED_LOCAL}/freeswitch/conf/freeswitch.xml"
-		fi
-
 		if [ ! -L /etc/apache2/sites-enabled/gemeinschaft ]; then
 			echo "** Updating Apache configuration to production level"
 			a2ensite gemeinschaft
@@ -44,11 +39,6 @@ case "${GSE_ENV}" in
 
 	# Higher debug levels for development installations
 	development)
-		if [ -e "${GS_DIR_NORMALIZED_LOCAL}/freeswitch/conf/freeswitch.xml" ]; then
-			echo "** Updating FreeSwitch debugging to development level"
-			sed -i "s/<map name=\"all\" value=\"info,notice,warning,err,crit,alert\"\/>/<map name=\"all\" value=\"debug,info,notice,warning,err,crit,alert\"\/>/" "${GS_DIR_NORMALIZED_LOCAL}/freeswitch/conf/freeswitch.xml"
-		fi
-
 		if [ ! -L /etc/apache2/sites-enabled/gemeinschaft-development ]; then
 			echo "** Updating Apache configuration to development level"
 			a2ensite gemeinschaft-development

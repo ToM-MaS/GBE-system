@@ -19,11 +19,15 @@ sort_buffer_size = 8M
 wait_timeout = 86400
 skip-external-locking
 
+# Cache queries
+query_cache_limit = 4M
+query_cache_size = 32M
+
 # we don't use MyISAM so the default setting can be very low
-key_buffer_size = 16K
+key_buffer_size = 3M
 
 # InnoDB tuning
-innodb_buffer_pool_size = 32M
+innodb_buffer_pool_size = 16M
 innodb_file_per_table
 
 #FIXME temporal workaround for timezone issues between GS5 call logs and actual local time

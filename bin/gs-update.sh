@@ -18,7 +18,8 @@ fi
 # General settings
 [ -e /etc/gemeinschaft/system.conf ] && source /etc/gemeinschaft/system.conf || echo "FATAL ERROR: Local configuration file in /etc/gemeinschaft/system.conf missing"
 [ -e "${GS_MYSQL_PASSWORD_FILE}" ] && GS_MYSQL_PASSWD="`cat "${GS_MYSQL_PASSWORD_FILE}"`" || echo "FATAL ERROR: GS lost it's database password in ${GS_MYSQL_PASSWORD_FILE}"
-[[ x"${GS_DIR}" == x"" || x"${GS_MYSQL_PASSWD}" == x"" ]] && exit 1
+[ -e /root/.mysql_root_password ] && MYSQL_PASSWD_ROOT="`cat /root/.mysql_root_password`" || echo "FATAL ERROR: root lost it's database password in /root/.mysql_root_password"
+[[ x"${GS_DIR}" == x"" || x"${GS_MYSQL_PASSWD}" == x"" || x"${MYSQL_PASSWD_ROOT}" == x"" ]] && exit 1
 GS_UPDATE_DIR="${GS_DIR}.update"
 
 # General functions
@@ -67,8 +68,6 @@ case "$1" in
 
     	case $yn in
         	Y|y )
-				[ -e /root/.mysql_root_password ] && MYSQL_PASSWD_ROOT="`cat /root/.mysql_root_password`" || exit 1
-				
 				# Do factory reset for Gemeinschaft Systen Environment
 				"${GSE_DIR_NORMALIZED}/bin/gse-update.sh" --force-factory-reset
 
@@ -366,7 +365,11 @@ if [[ "${MODE}" == "init" || "${MODE}" == "update" ]]; then
 	# Load database structure into DB
 	#
 	echo "** Initializing database"
+	# temp. disable InnoDB flush log to improve IO performance
+	mysql -e "set global innodb_flush_log_at_trx_commit = 0;" --user=root --password="${MYSQL_PASSWD_ROOT}"
 	su - ${GSE_USER} -c "cd \"${GS_DIR_NORMALIZED}\"; RAILS_ENV=$RAILS_ENV bundle exec rake db:migrate --trace"
+	# reset InnoDB flush log setting
+	mysql -e "set global innodb_flush_log_at_trx_commit = 1;" --user=root --password="${MYSQL_PASSWD_ROOT}"
 
 	# Generate assets (like CSS)
 	#

@@ -154,6 +154,13 @@ chown -vR ${GSE_USER}.freeswitch "${GS_DIR_LOCAL}/fax"
 chmod -v 0770 "${GS_DIR_LOCAL}/fax" "${GS_DIR_LOCAL}/fax/in" "${GS_DIR_LOCAL}/fax/out"
 chmod -v g+s "${GS_DIR_LOCAL}/fax" "${GS_DIR_LOCAL}/fax/in" "${GS_DIR_LOCAL}/fax/out"
 
+# GS generic media archive files
+GS_MEDIA_FILES="${GS_DIR_LOCAL}/generic_files"
+[ ! -d  "${GS_MEDIA_FILES}" ] && mkdir -p "${GS_MEDIA_FILES}"
+chown -vR "${GSE_USER}".freeswitch "${GS_MEDIA_FILES}"
+chmod -v 0770 "${GS_MEDIA_FILES}"
+chmod -v g+s "${GS_MEDIA_FILES}"
+
 # FreeSwitch variable files
 [ ! -d  "${GS_DIR_LOCAL}/freeswitch/db" ] && mkdir -p "${GS_DIR_LOCAL}/freeswitch/db"
 [ ! -d  "${GS_DIR_LOCAL}/freeswitch/recordings" ] && mkdir -p "${GS_DIR_LOCAL}/freeswitch/recordings"
