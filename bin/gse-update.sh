@@ -195,7 +195,7 @@ password ${GSE_GIT_PASSWORD}
 		rm -rf "${GSE_UPDATE_DIR}"*
 		echo -e "\n\n***    ------------------------------------------------------------------"
 		# print info for new version but we are unable to update to the next major version.
-		if [ "${GSE_GIT_VERSION%.*}" != "${GSE_GIT_VERSION_MASTER%.*}" ]; then
+		if [[ "${GSE_GIT_VERSION%.*}" != "${GSE_GIT_VERSION_MASTER%.*}" && "${GSE_BRANCH}" == "master" ]]; then
 			RETURNCODE=1
 			echo -e "***     Updating GSE to the next major version ${GSE_GIT_VERSION_MASTER} is not supported"
 			echo -e "***     via this script."
