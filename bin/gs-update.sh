@@ -264,31 +264,36 @@ password ${GS_GIT_PASSWORD}
 
 	rm -rf ~/.netrc
 
-	# Make sure we checkout the latest tagged version in case we are in the master branch, otherwise set HEAD to the latest revision of GS_BRANCH
-	[ "${GS_BRANCH}" == "master" ] && quiet_git checkout "`git for-each-ref --format '%(refname)' refs/tags | cut -d "/" -f 3 | tail -n1`" || quiet_git checkout "${GS_BRANCH}"
+	GS_GIT_VERSION_MASTER="`git for-each-ref --format '%(refname)' refs/tags | cut -d "/" -f 3 | grep "^${GS_VERSION%.*}" | tail -n1`"
 
-	# Check version compatibility, allow auto-update only for minor versions
+	# Make sure we checkout the latest tagged minor version in case we are in the master branch, otherwise set HEAD to the latest revision of GS_BRANCH
+	[ "${GS_BRANCH}" == "master" ] && quiet_git checkout "${GS_GIT_VERSION_MASTER}" || quiet_git checkout "${GS_BRANCH}"
+
+	# Check for available update
 	GS_GIT_VERSION="`git tag --contains HEAD`"
 	GS_REVISION="`git --git-dir="${GS_DIR}/.git" rev-parse HEAD`"
 	GS_GIT_REVISION="`git rev-parse HEAD`"
 	if [[ "${GS_GIT_REVISION}" == "${GS_REVISION}" ]]; then
 		rm -rf "${GS_UPDATE_DIR}"*
 		echo -e "\n\n***    ------------------------------------------------------------------"
-		echo -e "***     Gemeinschaft is already up-to-date, no update needed."
+		# print info for new version but we are unable to update to the next major version.
+		if [[ "${GS_GIT_VERSION%.*}" != "${GS_GIT_VERSION_MASTER%.*}" && "${GS_BRANCH}" == "master" ]]; then
+			RETURNCODE=1
+			echo -e "***     Update to the next major version ${GS_GIT_VERSION} of Gemeinschaft"
+			echo -e "***     is not supported via this script."
+			echo -e "***     Please use backup & restore via web interface."
+		else
+			RETURNCODE=0
+			echo -e "***     Gemeinschaft is already up-to-date, no update needed."
+		fi
 		echo -e "***    ------------------------------------------------------------------\n\n"
-		exit 0
-	elif [[ "${GS_GIT_VERSION:0:3}" == "${GS_VERSION:0:3}" || x"${GS_GIT_VERSION}" == x"" ]]; then
+		exit ${RETURNCODE}
+	else
 		[ "${GS_BRANCH}" != "master" ] && GS_GIT_VERSION="from ${GS_BRANCH} branch"
 		mv "${GS_UPDATE_DIR}.tmp" "${GS_UPDATE_DIR}"
 		echo -e "\n\n***    ------------------------------------------------------------------"
 		echo -e "***     Scheduled update to new Gemeinschaft version ${GS_GIT_VERSION}.\n***     Please reboot the system to start the update process."
 		echo -e "***    ------------------------------------------------------------------\n\n"
-	else
-		rm -rf "${GS_UPDATE_DIR}"*
-		echo -e "\n\n***    ------------------------------------------------------------------"
-		echo -e "***     Update to the next major version ${GS_GIT_VERSION} of Gemeinschaft\n***     is not supported via this script.\n***     Please use backup & restore via web interface."
-		echo -e "***    ------------------------------------------------------------------\n\n"
-		exit 1
 	fi
 fi
 
