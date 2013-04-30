@@ -182,17 +182,28 @@ password ${GSE_GIT_PASSWORD}
 
 	rm -rf ~/.netrc
 
-	# Make sure we checkout the latest tagged version in case we are in the master branch, otherwise set HEAD to the latest revision of GSE_BRANCH
-	[ "${GSE_BRANCH}" == "master" ] && quiet_git checkout "`git for-each-ref --format '%(refname)' refs/tags | cut -d "/" -f 3 | tail -n1`" || quiet_git checkout "${GSE_BRANCH}"
+	GSE_GIT_VERSION_MASTER="`git for-each-ref --format '%(refname)' refs/tags | cut -d "/" -f 3 | grep "^${GSE_VERSION%.*}" | tail -n1`"
 
-	# Check version compatibility, allow auto-update only for minor versions
+	# Make sure we checkout the latest tagged minor version in case we are in the master branch, otherwise set HEAD to the latest revision of GSE_BRANCH
+	[ "${GSE_BRANCH}" == "master" ] && quiet_git checkout "${GSE_GIT_VERSION_MASTER}" || quiet_git checkout "${GSE_BRANCH}"
+
+	# Check for available update
 	GSE_GIT_VERSION="`git tag --contains HEAD`"
 	GSE_REVISION="`git --git-dir="${GSE_DIR}/.git" rev-parse HEAD`"
 	GSE_GIT_REVISION="`git rev-parse HEAD`"
 	if [[ "${GSE_GIT_REVISION}" == "${GSE_REVISION}" ]]; then
 		rm -rf "${GSE_UPDATE_DIR}"*
 		echo -e "\n\n***    ------------------------------------------------------------------"
-		echo -e "***     System Environment is already up-to-date, no update needed."
+		# print info for new version but we are unable to update to the next major version.
+		if [ "${GSE_GIT_VERSION%.*}" != "${GSE_GIT_VERSION_MASTER%.*}" ]; then
+			RETURNCODE=1
+			echo -e "***     Updating GSE to the next major version ${GSE_GIT_VERSION_MASTER} is not supported"
+			echo -e "***     via this script."
+			echo -e "***     Please use backup & restore via web interface."
+		else
+			RETURNCODE=0
+			echo -e "***     System Environment is already up-to-date, no update needed."
+		fi
 		echo -e "***    ------------------------------------------------------------------\n\n"
 
 		# Display available updates for system add-ons
@@ -200,27 +211,13 @@ password ${GSE_GIT_PASSWORD}
 		cd ~
 		"${GSE_DIR_NORMALIZED}/bin/gs-addon.sh" update-check scriptmode
 
-		exit 0
-	elif [[ "${GSE_GIT_VERSION:0:3}" == "${GSE_VERSION:0:3}" || x"${GSE_GIT_VERSION}" == x"" ]]; then
+		exit ${RETURNCODE}
+	else
 		[ "${GSE_BRANCH}" != "master" ] && GSE_GIT_VERSION="from ${GSE_BRANCH} branch"
 		mv "${GSE_UPDATE_DIR}.tmp" "${GSE_UPDATE_DIR}"
 		echo -e "\n\n***    ------------------------------------------------------------------"
 		echo -e "***     Updating System Environment to new version ${GSE_GIT_VERSION}"
 		echo -e "***    ------------------------------------------------------------------\n\n"
-	else
-		rm -rf "${GSE_UPDATE_DIR}"*
-		echo -e "\n\n***    ------------------------------------------------------------------"
-		echo -e "***     Updating GSE to the next major version ${GSE_GIT_VERSION} is not supported"
-		echo -e "***     via this script."
-		echo -e "***     Please use backup & restore via web interface."
-		echo -e "***    ------------------------------------------------------------------\n\n"
-
-		# Display available updates for system add-ons
-		#
-		cd ~
-		"${GSE_DIR_NORMALIZED}/bin/gs-addon.sh" update-check scriptmode
-
-		exit 1
 	fi
 
 	# Uninstall
