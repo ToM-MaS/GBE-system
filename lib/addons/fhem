@@ -31,10 +31,9 @@ case "$1" in
 		cd - 2>&1>/dev/null
 				
 		# update FHEM config
-		FHEM_STATUS="`grep "fhemphone" /opt/fhem/fhem.cfg`"
+		FHEM_STATUS="`grep "fhem-gemeinschaft.cfg" /opt/fhem/fhem.cfg`"
 		if [ "${FHEM_STATUS}" == "" ]; then
-			echo "attr WEBphone webname fhemphone" >> /opt/fhem/fhem.cfg
-			echo "attr WEBtablet webname fhemtablet" >> /opt/fhem/fhem.cfg
+			echo "include /etc/opt/fhem/fhem-gemeinschaft.cfg" >> /opt/fhem/fhem.cfg
 			service fhem stop && service fhem start
 		fi
 		;;
