@@ -421,6 +421,12 @@ if [[ "${MODE}" == "init" || "${MODE}" == "self-update" || "${MODE}" == "factory
 	"${GSE_DIR_NORMALIZED}/bin/gs-change-state.sh" >/dev/null
 	set -e
 
+	# Enforce correct file permissions
+	#
+	set +e
+	"${GSE_DIR_NORMALIZED}/bin/gs-enforce-security.sh" | grep -Ev retained | grep -Ev "no changes" | grep -Ev "nor referent has been changed"
+	set -e
+
 	cd - 2>&1 >/dev/null
 fi
 
@@ -508,12 +514,6 @@ fi
 # Finalize update or factory reset
 #
 if [[ "${MODE}" == "self-update" || "${MODE}" == "factory-reset" ]]; then
-	# Enforce correct file permissions
-	#
-	set +e
-	"${GSE_DIR_NORMALIZED}/bin/gs-enforce-security.sh" | grep -Ev retained | grep -Ev "no changes" | grep -Ev "nor referent has been changed"
-	set -e
-
 	# Read GSE version from Git repo
 	#
 	cd "${GSE_DIR_NORMALIZED}"
