@@ -28,10 +28,18 @@ case "$1" in
 		fi
 		rm -rf fhem-${GSE_ADDON_VERSION}.deb
 		cd - 2>&1>/dev/null
+		
+		# update FHEM config
+		FHEM_STATUS="`grep "fhemphone" /opt/fhem/fhem.cfg`"
+		if [ "${FHEM_STATUS}" == "" ]; then
+			echo "attr WEBphone webname fhemphone" >> /opt/fhem/fhem.cfg
+			echo "attr WEBtablet webname fhemtablet" >> /opt/fhem/fhem.cfg
+			service fhem stop && service fhem start
+		fi
 
 		# update firewall
 		FW_STATUS="`grep "# FHEM" /etc/shorewall/rules`"
-		if [ ${FW_STATUS} == "" ]; then
+		if [ "${FW_STATUS}" == "" ]; then
 			echo -e "\n# FHEM" >> /etc/shorewall/rules
 			echo "ACCEPT all \$FW tcp 8083:8085,7072" >> /etc/shorewall/rules
 			service shorewall refresh
