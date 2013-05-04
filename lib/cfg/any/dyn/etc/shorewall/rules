@@ -38,6 +38,9 @@ SECTION NEW
 HTTP(ACCEPT) all $FW
 HTTPS(ACCEPT) all $FW
 
+# FHEM
+ACCEPT all $FW tcp 7072
+
 # Allow mDNS
 #mDNS(ACCEPT) all $FW
 
