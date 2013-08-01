@@ -2,7 +2,7 @@
 
 This repository hosts all system environment scripts for Gemeinschaft PBX.
 
-### Installation / Prerequesites
+### Installation / Prerequisites
 More to come.
 
 ### Directory structure
@@ -16,7 +16,7 @@ Contains operational library files.
 
 
 #### /lib/addons
-Contains addon package files.
+Contains add-on package files.
 
 
 #### /lib/cfg/any/dyn

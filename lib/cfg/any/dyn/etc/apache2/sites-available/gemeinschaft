@@ -15,7 +15,7 @@ SetEnvIf X-Forwarded-For "^.*:.*:.*" forwarded
 	PassengerPoolIdleTime 0
 	PassengerStatThrottleRate 30
 	PassengerLogLevel 0
-	RailsFrameworkSpawnerIdleTime 0
+	PassengerMaxPreloaderIdleTime 0
 	RailsAppSpawnerIdleTime 0
 	PassengerUserSwitching on
 	PassengerFriendlyErrorPages off

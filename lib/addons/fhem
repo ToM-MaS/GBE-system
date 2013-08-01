@@ -18,7 +18,7 @@ GSE_ADDON_VERSION="5.4"
 case "$1" in
 	install)
 		aptitude -q2 update
-		aptitude -yy -q2 install perl libdevice-serialport-perl libio-socket-ssl-perl libwww-perl
+		aptitude -yy -q2 install perl libdevice-serialport-perl libio-socket-ssl-perl libwww-perl libnet-snmp-perl
 		cd /usr/local/src
 		curl --retry 5 --retry-delay 3 -O "http://fhem.de/fhem-${GSE_ADDON_VERSION}.deb"
 		dpkg -i fhem-${GSE_ADDON_VERSION}.deb
